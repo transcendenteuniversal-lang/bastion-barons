@@ -9,7 +9,7 @@
 - **Ícone do app:** em todos os tamanhos do Android.
 
 ## Tropas animadas
-`tools/extract-units.py` lê os vídeos de 6 s (fundo verde ou magenta), remove o fundo e monta `web/img/units/<id>.webp` (linha 1 = andar, linha 2 = ataque), com as medidas em `web/js/sprites.js`. Os vídeos numerados seguem a ordem dos prompts (001 = Cavaleiro Real … 026 = Esqueleto). Cópias comprimidas ficam em `art/source/units/`.
+`tools/extract-units.py` lê os vídeos de 6 s (fundo verde ou magenta), remove o fundo e monta `web/img/units/<id>.webp` (linha 1 = andar, linha 2 = ataque), com as medidas em `web/js/sprites.js`. Os vídeos numerados seguem a ordem dos prompts: lote 1 (001 = Cavaleiro Real … 026 = Esqueleto) e lote 2, com "Clean-simple" no nome do arquivo (001 = Clériga … 008 = Eldrin, 009–016 = feitiços, 017–019 = poderes de castelo). Os Barões ficam animados na sacada (parados e usando o poder). Feitiços e poderes viram animações de efeito (`BB.FX`). Cópias comprimidas ficam em `art/source/units/`.
 
 ## Provisórios (substituir quando houver arte própria)
 | Item | Hoje | Como substituir |

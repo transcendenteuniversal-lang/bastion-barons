@@ -1,4 +1,5 @@
-// Animações das tropas (gerado por tools/extract-units.py). Linha 1 = andar, linha 2 = ataque.
+// Animações (gerado por tools/extract-units.py).
+// SPRITES: linha 1 = andar (Barões: parado), linha 2 = ataque (Barões: poder). FX: uma linha de quadros.
 window.BB = window.BB || {};
 BB.SPRITES = {
  "arcane_mage": {
@@ -13,19 +14,55 @@ BB.SPRITES = {
  "barbarian": {
   "attack": 18,
   "ax": 75.6,
-  "ay": 132.5,
+  "ay": 132.6,
   "body": 128,
   "h": 135,
   "w": 171,
   "walk": 16
  },
+ "dwarf_engineer": {
+  "attack": 18,
+  "ax": 67.0,
+  "ay": 131.0,
+  "body": 128,
+  "h": 139,
+  "w": 215,
+  "walk": 16
+ },
+ "dwarf_turret": {
+  "attack": 18,
+  "ax": 77.8,
+  "ay": 129.1,
+  "body": 128,
+  "h": 131,
+  "w": 266,
+  "walk": 16
+ },
  "dwarf_warrior": {
   "attack": 18,
-  "ax": 67.6,
+  "ax": 67.4,
   "ay": 130.8,
   "body": 128,
   "h": 138,
   "w": 173,
+  "walk": 16
+ },
+ "elara": {
+  "attack": 18,
+  "ax": 64.5,
+  "ay": 143.0,
+  "body": 128,
+  "h": 147,
+  "w": 221,
+  "walk": 16
+ },
+ "eldrin": {
+  "attack": 18,
+  "ax": 46.4,
+  "ay": 145.4,
+  "body": 128,
+  "h": 147,
+  "w": 219,
   "walk": 16
  },
  "elven_archer": {
@@ -39,7 +76,7 @@ BB.SPRITES = {
  },
  "fire_dragon": {
   "attack": 18,
-  "ax": 149.2,
+  "ax": 149.3,
   "ay": 159.7,
   "body": 128,
   "h": 175,
@@ -48,17 +85,17 @@ BB.SPRITES = {
  },
  "goblin_gunner": {
   "attack": 18,
-  "ax": 66.9,
-  "ay": 133.0,
+  "ax": 67.0,
+  "ay": 133.4,
   "body": 128,
-  "h": 134,
+  "h": 135,
   "w": 201,
   "walk": 16
  },
  "guardian_ent": {
   "attack": 18,
-  "ax": 68.9,
-  "ay": 128.5,
+  "ax": 69.0,
+  "ay": 128.7,
   "body": 128,
   "h": 130,
   "w": 148,
@@ -67,34 +104,43 @@ BB.SPRITES = {
  "ice_dragon": {
   "attack": 18,
   "ax": 107.7,
-  "ay": 136.8,
+  "ay": 136.3,
   "body": 128,
-  "h": 144,
+  "h": 143,
   "w": 271,
   "walk": 16
  },
  "infernal_demon": {
   "attack": 18,
-  "ax": 54.0,
+  "ax": 53.7,
   "ay": 128.3,
   "body": 128,
   "h": 135,
   "w": 183,
   "walk": 16
  },
+ "malachar": {
+  "attack": 18,
+  "ax": 68.0,
+  "ay": 129.3,
+  "body": 128,
+  "h": 131,
+  "w": 274,
+  "walk": 16
+ },
  "mountain_troll": {
   "attack": 18,
-  "ax": 79.9,
-  "ay": 139.7,
+  "ax": 80.3,
+  "ay": 140.4,
   "body": 128,
-  "h": 151,
-  "w": 227,
+  "h": 150,
+  "w": 231,
   "walk": 16
  },
  "necromancer": {
   "attack": 18,
-  "ax": 95.7,
-  "ay": 136.8,
+  "ax": 95.1,
+  "ay": 136.4,
   "body": 128,
   "h": 141,
   "w": 230,
@@ -102,7 +148,7 @@ BB.SPRITES = {
  },
  "paladin": {
   "attack": 18,
-  "ax": 74.6,
+  "ax": 74.3,
   "ay": 130.7,
   "body": 128,
   "h": 136,
@@ -111,38 +157,56 @@ BB.SPRITES = {
  },
  "phoenix": {
   "attack": 18,
-  "ax": 129.8,
-  "ay": 151.2,
+  "ax": 130.2,
+  "ay": 151.8,
   "body": 128,
   "h": 161,
-  "w": 279,
+  "w": 280,
   "walk": 16
  },
  "red_orc": {
   "attack": 18,
   "ax": 88.3,
-  "ay": 132.2,
+  "ay": 132.3,
   "body": 128,
   "h": 137,
   "w": 186,
   "walk": 16
  },
+ "rei_bastion": {
+  "attack": 18,
+  "ax": 71.3,
+  "ay": 142.7,
+  "body": 128,
+  "h": 159,
+  "w": 160,
+  "walk": 16
+ },
  "royal_archer": {
   "attack": 18,
   "ax": 56.8,
-  "ay": 135.1,
+  "ay": 135.0,
   "body": 128,
   "h": 137,
   "w": 196,
   "walk": 16
  },
+ "royal_cleric": {
+  "attack": 18,
+  "ax": 50.7,
+  "ay": 142.7,
+  "body": 128,
+  "h": 151,
+  "w": 236,
+  "walk": 16
+ },
  "royal_griffin": {
   "attack": 18,
-  "ax": 89.1,
+  "ax": 89.2,
   "ay": 155.7,
   "body": 128,
   "h": 172,
-  "w": 224,
+  "w": 223,
   "walk": 16
  },
  "royal_knight": {
@@ -156,10 +220,10 @@ BB.SPRITES = {
  },
  "royal_lancer": {
   "attack": 18,
-  "ax": 75.4,
-  "ay": 129.9,
+  "ax": 75.2,
+  "ay": 130.2,
   "body": 128,
-  "h": 131,
+  "h": 132,
   "w": 196,
   "walk": 16
  },
@@ -183,7 +247,7 @@ BB.SPRITES = {
  },
  "skeleton": {
   "attack": 18,
-  "ax": 70.7,
+  "ax": 70.6,
   "ay": 134.0,
   "body": 128,
   "h": 137,
@@ -201,11 +265,77 @@ BB.SPRITES = {
  },
  "stone_guardian": {
   "attack": 18,
-  "ax": 98.3,
-  "ay": 131.3,
+  "ax": 98.5,
+  "ay": 131.4,
   "body": 128,
   "h": 138,
-  "w": 215,
+  "w": 216,
   "walk": 16
+ },
+ "thorg": {
+  "attack": 18,
+  "ax": 76.6,
+  "ay": 139.1,
+  "body": 128,
+  "h": 144,
+  "w": 236,
+  "walk": 16
+ }
+};
+BB.FX = {
+ "fx_arcane_shield": {
+  "h": 240,
+  "n": 20,
+  "w": 239
+ },
+ "fx_arrow_rain": {
+  "h": 240,
+  "n": 20,
+  "w": 317
+ },
+ "fx_divine_heal": {
+  "h": 240,
+  "n": 20,
+  "w": 369
+ },
+ "fx_dragon_breath": {
+  "h": 240,
+  "n": 20,
+  "w": 475
+ },
+ "fx_fireball": {
+  "h": 240,
+  "n": 20,
+  "w": 280
+ },
+ "fx_freeze": {
+  "h": 240,
+  "n": 20,
+  "w": 368
+ },
+ "fx_ice_storm": {
+  "h": 168,
+  "n": 20,
+  "w": 560
+ },
+ "fx_imperial_shield": {
+  "h": 240,
+  "n": 20,
+  "w": 285
+ },
+ "fx_lightning": {
+  "h": 240,
+  "n": 20,
+  "w": 204
+ },
+ "fx_poison": {
+  "h": 240,
+  "n": 20,
+  "w": 417
+ },
+ "fx_skeleton_summon": {
+  "h": 240,
+  "n": 20,
+  "w": 341
  }
 };

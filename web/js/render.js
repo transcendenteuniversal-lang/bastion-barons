@@ -29,7 +29,7 @@
     constructor(canvas) {
       this.cv = canvas; this.g = canvas.getContext('2d');
       this.views = new Map(); this.ghosts = []; this.fx = []; this.texts = [];
-      this.shake = 0; this.castleHit = [0, 0]; this.baronCast = [0, 0]; this.collapse = [0, 0]; this.t = 0;
+      this.shake = 0; this.castleHit = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.collapse = [0, 0]; this.t = 0; this.lastDt = 0;
       this.arena = BB.art.image('img/arena.webp');
       this.resize();
     }
@@ -87,13 +87,22 @@
         case 'Heal': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y - v.lift, r: v.r * 1.4, t: 0, d: 0.35, c: '#7cff8a' }); break;
         case 'SpellCast': {
           const c = SPELL_COLOR[e.id] || '#f7c548';
-          if (!e.radius) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.6, c });
-          else this.fx.push({ k: 'burst', x: this.laneX(m, e.x, e.lane), y: ARENA.lanes[e.lane].y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.55, c });
+          const l = ARENA.lanes[e.lane], lh = l.y1 - l.y0, sx = this.laneX(m, e.x, e.lane);
+          const SPELL_FX = { // posição e tamanho de cada efeito animado
+            fireball: { x: sx, h: lh * 2.4, d: 0.9 }, freeze: { x: sx, h: lh * 1.9, d: 1.1 }, poison: { x: sx, h: lh * 1.9, d: 1.3 },
+            divine_heal: { x: sx, h: lh * 2.2, d: 1.2 }, arcane_shield: { x: sx, h: lh * 2.0, d: 1.2 },
+            lightning: { x: sx, h: lh * 2.6, d: 1.0 }, arrow_rain: { x: (l.xL + l.xR) / 2, w: (l.xR - l.xL) * 0.75, d: 1.2 },
+            skeleton_summon: { x: sx, h: lh * 1.3, d: 0.8 },
+          };
+          const anim = SPELL_FX[e.id];
+          if (anim && this.fxSheet('fx_' + e.id)) this.fx.push(Object.assign({ k: 'anim', key: 'fx_' + e.id, y: l.y1 - lh * 0.15, t: 0 }, anim));
+          else if (!e.radius) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.6, c });
+          else this.fx.push({ k: 'burst', x: sx, y: l.y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.55, c });
           if (e.id === 'fireball') this.shake = 0.25;
           break;
         }
         case 'BaronUsed': {
-          this.baronCast[e.player] = 1;
+          this.baronCast[e.player] = 1; this.baronAnim[e.player] = 0;
           const c = e.player === 0 ? '#ffd966' : '#ff9a6a';
           if (e.lane >= 0) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.9, c });
           else for (let l = 0; l < 3; l++) this.fx.push({ k: 'lane', lane: l, t: 0, d: 0.9, c });
@@ -101,7 +110,19 @@
         }
         case 'CastleUsed': {
           const c = e.id === 'draconic_castle' ? '#ff6a1e' : e.id === 'glacial_fortress' ? '#9fe6ff' : '#8fe3ff';
-          if (e.lane >= 0) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.9, c });
+          const key = { royal_fortress: 'fx_imperial_shield', draconic_castle: 'fx_dragon_breath', glacial_fortress: 'fx_ice_storm' }[e.id];
+          const castle = ARENA.castle[e.player];
+          if (key && this.fxSheet(key)) {
+            if (e.lane < 0) this.fx.push({ k: 'anim', key, x: (castle.x0 + castle.x1) / 2, y: castle.y1 - 20, h: 420, t: 0, d: 1.6 });
+            else {
+              const l = ARENA.lanes[e.lane], lh = l.y1 - l.y0, meta = BB.FX[key];
+              if (key === 'fx_dragon_breath') { // cabeça de dragão na borda do castelo, fogo atravessando a rota
+                const h = lh * 1.9, w = meta.w * (h / meta.h);
+                const x = e.player === 0 ? l.xL - 70 + w / 2 : l.xR + 70 - w / 2;
+                this.fx.push({ k: 'anim', key, x, y: l.y1 - lh * 0.05, h, t: 0, d: 1.4, flip: e.player === 1 });
+              } else this.fx.push({ k: 'anim', key, x: (l.xL + l.xR) / 2, y: l.y1 - lh * 0.1, w: (l.xR - l.xL) * 0.95, t: 0, d: 1.4, flip: e.player === 1 });
+            }
+          } else if (e.lane >= 0) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.9, c });
           break;
         }
         case 'CastleDamaged': {
@@ -122,7 +143,7 @@
 
     // ------------------------------------------------------------ quadro
     draw(m, dt, ui) {
-      this.t += dt;
+      this.t += dt; this.lastDt = dt;
       const g = this.g;
       g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
       // fundo: sobras laterais/verticais com a arte esticada e desfocada
@@ -197,9 +218,35 @@
     }
 
     // O Barão fica no castelo comandando: não pode ser atacado
+    fxSheet(key) {
+      if (!BB.FX || !BB.FX[key]) return null;
+      const im = BB.art.image('img/units/' + key + '.webp');
+      return im.complete && im.naturalWidth ? im : null;
+    }
+
     drawBaron(m, owner) {
       const g = this.g, p = m.players[owner], b = ARENA.baron[owner];
       const win = m.over && m.winner === owner, lose = m.over && m.winner === 1 - owner;
+      const sp = BB.SPRITES && BB.SPRITES[p.baron.id];
+      const sheet = sp ? BB.art.image('img/units/' + p.baron.id + '.webp') : null;
+      if (sheet && sheet.complete && sheet.naturalWidth) {
+        // de pé na sacada: parado em loop; ao usar o poder, toca a animação do poder
+        const foot = b.y + 54 - (win ? Math.abs(Math.sin(this.t * 7)) * 14 : 0);
+        if (m.baronReady(p) && !m.over) {
+          g.fillStyle = 'rgba(255,215,100,' + (0.35 + 0.3 * Math.sin(this.t * 6)) + ')';
+          g.beginPath(); g.ellipse(b.x, foot, 62, 16, 0, 0, TAU); g.fill();
+        }
+        let row = 0, fr = Math.floor(this.t * 8 + owner * 5) % sp.walk;
+        const at = this.baronAnim[owner];
+        if (at >= 0 && at < 1.8) { row = 1; fr = Math.min(sp.attack - 1, Math.floor((at / 1.8) * sp.attack)); }
+        if (at >= 0) this.baronAnim[owner] = at + this.lastDt;
+        const s = 118 / sp.body;
+        g.save(); g.translate(b.x, foot); if (owner === 1) g.scale(-1, 1);
+        if (lose) g.filter = 'grayscale(1) brightness(.8)';
+        g.drawImage(sheet, fr * sp.w, row * sp.h, sp.w, sp.h, -sp.ax * s, -sp.ay * s, sp.w * s, sp.h * s);
+        g.restore();
+        return;
+      }
       const y = b.y + Math.sin(this.t * 2 + owner) * 4 - (win ? Math.abs(Math.sin(this.t * 7)) * 18 : 0) + (lose ? 10 : 0);
       const cast = this.baronCast[owner], r = b.r * (1 + cast * 0.35);
       if (m.baronReady(p) && !m.over) {
@@ -338,6 +385,14 @@
         } else if (f.k === 'burst') {
           g.globalAlpha = 1 - k; g.fillStyle = f.c; g.beginPath(); g.ellipse(f.x, f.y, f.r * (0.4 + k * 0.8), f.r * (0.25 + k * 0.45), 0, 0, TAU); g.fill();
           g.strokeStyle = '#fff'; g.lineWidth = 4; g.stroke(); g.globalAlpha = 1;
+        } else if (f.k === 'anim') {
+          const meta = BB.FX[f.key], sheet = this.fxSheet(f.key);
+          if (!sheet) continue;
+          const fr = Math.min(meta.n - 1, Math.floor(k * meta.n));
+          const sc = f.w ? f.w / meta.w : f.h / meta.h, w = meta.w * sc, h = meta.h * sc;
+          g.save(); g.translate(f.x, f.y); if (f.flip) g.scale(-1, 1);
+          g.drawImage(sheet, fr * meta.w, 0, meta.w, meta.h, -w / 2, -h, w, h);
+          g.restore();
         } else if (f.k === 'lane') {
           const l = ARENA.lanes[f.lane];
           g.globalAlpha = 0.55 * Math.sin(k * Math.PI); g.fillStyle = f.c;
@@ -354,7 +409,7 @@
       g.globalAlpha = 1;
     }
 
-    reset() { this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.castleHit = [0, 0]; }
+    reset() { this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.castleHit = [0, 0]; }
   }
 
   function medallion(g, img, x, y, r, ring, lw, flip) {

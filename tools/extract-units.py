@@ -26,7 +26,16 @@ ORDER = ['royal_knight', 'paladin', 'barbarian', 'red_orc', 'shadow_assassin', '
          'dwarf_turret', 'skeleton', 'rei_bastion', 'elara', 'malachar', 'thorg', 'eldrin',
          'fx_fireball', 'fx_freeze', 'fx_divine_heal', 'fx_lightning', 'fx_arcane_shield', 'fx_poison', 'fx_arrow_rain', 'fx_skeleton_summon',
          'fx_imperial_shield', 'fx_dragon_breath', 'fx_ice_storm']
-UNITS = set(ORDER[:26])  # tropas e invocações (andar + atacar)
+# Segundo lote ("Clean-simple ..." no nome do arquivo): a numeração recomeça em 001 nesta ordem
+ORDER2 = ['royal_cleric', 'dwarf_engineer', 'dwarf_turret', 'rei_bastion', 'elara', 'malachar', 'thorg', 'eldrin',
+          'fx_fireball', 'fx_freeze', 'fx_divine_heal', 'fx_lightning', 'fx_arcane_shield', 'fx_poison', 'fx_arrow_rain', 'fx_skeleton_summon',
+          'fx_imperial_shield', 'fx_dragon_breath', 'fx_ice_storm']
+BARONS = {'rei_bastion', 'elara', 'malachar', 'thorg', 'eldrin'}
+UNITS = set(ORDER[:26]) | BARONS  # tropas, invocações e Barões (linha 1 = andar/parado, linha 2 = ataque/poder)
+# trechos do vídeo (frações) usados em cada linha; padrão: andar 0–50%, atacar 50–100%
+SEG = {'dwarf_turret': ((0.2, 0.33), (0.33, 1.0))}
+for _b in BARONS:
+    SEG[_b] = ((0.0, 0.33), (0.33, 1.0))  # Barões: parado na sacada, depois o poder
 
 BODY = 128          # altura do corpo parado nos quadros salvos (px)
 WALK_N, ATK_N = 16, 18
@@ -46,7 +55,10 @@ def import_videos(paths):
         n = int(m.group(1))
         if not 1 <= n <= len(ORDER):
             print('número fora da lista:', p); continue
-        uid = ORDER[n - 1]
+        order = ORDER2 if 'clean' in os.path.basename(p).lower() else ORDER
+        if n > len(order):
+            print('número fora da lista:', p); continue
+        uid = order[n - 1]
         dst = os.path.join(SRC, uid + '.mp4')
         # cópia reduzida (720p, boa qualidade) para manter o repositório leve
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', p, '-an', '-c:v', 'libx264', '-crf', '30', '-preset', 'slow', '-pix_fmt', 'yuv420p', dst], check=True)
@@ -101,9 +113,9 @@ def extract(uid):
     video = os.path.join(SRC, uid + '.mp4')
     files = frames_of(video)
     n = len(files)
-    cut = int(n * SPLIT)
-    walk_idx = np.linspace(2, cut - 1, WALK_N).round().astype(int)
-    atk_idx = np.linspace(cut, n - 2, ATK_N).round().astype(int)
+    (w0, w1), (a0, a1) = SEG.get(uid, ((0.0, SPLIT), (SPLIT, 1.0)))
+    walk_idx = np.linspace(max(2, int(n * w0)), int(n * w1) - 1, WALK_N).round().astype(int)
+    atk_idx = np.linspace(int(n * a0), min(n - 2, int(n * a1) - 1), ATK_N).round().astype(int)
     load = lambda i: clean(key(np.asarray(Image.open(files[i]).convert('RGB'))), MINFRAC.get(uid, 0.015))
     walk = [load(i) for i in walk_idx]
     atk = [load(i) for i in atk_idx]
@@ -133,21 +145,61 @@ def extract(uid):
     return meta
 
 
+# Efeitos (feitiços e poderes de castelo): uma linha de quadros com o trecho útil do vídeo
+FX_N = 20
+FX_MAXH, FX_MAXW = 240, 560
+FX_SEG = {'fx_fireball': (0.3, 1.0), 'fx_lightning': (0.0, 0.9), 'fx_skeleton_summon': (0.0, 0.45)}
+
+
+def extract_fx(fid):
+    files = frames_of(os.path.join(SRC, fid + '.mp4'))
+    n = len(files)
+    a, b = FX_SEG.get(fid, (0.0, 1.0))
+    idx = np.linspace(max(1, int(n * a)), min(n - 2, int(n * b) - 1), FX_N).round().astype(int)
+    frames = [clean(key(np.asarray(Image.open(files[i]).convert('RGB'))), 0.004) for i in idx]
+    bs = [bbox(f[..., 3]) for f in frames]
+    bs = [x for x in bs if x]
+    x0, y0 = max(0, min(x[0] for x in bs) - 4), max(0, min(x[1] for x in bs) - 4)
+    x1, y1 = max(x[2] for x in bs) + 4, max(x[3] for x in bs) + 4
+    s = min(FX_MAXH / (y1 - y0), FX_MAXW / (x1 - x0), 1.0)
+    w, h = max(1, round((x1 - x0) * s)), max(1, round((y1 - y0) * s))
+    sheet = Image.new('RGBA', (w * FX_N, h), (0, 0, 0, 0))
+    for i, f in enumerate(frames):
+        sheet.paste(Image.fromarray(f[y0:y1, x0:x1]).resize((w, h), Image.LANCZOS), (i * w, 0))
+    sheet.save(os.path.join(OUT, fid + '.webp'), 'WEBP', quality=80, method=6)
+    print(f'{fid}: quadro {w}x{h}, {os.path.getsize(os.path.join(OUT, fid + ".webp")) // 1024} KB')
+    return {'w': w, 'h': h, 'n': FX_N}
+
+
+def read_js(name):
+    if not os.path.exists(META):
+        return {}
+    txt = open(META).read()
+    tag = 'BB.' + name + ' = '
+    if tag not in txt:
+        return {}
+    start = txt.index(tag) + len(tag)
+    return json.JSONDecoder().raw_decode(txt[start:])[0]
+
+
 def main():
     args = sys.argv[1:]
     if args and args[0] == '--import':
         import_videos(args[1:])
         args = []
-    meta = {}
-    if os.path.exists(META):
-        txt = open(META).read()
-        meta = json.loads(txt[txt.index('BB.SPRITES = ') + 13:txt.rindex('}') + 1])
-    ids = args or sorted(f[:-4] for f in os.listdir(SRC) if f.endswith('.mp4') and f[:-4] in UNITS)
+    meta, fx = read_js('SPRITES'), read_js('FX')
+    vids = sorted(f[:-4] for f in os.listdir(SRC) if f.endswith('.mp4'))
+    ids = args or vids
     for uid in ids:
-        meta[uid] = extract(uid)
+        if uid in UNITS:
+            meta[uid] = extract(uid)
+        elif uid.startswith('fx_'):
+            fx[uid] = extract_fx(uid)
     with open(META, 'w') as fh:
-        fh.write('// Animações das tropas (gerado por tools/extract-units.py). Linha 1 = andar, linha 2 = ataque.\n')
+        fh.write('// Animações (gerado por tools/extract-units.py).\n')
+        fh.write('// SPRITES: linha 1 = andar (Barões: parado), linha 2 = ataque (Barões: poder). FX: uma linha de quadros.\n')
         fh.write('window.BB = window.BB || {};\nBB.SPRITES = ' + json.dumps(meta, indent=1, sort_keys=True) + ';\n')
+        fh.write('BB.FX = ' + json.dumps(fx, indent=1, sort_keys=True) + ';\n')
 
 
 if __name__ == '__main__':
