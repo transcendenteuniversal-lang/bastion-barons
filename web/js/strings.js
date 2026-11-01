@@ -252,7 +252,11 @@ BB.STRINGS = {
 "help.ok": "Entendi!",
 "update.title": "Nova versão!",
 "update.go": "Atualizar",
-"update.later": "Depois"
+"update.later": "Depois",
+"battle.wins": "{0} vitórias",
+"battle.card_level": "Cartas nível {0}",
+"battle.offline_short": "Offline",
+"battle.auto": "Auto"
 },
 "en": {
 "app.title": "BASTION BARONS",
@@ -505,6 +509,10 @@ BB.STRINGS = {
 "help.ok": "Got it!",
 "update.title": "New version!",
 "update.go": "Update",
-"update.later": "Later"
+"update.later": "Later",
+"battle.wins": "{0} wins",
+"battle.card_level": "Card level {0}",
+"battle.offline_short": "Offline",
+"battle.auto": "Auto"
 }
 };

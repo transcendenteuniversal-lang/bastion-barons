@@ -24,6 +24,9 @@
     return c.toDataURL('image/png');
   }
 
+  // castelos com arte própria em img/castles/<id>.webp (vazio = usa o castelo desenhado na arena)
+  BB.CASTLE_ART = [];
+
   BB.art = {
     cardUrl(def) {
       if (cache[def.id]) return cache[def.id];

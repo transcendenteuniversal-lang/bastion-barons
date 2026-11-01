@@ -8,13 +8,13 @@
   // Medidas da arena em pixels da imagem (ver art/source/arena.png)
   const ARENA = {
     lanes: [ // centro Y, faixa Y, início/fim X (perspectiva: a rota de baixo é mais larga), escala das tropas
-      { y: 368, y0: 322, y1: 410, xL: 380, xR: 1295, k: 0.86 },
-      { y: 492, y0: 440, y1: 548, xL: 345, xR: 1330, k: 1.0 },
-      { y: 640, y0: 578, y1: 702, xL: 275, xR: 1400, k: 1.16 },
+      { y: 322, y0: 272, y1: 370, xL: 385, xR: 1295, k: 0.88 },
+      { y: 470, y0: 418, y1: 522, xL: 352, xR: 1328, k: 1.0 },
+      { y: 630, y0: 574, y1: 690, xL: 282, xR: 1398, k: 1.12 },
     ],
-    castle: [{ x0: 0, y0: 130, x1: 355, y1: 680, gx: 195, gy: 520 }, { x0: 1317, y0: 130, x1: 1672, y1: 680, gx: 1478, gy: 520 }],
-    // o Barão fica na sacada redonda do castelo
-    baron: [{ x: 232, y: 282, r: 56 }, { x: 1440, y: 282, r: 56 }],
+    castle: [{ x0: 0, y0: 0, x1: 360, y1: 700, gx: 200, gy: 520 }, { x0: 1312, y0: 0, x1: 1672, y1: 700, gx: 1475, gy: 520 }],
+    // o Barão fica na sacada do castelo
+    baron: [{ x: 226, y: 262, r: 56 }, { x: 1446, y: 262, r: 56 }],
     unitR: 46,
   };
   BB.ARENA = ARENA;
@@ -223,6 +223,14 @@
     // Estado do castelo sobre a arte: impacto, escudo, rachaduras, fumaça e destruição
     drawCastleState(m, owner) {
       const g = this.g, p = m.players[owner], c = ARENA.castle[owner];
+      // castelo modular: se houver arte própria (img/castles/<id>.webp, desenhada para o lado esquerdo), ela cobre o castelo da arena
+      if ((BB.CASTLE_ART || []).includes(p.castle.id)) {
+        const im = BB.art.image('img/castles/' + p.castle.id + '.webp');
+        if (im.complete && im.naturalWidth) {
+          g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
+          const cl = ARENA.castle[0]; g.drawImage(im, cl.x0, cl.y0, cl.x1 - cl.x0, cl.y1 - cl.y0); g.restore();
+        }
+      }
       const w = c.x1 - c.x0, h = c.y1 - c.y0, cx = (c.x0 + c.x1) / 2;
       if (this.castleHit[owner] > 0) {
         g.fillStyle = 'rgba(255,90,60,' + this.castleHit[owner] * 1.2 + ')';
@@ -311,7 +319,7 @@
       const base = new Map();
       const alive = m.units.filter((u) => u.hp > 0);
       for (const u of alive) base.set(u.id, this.laneX(m, u.x, u.lane));
-      const bodyW = (u) => 62 * ARENA.lanes[u.lane].k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3) * (u.flying ? 1.3 : 1);
+      const bodyW = (u) => 70 * ARENA.lanes[u.lane].k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3) * (u.flying ? 1.3 : 1);
       const tx = new Map();
       for (const u of alive) {
         let x = base.get(u.id);
@@ -419,7 +427,7 @@
     // Tropa animada (quadros extraídos dos vídeos: linha 0 = andar, linha 1 = ataque; desenhados virados para a direita)
     drawSprite(v, u, sp, sheet, dt, dir) {
       const g = this.g, k = ARENA.lanes[u.lane].k;
-      const bodyPx = (v.fly ? 112 : 124) * k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3);
+      const bodyPx = (v.fly ? 126 : 140) * k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3);
       let scale = v.born < 1 ? 0.3 + 0.7 * easeOutBack(v.born) : 1, alpha = 1;
       if (v.dying >= 0) { scale *= 1 - v.dying / 0.4; alpha = 1 - v.dying / 0.4; }
       const s = (bodyPx / sp.body) * scale;
@@ -447,12 +455,17 @@
       const top = foot - lift + bob - bodyPx * scale;
       if (u.shield > 0) { g.strokeStyle = '#8fe3ff'; g.lineWidth = 4; g.beginPath(); g.ellipse(v.x, top + bodyPx * 0.5, bodyPx * 0.42, bodyPx * 0.58, 0, 0, TAU); g.stroke(); }
       if (u.slow < 1) { g.strokeStyle = '#bfefff'; g.lineWidth = 3; g.setLineDash([7, 5]); g.beginPath(); g.ellipse(v.x, foot, bodyPx * 0.36, bodyPx * 0.11, 0, 0, TAU); g.stroke(); g.setLineDash([]); }
+      // vida e nível: discretos, acima da cabeça
       const pct = Math.max(0, u.hp / u.maxHp);
-      if (v.dying < 0 && (pct < 0.999 || u.shield > 0)) {
-        const bw = bodyPx * 0.6, bh = 8, bx = v.x - bw / 2, by = top - 14;
-        g.fillStyle = 'rgba(0,0,0,.75)'; g.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
+      if (v.dying < 0) {
+        const bw = Math.max(46, bodyPx * 0.42), bh = 6, bx = v.x - bw / 2 + 7, by = top - 12;
+        g.fillStyle = 'rgba(0,0,0,.7)'; g.fillRect(bx - 1.5, by - 1.5, bw + 3, bh + 3);
         g.fillStyle = v.owner === 0 ? '#3f8bff' : '#ff4a4a'; g.fillRect(bx, by, bw * pct, bh);
-        if (u.level > 1) { g.fillStyle = '#fff'; g.font = 'bold 16px sans-serif'; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(u.level, bx - 5, by + 4); }
+        if (u.shield > 0) { g.fillStyle = '#bff1ff'; g.fillRect(bx, by - 3, bw * Math.min(1, u.shield / u.maxHp), 2); }
+        const cx = bx - 9, cy = by + bh / 2;
+        g.fillStyle = v.owner === 0 ? '#1d3f9a' : '#8a1a20'; g.beginPath(); g.arc(cx, cy, 9, 0, TAU); g.fill();
+        g.strokeStyle = '#f2c14e'; g.lineWidth = 1.5; g.stroke();
+        g.fillStyle = '#fff'; g.font = 'bold 12px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(u.level, cx, cy + 0.5);
       }
       g.restore();
     }

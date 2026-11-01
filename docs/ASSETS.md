@@ -3,7 +3,7 @@
 ## De onde vem a arte
 `tools/prepare-art.py` recorta e otimiza a arte enviada (`art/source/`) para `web/img/`:
 - **Cartas:** as 32 ilustrações da coleção oficial (`art/source/cards_32.png`). Só a ilustração é recortada, sem o nome e o custo, para que os textos continuem traduzíveis.
-- **Arena:** `art/source/arena.png`, com a sacada onde fica o Barão e as molduras do HUD.
+- **Arena:** `art/source/arena.png` (limpa, sem HUD). O HUD é desenhado pelo jogo, seguindo `art/source/battle_ui_reference.png`. Os castelos têm sacada para o Barão. Para trocar um castelo por arte própria, salve `web/img/castles/<id>.webp`, desenhado para o lado esquerdo e cobrindo a área 0–360 × 0–700 da arena, e inclua o id em `BB.CASTLE_ART` (`web/js/art.js`). O lado direito é espelhado automaticamente.
 - **Barões:** os retratos do banner oficial dos 5 Barões.
 - **Logo:** com fundo transparente, para a abertura e o menu.
 - **Ícone do app:** em todos os tamanhos do Android.
