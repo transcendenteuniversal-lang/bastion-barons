@@ -74,12 +74,31 @@
           const def = m.content.cards[e.id];
           if (v) { v.lunge = 0.22; v.atk = 0; v.atkDur = def ? Math.max(0.45, Math.min(1.1, def.attackInterval * 0.85)) : 0.6; }
           if (!def || !v) break;
+          if (def.range <= 4) {
+            const tv = e.targetId ? this.views.get(e.targetId) : null;
+            if (tv) this.playFx('fx_hit', tv.x, tv.y - tv.r * 0.2, 70, 0.3);
+            else if (!e.targetId) { const c = this.castlePoint(1 - e.player); this.playFx('fx_hit', c.x, c.y + 40, 90, 0.3); }
+          }
           if (def.range > 4) {
             const tv = e.targetId ? this.views.get(e.targetId) : null;
             const to = tv ? { x: tv.x, y: tv.y - tv.r * 0.4 - tv.lift } : this.castlePoint(1 - e.player);
             const col = PROJ_COLOR[def.cls] || '#f2e3b3';
             this.fx.push({ k: 'proj', x0: v.x, y0: v.y - v.r - v.lift, x1: to.x, y1: to.y, t: 0, d: 0.22, c: col, r: def.cls === 'Mage' ? 9 : 6 });
             if (def.ability === 'Splash') this.fx.push({ k: 'burst', x: to.x, y: to.y, r: (def.abilityRadius / m.L) * laneW(e.lane), t: -0.2, d: 0.4, c: col });
+          }
+          break;
+        }
+        case 'UnitSpawned': {
+          const l = ARENA.lanes[e.lane];
+          this.playFx('fx_deploy', this.laneX(m, e.x, e.lane), l.y + (l.y1 - l.y0) * 0.35, 95 * l.k, 0.55);
+          break;
+        }
+        case 'UnitDied': if (v) this.playFx('fx_death', v.x, v.y + v.r * 0.5 - v.lift, 90 * ARENA.lanes[v.u.lane].k, 0.6); break;
+        case 'MatchEnded': {
+          if (e.player === 0 || e.player === 1) {
+            const c = ARENA.castle[1 - e.player];
+            this.playFx('fx_castle_destroyed', (c.x0 + c.x1) / 2, c.y1, 520, 2.2);
+            if (e.player === 0) this.playFx('fx_victory', AW / 2, 560, 420, 2.8);
           }
           break;
         }
@@ -103,6 +122,18 @@
         }
         case 'BaronUsed': {
           this.baronCast[e.player] = 1; this.baronAnim[e.player] = 0;
+          const bab = m.players[e.player].baron.ability;
+          const bkey = { RoyalCommand: 'fx_royal_command', ElvenRain: 'fx_elven_rain', ArmyOfDead: 'fx_army_of_dead', OrcFury: 'fx_orc_fury', ArcaneStorm: 'fx_arcane_storm' }[bab];
+          if (bkey && this.fxSheet(bkey)) {
+            if (e.lane < 0) { // Comando Real: todas as rotas
+              for (const l of ARENA.lanes) this.playFx(bkey, (l.xL + l.xR) / 2, l.y1, null, 1.6, { w: (l.xR - l.xL) * 0.55 });
+            } else {
+              const l = ARENA.lanes[e.lane];
+              const x = bab === 'ArmyOfDead' ? this.laneX(m, m.spawnX(e.player), e.lane) : (l.xL + l.xR) / 2;
+              this.playFx(bkey, x, l.y1, bab === 'ArmyOfDead' ? (l.y1 - l.y0) * 1.8 : null, 1.8, bab === 'ArmyOfDead' ? {} : { w: (l.xR - l.xL) * 0.85 });
+            }
+            break;
+          }
           const c = e.player === 0 ? '#ffd966' : '#ff9a6a';
           if (e.lane >= 0) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.9, c });
           else for (let l = 0; l < 3; l++) this.fx.push({ k: 'lane', lane: l, t: 0, d: 0.9, c });
@@ -127,6 +158,12 @@
         }
         case 'CastleDamaged': {
           this.castleHit[e.player] = 0.18;
+          if (!this.lastCastleFx) this.lastCastleFx = [0, 0];
+          if (this.t - this.lastCastleFx[e.player] > 0.6) {
+            this.lastCastleFx[e.player] = this.t;
+            const cp = this.castlePoint(e.player);
+            this.playFx('fx_castle_hit', cp.x + (Math.random() - 0.5) * 80, cp.y + 20 - Math.random() * 120, 190, 0.7);
+          }
           const pt = this.castlePoint(e.player);
           if (e.value >= 1) this.texts.push({ x: pt.x + (Math.random() - 0.5) * 60, y: pt.y - 40, s: '-' + Math.round(e.value), t: 0, d: 0.9, c: e.player === 0 ? '#ff8080' : '#ffe08a' });
           break;
@@ -218,6 +255,13 @@
     }
 
     // O Barão fica no castelo comandando: não pode ser atacado
+    // efeito animado de vídeo (se existir); retorna true se foi usado
+    playFx(key, x, y, size, d, extra) {
+      if (!this.fxSheet(key)) return false;
+      this.fx.push(Object.assign({ k: 'anim', key, x, y, h: size, t: 0, d }, extra || {}));
+      return true;
+    }
+
     fxSheet(key) {
       if (!BB.FX || !BB.FX[key]) return null;
       const im = BB.art.image('img/units/' + key + '.webp');
@@ -259,24 +303,65 @@
       g.restore();
     }
 
+    // Posições na tela: cada tropa segue a simulação, mas com espaçamento visual para não empilhar:
+    // 1) quem luta corpo a corpo para a uma distância de corpo do alvo (frente a frente);
+    // 2) aliados próximos na mesma rota se distribuem em fileiras (frente, trás, acima, abaixo).
     syncViews(m, dt) {
       const seen = new Set();
-      for (const u of m.units) {
-        if (u.hp <= 0) continue;
+      const base = new Map();
+      const alive = m.units.filter((u) => u.hp > 0);
+      for (const u of alive) base.set(u.id, this.laneX(m, u.x, u.lane));
+      const bodyW = (u) => 62 * ARENA.lanes[u.lane].k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3) * (u.flying ? 1.3 : 1);
+      const tx = new Map();
+      for (const u of alive) {
+        let x = base.get(u.id);
+        const dir = u.owner === 0 ? 1 : -1;
+        if (u.state === 'Attacking' && u.targetId && base.has(u.targetId)) {
+          const t = m.findUnit(u.targetId);
+          if (t && t.flying === u.flying) { // frente a frente: distância mínima de corpo a corpo
+            const contact = (bodyW(u) + bodyW(t)) * 0.5;
+            const want = base.get(u.targetId) - dir * contact;
+            if (dir * (x - want) > 0) x = want;
+          }
+        } else if (u.state === 'AttackingCastle') {
+          const f = this.laneX(m, m.castleFront(1 - u.owner), u.lane) - dir * bodyW(u) * 0.35;
+          if (dir * (x - f) > 0) x = f;
+        }
+        tx.set(u.id, x);
+      }
+      // fileiras: por rota e time, da frente para trás
+      const ROWS = [0, -1, 1];
+      const rowOf = new Map();
+      for (let lane = 0; lane < 3; lane++) for (const owner of [0, 1]) for (const fly of [false, true]) {
+        const dir = owner === 0 ? 1 : -1;
+        const group = alive.filter((u) => u.lane === lane && u.owner === owner && u.flying === fly).sort((a, b) => dir * (tx.get(b.id) - tx.get(a.id)) || a.id - b.id);
+        const lastX = ROWS.map(() => null);
+        for (const u of group) {
+          const x = tx.get(u.id), gap = bodyW(u) * 0.95;
+          let r = ROWS.findIndex((_, i) => lastX[i] === null || dir * (lastX[i] - x) >= gap);
+          if (r < 0) { // todas as fileiras ocupadas: recua na fileira com mais espaço
+            r = 0; let best = -Infinity;
+            ROWS.forEach((_, i) => { const d = dir * (lastX[i] - x); if (d > best) { best = d; r = i; } });
+            tx.set(u.id, lastX[r] - dir * gap);
+          }
+          lastX[r] = tx.get(u.id);
+          rowOf.set(u.id, ROWS[r]);
+        }
+      }
+      for (const u of alive) {
         seen.add(u.id);
         const l = ARENA.lanes[u.lane];
-        const jitter = (((u.id * 37) % 5) - 2) * (l.y1 - l.y0) * 0.07;
-        const tx = this.laneX(m, u.x, u.lane), ty = l.y + jitter;
+        const x = tx.get(u.id), y = l.y + rowOf.get(u.id) * (l.y1 - l.y0) * 0.24;
         let v = this.views.get(u.id);
         if (!v) {
           const size = 0.8 + Math.min(1, u.def.hp / 1800) * 0.5;
-          v = { id: u.id, u, x: tx, y: ty, r: ARENA.unitR * l.k * size, lift: u.flying ? 52 * l.k : 0, born: 0, lunge: 0, flash: 0, lastHp: u.hp,
+          v = { id: u.id, u, x, y, r: ARENA.unitR * l.k * size, lift: u.flying ? 52 * l.k : 0, born: 0, lunge: 0, flash: 0, lastHp: u.hp,
             fly: u.flying ? 1 : 0, owner: u.owner, img: BB.art.cardImage(u.def), phase: Math.random() * 10, dying: -1, atk: -1, atkDur: 0.6 };
           this.views.set(u.id, v);
         }
         v.u = u;
-        v.x += (tx - v.x) * Math.min(1, dt * 12);
-        v.y += (ty - v.y) * Math.min(1, dt * 12);
+        v.x += (x - v.x) * Math.min(1, dt * 10);
+        v.y += (y - v.y) * Math.min(1, dt * 8);
         if (u.hp < v.lastHp - 0.5) v.flash = 0.12;
         v.lastHp = u.hp;
       }
@@ -349,8 +434,7 @@
       const foot = v.y + v.r * 0.55;
       g.save(); g.globalAlpha = alpha;
       // sombra e marca do time no chão
-      g.fillStyle = 'rgba(0,0,0,.3)'; g.beginPath(); g.ellipse(v.x, foot, bodyPx * 0.32, bodyPx * 0.09, 0, 0, TAU); g.fill();
-      g.strokeStyle = v.owner === 0 ? '#3f8bff' : '#ff4a4a'; g.lineWidth = 4;
+      g.strokeStyle = v.owner === 0 ? 'rgba(63,139,255,.85)' : 'rgba(255,74,74,.85)'; g.lineWidth = 3;
       g.beginPath(); g.ellipse(v.x, foot, bodyPx * 0.3, bodyPx * 0.085, 0, 0, TAU); g.stroke();
       g.save();
       g.translate(v.x, foot - lift + bob);

@@ -54,6 +54,7 @@ MINFRAC = {'stone_golem': 0.3}
 
 def import_videos(paths):
     os.makedirs(SRC, exist_ok=True)
+    done = []
     for p in paths:
         m = re.search(r'(?:^|[-_/])(\d{3})_', os.path.basename(p)) or re.match(r'(\d{3})', os.path.basename(p))
         if not m:
@@ -70,6 +71,9 @@ def import_videos(paths):
         # cópia reduzida (720p, boa qualidade) para manter o repositório leve
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', p, '-an', '-c:v', 'libx264', '-crf', '30', '-preset', 'slow', '-pix_fmt', 'yuv420p', dst], check=True)
         print(f'{n:03d} -> {uid}')
+        done.append(uid)
+
+    return done
 
 
 def key(rgb):
@@ -155,7 +159,8 @@ def extract(uid):
 # Efeitos (feitiços e poderes de castelo): uma linha de quadros com o trecho útil do vídeo
 FX_N = 20
 FX_MAXH, FX_MAXW = 240, 560
-FX_SEG = {'fx_fireball': (0.3, 1.0), 'fx_lightning': (0.0, 0.9), 'fx_skeleton_summon': (0.0, 0.45)}
+FX_SEG = {'fx_fireball': (0.3, 1.0), 'fx_lightning': (0.0, 0.9), 'fx_skeleton_summon': (0.0, 0.45),
+          'fx_hit': (0.0, 0.33), 'fx_deploy': (0.0, 0.6), 'fx_death': (0.0, 0.6), 'fx_castle_hit': (0.0, 0.75)}
 
 
 def extract_fx(fid):
@@ -192,8 +197,9 @@ def read_js(name):
 def main():
     args = sys.argv[1:]
     if args and args[0] == '--import':
-        import_videos(args[1:])
-        args = []
+        args = import_videos(args[1:])  # processa só os vídeos importados
+        if not args:
+            return
     meta, fx = read_js('SPRITES'), read_js('FX')
     vids = sorted(f[:-4] for f in os.listdir(SRC) if f.endswith('.mp4'))
     ids = args or vids

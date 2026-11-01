@@ -93,8 +93,7 @@
           <div class="pw-d" data-r="1376,834,1650,890">${T('castle.' + me.castle.id + '.desc')}</div>
           <div class="pw-bar" data-r="1376,894,1648,916"><i id="castleFill"></i><span id="castleState"></span></div></button>
         <div class="h-tray tap" data-r="355,700,1315,941" id="tray"></div>
-        ${[401, 577, 753, 929, 1106].map((x, i) => `<div class="h-slot${i === 4 ? ' next' : ' tap'}" data-r="${x + 3},${711},${x + 147},${861}" id="slot${i}"></div>`).join('')}
-        <div class="h-nextlbl" data-r="1106,690,1256,710">${T('battle.next')}</div>
+        ${[401, 577, 753, 929, 1106].map((x, i) => `<div class="h-slot tap" data-r="${x + 3},${711},${x + 147},${861}" id="slot${i}"></div>`).join('')}
         <div class="h-enum" data-r="384,859,452,927" id="energyNum">5</div>
         <div class="h-ebar" data-r="462,884,1285,917"><i id="energyFill"></i>${'<b></b>'.repeat(9)}</div>
         <div class="h-hint" data-r="436,240,1236,290" id="hint"></div>`;
@@ -130,7 +129,7 @@
 
     refreshHand() {
       const me = this.match.players[0];
-      const key = me.deck.hand.join(',') + '|' + me.deck.next;
+      const key = me.deck.hand.join(',');
       if (key === this.handKey) return;
       this.handKey = key;
       me.deck.hand.forEach((id, i) => {
@@ -138,7 +137,6 @@
         this.el.slots[i].innerHTML = BB.ui.cardHtml(BB.content.card(id), BB.Progress.owned(BB.profile, id), { level: true, attrs: 'data-i="' + i + '"' });
         this.el.slots[i].firstElementChild.addEventListener('pointerdown', (e) => { e.preventDefault(); this.selectCard(i); });
       });
-      this.el.slots[4].innerHTML = me.deck.next ? BB.ui.cardHtml(BB.content.card(me.deck.next), null, {}) : '';
     }
 
     refreshHud() {
@@ -167,7 +165,7 @@
       el.castleBtn.classList.toggle('ready', cReady && !m.over);
       el.castleBtn.classList.toggle('armed', this.armed === 'castle');
       this.refreshHand();
-      for (let i = 0; i < me.deck.hand.length && i < 4; i++) {
+      for (let i = 0; i < me.deck.hand.length && i < 5; i++) {
         const c = el.slots[i].firstElementChild;
         if (!c) continue;
         c.classList.toggle('poor', me.energy < BB.content.card(me.deck.hand[i]).cost);
