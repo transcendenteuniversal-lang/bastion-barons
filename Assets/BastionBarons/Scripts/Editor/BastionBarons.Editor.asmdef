@@ -1,0 +1,19 @@
+{
+    "name": "BastionBarons.Editor",
+    "rootNamespace": "BastionBarons.EditorTools",
+    "references": [
+        "BastionBarons.Core",
+        "BastionBarons.Game"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

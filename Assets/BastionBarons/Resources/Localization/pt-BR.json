@@ -1,0 +1,948 @@
+{
+"entries": [
+{
+"k": "app.title",
+"v": "BASTION BARONS"
+},
+{
+"k": "ui.loading",
+"v": "Carregando..."
+},
+{
+"k": "ui.tap_to_start",
+"v": "Toque para começar"
+},
+{
+"k": "ui.guest",
+"v": "Visitante"
+},
+{
+"k": "ui.guest_note",
+"v": "Progresso salvo neste aparelho. Conta online chega na Fase 5."
+},
+{
+"k": "ui.battle",
+"v": "BATALHAR"
+},
+{
+"k": "ui.collection",
+"v": "Coleção"
+},
+{
+"k": "ui.deck",
+"v": "Baralho"
+},
+{
+"k": "ui.barons",
+"v": "Barões"
+},
+{
+"k": "ui.castles",
+"v": "Castelos"
+},
+{
+"k": "ui.settings",
+"v": "Configurações"
+},
+{
+"k": "ui.history",
+"v": "Histórico"
+},
+{
+"k": "ui.profile",
+"v": "Perfil"
+},
+{
+"k": "ui.back",
+"v": "Voltar"
+},
+{
+"k": "ui.save",
+"v": "Salvar"
+},
+{
+"k": "ui.select",
+"v": "Selecionar"
+},
+{
+"k": "ui.selected",
+"v": "Selecionado"
+},
+{
+"k": "ui.locked_level",
+"v": "Desbloqueia no nível {0}"
+},
+{
+"k": "ui.level",
+"v": "Nível {0}"
+},
+{
+"k": "ui.account_level",
+"v": "Nv. {0}"
+},
+{
+"k": "ui.gold",
+"v": "Ouro"
+},
+{
+"k": "ui.crystals",
+"v": "Cristais"
+},
+{
+"k": "ui.choose_mode",
+"v": "Escolha o modo"
+},
+{
+"k": "ui.training",
+"v": "Treinamento (offline)"
+},
+{
+"k": "ui.easy",
+"v": "Fácil"
+},
+{
+"k": "ui.normal",
+"v": "Normal"
+},
+{
+"k": "ui.hard",
+"v": "Difícil"
+},
+{
+"k": "ui.pvp_soon",
+"v": "PvP online, ranqueada, salas privadas e clãs: Fase 5–6 (servidor ainda não configurado)."
+},
+{
+"k": "ui.your_lineup",
+"v": "Seu Barão: {0}  •  Castelo: {1}"
+},
+{
+"k": "ui.deck_title",
+"v": "Meu Baralho {0}"
+},
+{
+"k": "ui.deck_count",
+"v": "{0}/{1} cartas  •  Custo médio {2}"
+},
+{
+"k": "ui.deck_tap_remove",
+"v": "Toque numa carta do baralho para remover; toque na coleção para adicionar."
+},
+{
+"k": "ui.deck_invalid",
+"v": "O baralho precisa de exatamente {0} cartas diferentes."
+},
+{
+"k": "ui.deck_saved",
+"v": "Baralho salvo!"
+},
+{
+"k": "ui.filter_all",
+"v": "Todas"
+},
+{
+"k": "ui.filter_cost",
+"v": "Custo: {0}"
+},
+{
+"k": "ui.any",
+"v": "Todos"
+},
+{
+"k": "ui.owned",
+"v": "{0}/{1} obtidas"
+},
+{
+"k": "ui.locked",
+"v": "Bloqueada"
+},
+{
+"k": "ui.copies",
+"v": "Cópias: {0}/{1}"
+},
+{
+"k": "ui.upgrade",
+"v": "Evoluir ({0} ouro)"
+},
+{
+"k": "ui.upgraded",
+"v": "Carta evoluída para o nível {0}!"
+},
+{
+"k": "ui.max_level",
+"v": "Nível máximo"
+},
+{
+"k": "ui.cant_upgrade",
+"v": "Cópias ou ouro insuficientes"
+},
+{
+"k": "ui.how_to_get",
+"v": "Ganhe cartas vencendo batalhas."
+},
+{
+"k": "stat.hp",
+"v": "Vida"
+},
+{
+"k": "stat.damage",
+"v": "Dano"
+},
+{
+"k": "stat.attack_speed",
+"v": "Intervalo de ataque"
+},
+{
+"k": "stat.move_speed",
+"v": "Velocidade"
+},
+{
+"k": "stat.range",
+"v": "Alcance"
+},
+{
+"k": "stat.targets",
+"v": "Alvo"
+},
+{
+"k": "stat.count",
+"v": "Quantidade"
+},
+{
+"k": "stat.cost",
+"v": "Custo"
+},
+{
+"k": "stat.effect",
+"v": "Efeito"
+},
+{
+"k": "targets.Ground",
+"v": "Terrestre"
+},
+{
+"k": "targets.Both",
+"v": "Terrestre e aéreo"
+},
+{
+"k": "targets.CastleOnly",
+"v": "Somente castelos"
+},
+{
+"k": "ui.flying",
+"v": "Voadora"
+},
+{
+"k": "rarity.Common",
+"v": "Comum"
+},
+{
+"k": "rarity.Rare",
+"v": "Rara"
+},
+{
+"k": "rarity.Epic",
+"v": "Épica"
+},
+{
+"k": "rarity.Legendary",
+"v": "Lendária"
+},
+{
+"k": "rarity.Mythic",
+"v": "Mítica"
+},
+{
+"k": "cls.King",
+"v": "Rei"
+},
+{
+"k": "cls.Paladin",
+"v": "Paladino"
+},
+{
+"k": "cls.Archer",
+"v": "Arqueiro"
+},
+{
+"k": "cls.Mage",
+"v": "Mago"
+},
+{
+"k": "cls.Necromancer",
+"v": "Necromante"
+},
+{
+"k": "cls.Orc",
+"v": "Orc"
+},
+{
+"k": "cls.Assassin",
+"v": "Assassino"
+},
+{
+"k": "cls.Druid",
+"v": "Druida"
+},
+{
+"k": "cls.Cleric",
+"v": "Clériga"
+},
+{
+"k": "cls.Engineer",
+"v": "Engenheiro"
+},
+{
+"k": "cls.Barbarian",
+"v": "Bárbaro"
+},
+{
+"k": "cls.Guardian",
+"v": "Guardião"
+},
+{
+"k": "cls.Beast",
+"v": "Criatura"
+},
+{
+"k": "battle.select_lane",
+"v": "Toque em uma rota"
+},
+{
+"k": "battle.next",
+"v": "Próxima"
+},
+{
+"k": "battle.energy",
+"v": "Energia"
+},
+{
+"k": "battle.double_energy",
+"v": "ENERGIA x2!"
+},
+{
+"k": "battle.baron_power",
+"v": "Poder do Barão"
+},
+{
+"k": "battle.castle_power",
+"v": "Poder do Castelo"
+},
+{
+"k": "battle.ready",
+"v": "PRONTO!"
+},
+{
+"k": "battle.paused",
+"v": "Pausado"
+},
+{
+"k": "battle.resume",
+"v": "Continuar"
+},
+{
+"k": "battle.surrender",
+"v": "Render-se"
+},
+{
+"k": "battle.confirm_surrender",
+"v": "Tem certeza? Conta como derrota."
+},
+{
+"k": "battle.yes",
+"v": "Sim"
+},
+{
+"k": "battle.no",
+"v": "Não"
+},
+{
+"k": "battle.offline",
+"v": "Offline • Treino"
+},
+{
+"k": "battle.ai",
+"v": "IA ({0})"
+},
+{
+"k": "battle.not_enough_energy",
+"v": "Energia insuficiente"
+},
+{
+"k": "battle.unit_cap",
+"v": "Limite de tropas atingido"
+},
+{
+"k": "battle.loading",
+"v": "Preparando o campo de batalha..."
+},
+{
+"k": "result.victory",
+"v": "VITÓRIA!"
+},
+{
+"k": "result.defeat",
+"v": "DERROTA"
+},
+{
+"k": "result.draw",
+"v": "EMPATE"
+},
+{
+"k": "result.reason.CastleDestroyed",
+"v": "Castelo destruído"
+},
+{
+"k": "result.reason.TimeoutHp",
+"v": "Tempo esgotado: maior vida do castelo"
+},
+{
+"k": "result.reason.TimeoutKills",
+"v": "Tempo esgotado: desempate por tropas destruídas"
+},
+{
+"k": "result.reason.Draw",
+"v": "Empate total"
+},
+{
+"k": "result.reason.Surrender",
+"v": "Rendição"
+},
+{
+"k": "result.reason.Disconnect",
+"v": "Desconexão"
+},
+{
+"k": "result.stats",
+"v": "Estatísticas"
+},
+{
+"k": "result.cards_played",
+"v": "Cartas jogadas: {0}"
+},
+{
+"k": "result.castle_damage",
+"v": "Dano ao castelo: {0}"
+},
+{
+"k": "result.units_destroyed",
+"v": "Tropas destruídas: {0}"
+},
+{
+"k": "result.castle_left",
+"v": "Seu castelo: {0}%  •  Inimigo: {1}%"
+},
+{
+"k": "result.rewards",
+"v": "Recompensas"
+},
+{
+"k": "result.gold",
+"v": "+{0} ouro"
+},
+{
+"k": "result.xp",
+"v": "+{0} XP"
+},
+{
+"k": "result.card",
+"v": "Carta: {0} ({1})"
+},
+{
+"k": "result.new_card",
+"v": "NOVA CARTA: {0} ({1})!"
+},
+{
+"k": "result.level_up",
+"v": "Subiu para o nível {0}!"
+},
+{
+"k": "result.unlocked",
+"v": "Desbloqueado: {0}"
+},
+{
+"k": "result.odds",
+"v": "Chances de carta por vitória: Comum {0} • Rara {1} • Épica {2} • Lendária {3} • Mítica {4}. Épica+ garantida a cada {5} vitórias sem uma."
+},
+{
+"k": "result.continue",
+"v": "Continuar"
+},
+{
+"k": "settings.music",
+"v": "Música"
+},
+{
+"k": "settings.sfx",
+"v": "Efeitos sonoros"
+},
+{
+"k": "settings.quality",
+"v": "Qualidade gráfica"
+},
+{
+"k": "settings.quality.0",
+"v": "Econômico (30 FPS)"
+},
+{
+"k": "settings.quality.1",
+"v": "Médio (60 FPS)"
+},
+{
+"k": "settings.quality.2",
+"v": "Alto (60 FPS)"
+},
+{
+"k": "settings.language",
+"v": "Idioma"
+},
+{
+"k": "settings.name",
+"v": "Nome do jogador"
+},
+{
+"k": "settings.reset",
+"v": "Apagar progresso local"
+},
+{
+"k": "settings.reset_confirm",
+"v": "Apagar todo o progresso deste aparelho? Não pode ser desfeito."
+},
+{
+"k": "settings.credits",
+"v": "Créditos"
+},
+{
+"k": "settings.credits_text",
+"v": "BASTION BARONS — propriedade intelectual original.\nArte de marca: identidade visual oficial.\nArte 3D e áudio: provisórios procedurais (serão substituídos)."
+},
+{
+"k": "history.empty",
+"v": "Nenhuma batalha ainda."
+},
+{
+"k": "history.stats",
+"v": "Batalhas {0} • Vitórias {1} • Derrotas {2} • Empates {3} • Melhor sequência {4}"
+},
+{
+"k": "card.royal_knight.name",
+"v": "Cavaleiro Real"
+},
+{
+"k": "card.royal_knight.desc",
+"v": "Unidade equilibrada de vida e dano."
+},
+{
+"k": "card.paladin.name",
+"v": "Paladino"
+},
+{
+"k": "card.paladin.desc",
+"v": "Aura protetora: aliados próximos recebem 25% menos dano."
+},
+{
+"k": "card.barbarian.name",
+"v": "Bárbaro"
+},
+{
+"k": "card.barbarian.desc",
+"v": "Golpes corpo a corpo devastadores."
+},
+{
+"k": "card.red_orc.name",
+"v": "Orc Vermelho"
+},
+{
+"k": "card.red_orc.desc",
+"v": "Força bruta e grande resistência."
+},
+{
+"k": "card.shadow_assassin.name",
+"v": "Assassino Sombrio"
+},
+{
+"k": "card.shadow_assassin.desc",
+"v": "Muito rápido, ataques velozes e letais."
+},
+{
+"k": "card.stone_guardian.name",
+"v": "Guardião de Pedra"
+},
+{
+"k": "card.stone_guardian.desc",
+"v": "Tanque de altíssima resistência."
+},
+{
+"k": "card.dwarf_warrior.name",
+"v": "Guerreiro Anão"
+},
+{
+"k": "card.dwarf_warrior.desc",
+"v": "Combatente pesado e confiável."
+},
+{
+"k": "card.royal_lancer.name",
+"v": "Lanceiro Real"
+},
+{
+"k": "card.royal_lancer.desc",
+"v": "Alcance intermediário; atinge alvos aéreos."
+},
+{
+"k": "card.elven_archer.name",
+"v": "Arqueira Élfica"
+},
+{
+"k": "card.elven_archer.desc",
+"v": "Precisão de longo alcance."
+},
+{
+"k": "card.royal_archer.name",
+"v": "Arqueiro Real"
+},
+{
+"k": "card.royal_archer.desc",
+"v": "Ataque à distância barato."
+},
+{
+"k": "card.arcane_mage.name",
+"v": "Mago Arcano"
+},
+{
+"k": "card.arcane_mage.desc",
+"v": "Dano mágico em pequena área."
+},
+{
+"k": "card.shadow_sorceress.name",
+"v": "Feiticeira Sombria"
+},
+{
+"k": "card.shadow_sorceress.desc",
+"v": "Magia sombria em grande área."
+},
+{
+"k": "card.necromancer.name",
+"v": "Necromante"
+},
+{
+"k": "card.necromancer.desc",
+"v": "Invoca 2 esqueletos a cada 6 segundos."
+},
+{
+"k": "card.goblin_gunner.name",
+"v": "Atirador Goblin"
+},
+{
+"k": "card.goblin_gunner.desc",
+"v": "Disparos rápidos e baratos."
+},
+{
+"k": "card.fire_dragon.name",
+"v": "Dragão de Fogo"
+},
+{
+"k": "card.fire_dragon.desc",
+"v": "Criatura aérea com sopro de fogo em área."
+},
+{
+"k": "card.ice_dragon.name",
+"v": "Dragão de Gelo"
+},
+{
+"k": "card.ice_dragon.desc",
+"v": "Aéreo; seus ataques deixam inimigos 40% mais lentos."
+},
+{
+"k": "card.phoenix.name",
+"v": "Fênix"
+},
+{
+"k": "card.phoenix.desc",
+"v": "Aérea; renasce uma vez com 50% da vida."
+},
+{
+"k": "card.stone_golem.name",
+"v": "Golem de Pedra"
+},
+{
+"k": "card.stone_golem.desc",
+"v": "Tanque colossal que só ataca castelos."
+},
+{
+"k": "card.mountain_troll.name",
+"v": "Troll das Montanhas"
+},
+{
+"k": "card.mountain_troll.desc",
+"v": "Força física imensa."
+},
+{
+"k": "card.royal_griffin.name",
+"v": "Grifo Real"
+},
+{
+"k": "card.royal_griffin.desc",
+"v": "Atacante aéreo veloz."
+},
+{
+"k": "card.guardian_ent.name",
+"v": "Ent Guardião"
+},
+{
+"k": "card.guardian_ent.desc",
+"v": "Regenera vida continuamente."
+},
+{
+"k": "card.infernal_demon.name",
+"v": "Demônio Infernal"
+},
+{
+"k": "card.infernal_demon.desc",
+"v": "Dano altíssimo em área curta."
+},
+{
+"k": "card.royal_cleric.name",
+"v": "Clériga Real"
+},
+{
+"k": "card.royal_cleric.desc",
+"v": "Cura aliados próximos a cada 2 segundos."
+},
+{
+"k": "card.dwarf_engineer.name",
+"v": "Engenheiro Anão"
+},
+{
+"k": "card.dwarf_engineer.desc",
+"v": "Constrói uma torre de defesa ao entrar em campo."
+},
+{
+"k": "card.fireball.name",
+"v": "Bola de Fogo"
+},
+{
+"k": "card.fireball.desc",
+"v": "Dano em área na frente inimiga; atinge castelos."
+},
+{
+"k": "card.freeze.name",
+"v": "Congelamento"
+},
+{
+"k": "card.freeze.desc",
+"v": "Paralisa inimigos na área por 3 segundos."
+},
+{
+"k": "card.divine_heal.name",
+"v": "Cura Divina"
+},
+{
+"k": "card.divine_heal.desc",
+"v": "Cura todas as suas tropas na rota."
+},
+{
+"k": "card.lightning.name",
+"v": "Relâmpago"
+},
+{
+"k": "card.lightning.desc",
+"v": "Atinge os 3 inimigos mais fortes da rota."
+},
+{
+"k": "card.arcane_shield.name",
+"v": "Escudo Arcano"
+},
+{
+"k": "card.arcane_shield.desc",
+"v": "Escudo de 300 em todas as suas tropas da rota."
+},
+{
+"k": "card.poison.name",
+"v": "Veneno"
+},
+{
+"k": "card.poison.desc",
+"v": "Dano contínuo por 6 segundos."
+},
+{
+"k": "card.arrow_rain.name",
+"v": "Chuva de Flechas"
+},
+{
+"k": "card.arrow_rain.desc",
+"v": "Dano em todos os inimigos da rota."
+},
+{
+"k": "card.skeleton_summon.name",
+"v": "Invocação Esquelética"
+},
+{
+"k": "card.skeleton_summon.desc",
+"v": "Invoca 4 esqueletos temporários."
+},
+{
+"k": "card.skeleton.name",
+"v": "Esqueleto"
+},
+{
+"k": "card.skeleton.desc",
+"v": "Unidade temporária invocada."
+},
+{
+"k": "card.dwarf_turret.name",
+"v": "Torre Anã"
+},
+{
+"k": "card.dwarf_turret.desc",
+"v": "Torre temporária de longo alcance."
+},
+{
+"k": "baron.rei_bastion.name",
+"v": "Rei Bastion"
+},
+{
+"k": "baron.rei_bastion.title",
+"v": "Comandante Real"
+},
+{
+"k": "baron.rei_bastion.ability",
+"v": "Comando Real"
+},
+{
+"k": "baron.rei_bastion.desc",
+"v": "Todas as tropas aliadas ganham +30% de dano e +20% de velocidade por 8s."
+},
+{
+"k": "baron.elara.name",
+"v": "Elara"
+},
+{
+"k": "baron.elara.title",
+"v": "Arqueira Élfica"
+},
+{
+"k": "baron.elara.ability",
+"v": "Chuva Élfica"
+},
+{
+"k": "baron.elara.desc",
+"v": "8 rajadas de flechas atingem todos os inimigos da rota escolhida."
+},
+{
+"k": "baron.thorg.name",
+"v": "Thorg"
+},
+{
+"k": "baron.thorg.title",
+"v": "Senhor Orc"
+},
+{
+"k": "baron.thorg.ability",
+"v": "Fúria Orc"
+},
+{
+"k": "baron.thorg.desc",
+"v": "Tropas aliadas na rota ganham +60% de dano e +25% de velocidade de ataque por 8s."
+},
+{
+"k": "baron.malachar.name",
+"v": "Malachar"
+},
+{
+"k": "baron.malachar.title",
+"v": "Necromante"
+},
+{
+"k": "baron.malachar.ability",
+"v": "Exército dos Mortos"
+},
+{
+"k": "baron.malachar.desc",
+"v": "Invoca 5 esqueletos na rota escolhida."
+},
+{
+"k": "baron.eldrin.name",
+"v": "Eldrin"
+},
+{
+"k": "baron.eldrin.title",
+"v": "Mago Arcano"
+},
+{
+"k": "baron.eldrin.ability",
+"v": "Tempestade Arcana"
+},
+{
+"k": "baron.eldrin.desc",
+"v": "Explosão de 380 de dano em todos os inimigos da rota."
+},
+{
+"k": "castle.royal_fortress.name",
+"v": "Fortaleza Real"
+},
+{
+"k": "castle.royal_fortress.ability",
+"v": "Escudo Imperial"
+},
+{
+"k": "castle.royal_fortress.desc",
+"v": "Escudo de 600 pontos no castelo por 10s."
+},
+{
+"k": "castle.glacial_fortress.name",
+"v": "Fortaleza Glacial"
+},
+{
+"k": "castle.glacial_fortress.ability",
+"v": "Tempestade de Gelo"
+},
+{
+"k": "castle.glacial_fortress.desc",
+"v": "Inimigos da rota ficam 50% mais lentos por 6s."
+},
+{
+"k": "castle.draconic_castle.name",
+"v": "Castelo Dracônico"
+},
+{
+"k": "castle.draconic_castle.ability",
+"v": "Sopro do Dragão"
+},
+{
+"k": "castle.draconic_castle.desc",
+"v": "300 de dano em todos os inimigos da rota."
+},
+{
+"k": "ui.search",
+"v": "Buscar por nome..."
+},
+{
+"k": "ui.type_all",
+"v": "Tropas e feitiços"
+},
+{
+"k": "ui.type_troops",
+"v": "Tropas"
+},
+{
+"k": "ui.type_spells",
+"v": "Feitiços"
+},
+{
+"k": "ui.class_all",
+"v": "Todas as classes"
+},
+{
+"k": "settings.view",
+"v": "Ver"
+},
+{
+"k": "settings.privacy",
+"v": "Privacidade"
+},
+{
+"k": "settings.privacy_text",
+"v": "Esta versão salva seu progresso apenas neste aparelho. Nenhum dado pessoal é coletado ou enviado a servidores. Você pode apagar tudo em 'Apagar progresso local'."
+}
+]
+}
