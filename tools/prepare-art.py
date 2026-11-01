@@ -143,7 +143,12 @@ save(bg, os.path.join(WEB, "menu_bg.webp"), 78)
 save(Image.open(os.path.join(SRC, "banner_barons.png")).convert("RGB").resize((1280, 720), Image.LANCZOS), os.path.join(WEB, "banner.webp"), 80)
 
 # Arena (campo de batalha com molduras do HUD)
-Image.open(os.path.join(SRC, "arena.png")).convert("RGB").save(os.path.join(WEB, "arena.webp"), "WEBP", quality=86, method=6)
+_ar = Image.open(os.path.join(SRC, "arena.png")).convert("RGB")
+# sobe a arena 55 px (a rota de baixo fica acima das cartas); a base de pedra é esticada para preencher
+_sh = Image.new("RGB", _ar.size)
+_sh.paste(_ar.crop((0, 55, _ar.width, _ar.height)), (0, 0))
+_sh.paste(_ar.crop((0, 820, _ar.width, _ar.height)).resize((_ar.width, _ar.height - 765)), (0, 765))
+_sh.save(os.path.join(WEB, "arena.webp"), "WEBP", quality=86, method=6)
 
 # Ícones Android
 icon = Image.open(os.path.join(SRC, "app_icon.png")).convert("RGB")

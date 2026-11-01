@@ -7,14 +7,15 @@
 
   // Medidas da arena em pixels da imagem (ver art/source/arena.png)
   const ARENA = {
-    lanes: [ // centro Y, faixa Y, início/fim X (perspectiva: a rota de baixo é mais larga), escala das tropas
-      { y: 322, y0: 272, y1: 370, xL: 385, xR: 1295, k: 0.88 },
-      { y: 470, y0: 418, y1: 522, xL: 352, xR: 1328, k: 1.0 },
-      { y: 630, y0: 574, y1: 690, xL: 282, xR: 1398, k: 1.12 },
+    // rotas da arena (img/arena.webp): pés das tropas em y; faixa y0–y1; início/fim xL–xR.
+    // k = 1 em todas: a mesma criatura tem sempre o mesmo tamanho, em qualquer rota.
+    lanes: [
+      { y: 322, y0: 242, y1: 374, xL: 400, xR: 1272, k: 1 },
+      { y: 472, y0: 380, y1: 538, xL: 345, xR: 1327, k: 1 },
+      { y: 652, y0: 545, y1: 742, xL: 292, xR: 1380, k: 1 },
     ],
-    castle: [{ x0: 0, y0: 0, x1: 360, y1: 700, gx: 200, gy: 520 }, { x0: 1312, y0: 0, x1: 1672, y1: 700, gx: 1475, gy: 520 }],
-    // o Barão fica na sacada do castelo
-    baron: [{ x: 226, y: 262, r: 56 }, { x: 1446, y: 262, r: 56 }],
+    castle: [{ x0: 0, y0: 0, x1: 360, y1: 700, gx: 190, gy: 470 }, { x0: 1312, y0: 0, x1: 1672, y1: 700, gx: 1482, gy: 470 }],
+    baron: [{ x: 226, y: 207, r: 56 }, { x: 1446, y: 207, r: 56 }],
     unitR: 46,
   };
   BB.ARENA = ARENA;
@@ -215,6 +216,7 @@
       this.syncViews(m, dt);
       const list = [...this.views.values(), ...this.ghosts].sort((a, b) => (a.fly - b.fly) || (a.y - b.y));
       for (const v of list) this.drawUnit(v, dt);
+      if (ui && ui.ghost) this.drawGhost(m, ui.ghost);
       for (let i = 0; i < 2; i++) this.drawBaron(m, i);
       this.drawFx(dt);
       g.restore();
@@ -324,17 +326,6 @@
       for (const u of alive) {
         let x = base.get(u.id);
         const dir = u.owner === 0 ? 1 : -1;
-        if (u.state === 'Attacking' && u.targetId && base.has(u.targetId)) {
-          const t = m.findUnit(u.targetId);
-          if (t && t.flying === u.flying) { // frente a frente: distância mínima de corpo a corpo
-            const contact = (bodyW(u) + bodyW(t)) * 0.5;
-            const want = base.get(u.targetId) - dir * contact;
-            if (dir * (x - want) > 0) x = want;
-          }
-        } else if (u.state === 'AttackingCastle') {
-          const f = this.laneX(m, m.castleFront(1 - u.owner), u.lane) - dir * bodyW(u) * 0.35;
-          if (dir * (x - f) > 0) x = f;
-        }
         tx.set(u.id, x);
       }
       // fileiras: por rota e time, da frente para trás
@@ -439,11 +430,9 @@
         if (u.state === 'Moving' || v.fly) frame = Math.floor(v.phase * 11) % sp.walk;
       }
       const lift = v.fly ? 46 * k : 0, bob = v.fly ? Math.sin(v.phase * 3) * 5 : 0;
-      const foot = v.y + v.r * 0.55;
+      const foot = v.y;
       g.save(); g.globalAlpha = alpha;
       // sombra e marca do time no chão
-      g.strokeStyle = v.owner === 0 ? 'rgba(63,139,255,.85)' : 'rgba(255,74,74,.85)'; g.lineWidth = 3;
-      g.beginPath(); g.ellipse(v.x, foot, bodyPx * 0.3, bodyPx * 0.085, 0, 0, TAU); g.stroke();
       g.save();
       g.translate(v.x, foot - lift + bob);
       if (dir < 0) g.scale(-1, 1);
@@ -467,6 +456,22 @@
         g.strokeStyle = '#f2c14e'; g.lineWidth = 1.5; g.stroke();
         g.fillStyle = '#fff'; g.font = 'bold 12px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(u.level, cx, cy + 0.5);
       }
+      g.restore();
+    }
+
+    // Indicador de invocação: a rota escolhida brilha e a criatura aparece transparente onde vai nascer
+    drawGhost(m, gh) {
+      const g = this.g, l = ARENA.lanes[gh.lane], x = this.laneX(m, gh.x, gh.lane);
+      g.save();
+      g.strokeStyle = 'rgba(255,230,120,.95)'; g.lineWidth = 4; g.setLineDash([12, 8]);
+      g.beginPath(); g.ellipse(x, l.y, 46, 13, 0, 0, TAU); g.stroke(); g.setLineDash([]);
+      const sp = BB.SPRITES && BB.SPRITES[gh.def.id], sheet = sp ? BB.art.image('img/units/' + gh.def.id + '.webp') : null;
+      g.globalAlpha = 0.55 + 0.15 * Math.sin(this.t * 8);
+      if (sheet && sheet.complete && sheet.naturalWidth) {
+        const bodyPx = (gh.def.flying ? 126 : 140) * (0.86 + Math.min(1, gh.def.hp / 1800) * 0.3), s = bodyPx / sp.body;
+        const lift = gh.def.flying ? 46 : 0;
+        g.drawImage(sheet, 0, 0, sp.w, sp.h, x - sp.ax * s, l.y - lift - sp.ay * s, sp.w * s, sp.h * s);
+      } else medallion(g, BB.art.cardImage(gh.def), x, l.y - 50, 44, '#ffd966', 5, false);
       g.restore();
     }
 

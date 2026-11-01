@@ -43,5 +43,39 @@
     preload(content) { for (const c of content.allCards) { BB.art.cardImage(c); if (BB.SPRITES && BB.SPRITES[c.id]) BB.art.image('img/units/' + c.id + '.webp'); } for (const b of content.barons) { BB.art.image(BB.art.baronUrl(b.id)); if (BB.SPRITES && BB.SPRITES[b.id]) BB.art.image('img/units/' + b.id + '.webp'); }
       for (const k in BB.FX || {}) BB.art.image('img/units/' + k + '.webp'); },
     hasArt: (id) => !NO_ART.includes(id),
+
+    // Prévia animada (tela de baralho): criatura andando com tamanho padrão da carta; feitiço com sua animação de efeito
+    animatePreviews(root) {
+      const cvs = [...root.querySelectorAll('canvas[data-unit]')];
+      if (!cvs.length) return;
+      const t0 = performance.now();
+      const loop = (now) => {
+        if (!cvs[0].isConnected) return;
+        const t = (now - t0) / 1000;
+        cvs.forEach((cv, i) => BB.art.drawPreview(cv, BB.content.card(cv.dataset.unit), t + i * 0.37));
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    },
+    drawPreview(cv, def, t) {
+      const g = cv.getContext('2d'), W = cv.width, H = cv.height;
+      g.clearRect(0, 0, W, H);
+      const sp = BB.SPRITES && BB.SPRITES[def.id], fx = BB.FX && BB.FX['fx_' + def.id];
+      if (sp) {
+        const im = BB.art.image('img/units/' + def.id + '.webp');
+        if (!im.complete || !im.naturalWidth) return;
+        const body = (def.flying ? 108 : 122) * (0.86 + Math.min(1, def.hp / 1800) * 0.3), s = body / sp.body;
+        const fr = Math.floor(t * 11) % sp.walk, foot = H - 8 - (def.flying ? 18 + Math.sin(t * 3) * 4 : 0);
+        g.drawImage(im, fr * sp.w, 0, sp.w, sp.h, W / 2 - sp.ax * s, foot - sp.ay * s, sp.w * s, sp.h * s);
+      } else if (fx) {
+        const im = BB.art.image('img/units/fx_' + def.id + '.webp');
+        if (!im.complete || !im.naturalWidth) return;
+        const fr = Math.floor((t % 2) / 2 * fx.n), s = Math.min((W - 10) / fx.w, (H - 10) / fx.h);
+        g.drawImage(im, fr * fx.w, 0, fx.w, fx.h, (W - fx.w * s) / 2, H - 6 - fx.h * s, fx.w * s, fx.h * s);
+      } else {
+        const im = BB.art.cardImage(def);
+        if (im.complete && im.naturalWidth) g.drawImage(im, W / 2 - 55, H - 120, 110, 110);
+      }
+    },
   };
 })(window.BB);

@@ -73,58 +73,56 @@
       const aiLevel = Math.max(1, ...Object.values(foe.levels || { a: 1 }));
       const CASTLE_ICON = { ImperialShield: '🛡️', DragonBreath: '🐉', IceStorm: '❄️' };
       hud.innerHTML = `
-        <div class="hb-panel me" data-r="40,6,415,118"></div>
-        <img class="hb-portrait me" data-r="45,9,155,117" src="${BB.art.baronUrl(me.baron.id)}">
-        <div class="hb-name" data-r="168,12,410,46">${esc(p.playerName)}</div>
-        <div class="hb-sub" data-r="168,46,410,76">${BB.baronName(me.baron.id)} • ${BB.castleName(me.castle.id)}</div>
-        <div class="hb-wins" data-r="168,76,410,108">🏆 ${T('battle.wins', p.wins)}</div>
-        <div class="hb-hp me" data-r="112,120,362,158"><i id="hpMe"></i><span id="hpMeT"></span></div>
-        <div class="hb-lvl me" data-r="62,112,126,166">${p.accountLevel}</div>
+        <div class="hb-panel me" data-r="40,6,420,112"></div>
+        <img class="hb-portrait me" data-r="45,9,141,109" src="${BB.art.baronUrl(me.baron.id)}">
+        <div class="hb-lvl me" data-r="30,72,74,118">${p.accountLevel}</div>
+        <div class="hb-name" data-r="150,10,412,40">${esc(p.playerName)}</div>
+        <div class="hb-sub" data-r="150,40,412,68">${BB.baronName(me.baron.id)} • 🏆 ${p.wins}</div>
+        <div class="hb-hp me" data-r="150,72,412,104"><i id="hpMe"></i><span id="hpMeT"></span></div>
 
-        <div class="hb-panel foe" data-r="1257,6,1632,118"></div>
-        <img class="hb-portrait foe" data-r="1522,9,1632,117" src="${BB.art.baronUrl(foe.baron.id)}">
-        <div class="hb-name foe" data-r="1262,12,1512,46">${T('battle.ai', diffName)}</div>
-        <div class="hb-sub foe" data-r="1262,46,1512,76">${BB.baronName(foe.baron.id)} • ${BB.castleName(foe.castle.id)}</div>
-        <div class="hb-wins foe" data-r="1262,76,1512,108">${T('battle.card_level', aiLevel)}</div>
-        <div class="hb-hp foe" data-r="1310,120,1560,158"><i id="hpFoe"></i><span id="hpFoeT"></span></div>
-        <div class="hb-lvl foe" data-r="1546,112,1610,166">${aiLevel}</div>
+        <div class="hb-panel foe" data-r="1252,6,1632,112"></div>
+        <img class="hb-portrait foe" data-r="1531,9,1627,109" src="${BB.art.baronUrl(foe.baron.id)}">
+        <div class="hb-lvl foe" data-r="1598,72,1642,118">${aiLevel}</div>
+        <div class="hb-name foe" data-r="1260,10,1522,40">${T('battle.ai', diffName)}</div>
+        <div class="hb-sub foe" data-r="1260,40,1522,68">${BB.baronName(foe.baron.id)} • ${T('battle.offline_short')}</div>
+        <div class="hb-hp foe" data-r="1260,72,1522,104"><i id="hpFoe"></i><span id="hpFoeT"></span></div>
 
-        <button class="hb-btn tap" data-r="430,12,492,72" id="pauseBtn">❚❚</button>
-        <div class="hb-score me" data-r="598,8,766,80"><b>👑</b><span id="crownMe">0</span></div>
-        <div class="hb-timer" data-r="764,8,910,80" id="timer">3:00</div>
-        <div class="hb-score foe" data-r="908,8,1078,80"><span id="crownFoe">0</span><b>👑</b></div>
-        <div class="hb-net" data-r="1126,14,1238,58" id="offline">● ${T('battle.offline_short')}</div>
+        <button class="hb-btn tap" data-r="436,14,494,70" id="pauseBtn">❚❚</button>
+        <div class="hb-score me" data-r="598,8,766,78"><b>👑</b><span id="crownMe">0</span></div>
+        <div class="hb-timer" data-r="764,8,910,78" id="timer">3:00</div>
+        <div class="hb-score foe" data-r="908,8,1078,78"><span id="crownFoe">0</span><b>👑</b></div>
+        <button class="hb-btn big tap" data-r="1088,14,1146,70" id="emoteBtn">😃</button>
+        <button class="hb-btn auto tap" data-r="1152,14,1238,70" id="autoBtn">${T('battle.auto')}</button>
+        <div class="hb-emotes tap hidden" data-r="900,82,1238,152" id="emotes">${['👍', '😃', '😠', '😱', '👑'].map((e) => `<button data-e="${e}">${e}</button>`).join('')}</div>
         <div class="hb-x2 hidden" data-r="690,84,986,116" id="x2">${T('battle.double_energy')}</div>
 
-        <button class="hb-power tap" data-r="15,688,378,852" id="baronBtn">
-          <img class="hb-icon" data-r="22,694,140,812" src="${BB.art.baronUrl(me.baron.id)}">
-          <div class="hb-pt" data-r="150,700,372,732">${T('baron.' + me.baron.id + '.ability')}</div>
-          <div class="hb-pd" data-r="150,734,372,810">${T('baron.' + me.baron.id + '.desc')}</div>
-          <div class="hb-bar" data-r="58,816,342,844"><i id="baronFill"></i><span id="baronState"></span></div></button>
-        <button class="hb-power castle tap" data-r="1296,688,1658,852" id="castleBtn">
-          <div class="hb-icon castle" data-r="1304,700,1416,812">${CASTLE_ICON[me.castle.ability] || '🏰'}</div>
-          <div class="hb-ph" data-r="1422,698,1652,728">${T('battle.castle_power')}</div>
-          <div class="hb-pt" data-r="1422,728,1652,758">${T('castle.' + me.castle.id + '.ability')}</div>
-          <div class="hb-pd" data-r="1422,758,1652,812">${T('castle.' + me.castle.id + '.desc')}</div>
-          <div class="hb-bar" data-r="1406,816,1632,844"><i id="castleFill"></i><span id="castleState"></span></div></button>
+        <button class="hb-power tap" data-r="10,752,330,936" id="baronBtn">
+          <img class="hb-icon" data-r="18,762,118,862" src="${BB.art.baronUrl(me.baron.id)}">
+          <div class="hb-pt" data-r="126,764,324,796">${T('baron.' + me.baron.id + '.ability')}</div>
+          <div class="hb-pd" data-r="126,798,324,868">${T('baron.' + me.baron.id + '.desc')}</div>
+          <div class="hb-bar" data-r="22,880,318,914"><i id="baronFill"></i><span id="baronState"></span></div></button>
+        <button class="hb-power castle tap" data-r="1342,752,1662,936" id="castleBtn">
+          <div class="hb-icon castle" data-r="1350,762,1450,862">${CASTLE_ICON[me.castle.ability] || '🏰'}</div>
+          <div class="hb-ph" data-r="1458,764,1656,790">${T('battle.castle_power')}</div>
+          <div class="hb-pt" data-r="1458,790,1656,820">${T('castle.' + me.castle.id + '.ability')}</div>
+          <div class="hb-pd" data-r="1458,820,1656,872">${T('castle.' + me.castle.id + '.desc')}</div>
+          <div class="hb-bar" data-r="1354,880,1650,914"><i id="castleFill"></i><span id="castleState"></span></div></button>
 
-        <div class="hb-tray" data-r="388,672,1290,936"></div>
-        ${[435, 601, 767, 933, 1099].map((x, i) => `<div class="hb-slot tap" data-r="${x},682,${x + 154},852" id="slot${i}"></div>`).join('')}
-        <div class="hb-ebar" data-r="452,866,1262,918" id="ebar"><i id="energyFill"></i>${'<b></b>'.repeat(9)}</div>
-        <div class="hb-enum" data-r="358,846,462,936" id="energyNum">5</div>
-
-        <button class="hb-btn big tap" data-r="30,862,138,930" id="emoteBtn">😃</button>
-        <div class="hb-emotes tap hidden" data-r="30,770,420,852" id="emotes">${['👍', '😃', '😠', '😱', '👑'].map((e) => `<button data-e="${e}">${e}</button>`).join('')}</div>
-        <button class="hb-btn auto tap" data-r="1414,862,1544,930" id="autoBtn">⚔ ${T('battle.auto')}</button>
-        <button class="hb-btn big tap" data-r="1560,862,1648,930" id="setBtn">⚙</button>
-        <div class="hb-bubble hidden" data-r="270,150,380,225" id="bubbleMe"></div>
-        <div class="hb-bubble foe hidden" data-r="1292,150,1402,225" id="bubbleFoe"></div>
-        <div class="hb-hint" data-r="436,196,1236,250" id="hint"></div>`;
+        <div class="hb-tray" data-r="338,744,1334,941"></div>
+        <button class="hb-trash tap" data-r="346,770,420,872" id="trash">🗑</button>
+        ${[0, 1, 2, 3, 4, 5].map((i) => `<div class="hb-slot tap" data-r="${428 + i * 128},756,${544 + i * 128},902" id="slot${i}"></div>`).join('')}
+        <div class="hb-pile" data-r="1200,762,1326,900" id="pile"><div class="hb-pilecards"></div><div class="hb-pilebar"><i id="drawFill"></i></div><span id="pileTxt"></span></div>
+        <div class="hb-enum" data-r="352,880,418,941" id="energyNum">1</div>
+        <div class="hb-max" data-r="428,903,700,925" id="energyMax"></div>
+        <div class="hb-ebar" data-r="704,908,1192,932" id="ebar"><i id="energyFill"></i><u id="energyCap"></u>${'<b></b>'.repeat(9)}</div>
+        <div class="hb-bubble hidden" data-r="270,110,380,185" id="bubbleMe"></div>
+        <div class="hb-bubble foe hidden" data-r="1292,110,1402,185" id="bubbleFoe"></div>
+        <div class="hb-hint" data-r="436,120,1236,170" id="hint"></div>`;
       this.el = {
         hpMe: $('#hpMe'), hpMeT: $('#hpMeT'), hpFoe: $('#hpFoe'), hpFoeT: $('#hpFoeT'), timer: $('#timer'), x2: $('#x2'), offline: $('#offline'),
         crownMe: $('#crownMe'), crownFoe: $('#crownFoe'), ebar: $('#ebar'),
         baronBtn: $('#baronBtn'), baronFill: $('#baronFill'), baronState: $('#baronState'), castleBtn: $('#castleBtn'), castleFill: $('#castleFill'),
-        castleState: $('#castleState'), slots: [0, 1, 2, 3, 4].map((i) => $('#slot' + i)), energyFill: $('#energyFill'), energyNum: $('#energyNum'), hint: $('#hint'),
+        castleState: $('#castleState'), slots: [0, 1, 2, 3, 4, 5].map((i) => $('#slot' + i)), drawFill: $('#drawFill'), pileTxt: $('#pileTxt'), energyMax: $('#energyMax'), energyCap: $('#energyCap'), trash: $('#trash'), energyFill: $('#energyFill'), energyNum: $('#energyNum'), hint: $('#hint'),
         autoBtn: $('#autoBtn'), emotes: $('#emotes'), bubbles: [$('#bubbleMe'), $('#bubbleFoe')],
       };
       $('#pauseBtn').onclick = () => this.pause();
@@ -133,7 +131,7 @@
       $('#emoteBtn').onclick = () => { BB.audio.play('click'); this.el.emotes.classList.toggle('hidden'); };
       this.el.emotes.querySelectorAll('[data-e]').forEach((b) => b.onclick = () => { this.el.emotes.classList.add('hidden'); this.emote(0, b.dataset.e); });
       this.el.autoBtn.onclick = () => this.toggleAuto();
-      $('#setBtn').onclick = () => this.openSettings();
+      $('#trash').onclick = () => this.discardSelected();
       BB.renderer.onLayout = () => this.layoutHud();
       this.layoutHud();
       this.handKey = '';
@@ -196,10 +194,11 @@
       const key = me.deck.hand.join(',');
       if (key === this.handKey) return;
       this.handKey = key;
-      me.deck.hand.forEach((id, i) => {
-        if (!this.el.slots[i]) return;
-        this.el.slots[i].innerHTML = BB.ui.cardHtml(BB.content.card(id), BB.Progress.owned(BB.profile, id), { level: true, attrs: 'data-i="' + i + '"' });
-        this.el.slots[i].firstElementChild.addEventListener('pointerdown', (e) => { e.preventDefault(); this.selectCard(i); });
+      this.el.slots.forEach((slot, i) => {
+        const id = me.deck.hand[i];
+        if (!id) { slot.innerHTML = '<div class="hb-empty"></div>'; return; }
+        slot.innerHTML = BB.ui.cardHtml(BB.content.card(id), BB.Progress.owned(BB.profile, id), { level: true, attrs: 'data-i="' + i + '"' });
+        slot.firstElementChild.addEventListener('pointerdown', (e) => { e.preventDefault(); this.selectCard(i); });
       });
     }
 
@@ -229,7 +228,15 @@
       el.castleBtn.classList.toggle('ready', cReady && !m.over);
       el.castleBtn.classList.toggle('armed', this.armed === 'castle');
       this.refreshHand();
-      for (let i = 0; i < me.deck.hand.length && i < 5; i++) {
+      // compra automática, mão cheia e máximo de energia
+      const full = me.deck.hand.length >= m.handMax;
+      el.drawFill.style.width = (full ? 100 : Math.min(100, (me.drawTimer / (m.B.drawInterval || 4)) * 100)) + '%';
+      el.pileTxt.textContent = full ? T('battle.hand_full') : '';
+      el.pileTxt.parentElement.classList.toggle('full', full);
+      el.energyMax.textContent = T('battle.energy_max', m.energyCap);
+      el.energyCap.style.left = (m.energyCap / m.B.maxEnergy) * 100 + '%';
+      el.trash.classList.toggle('on', this.armed === 'card');
+      for (let i = 0; i < me.deck.hand.length && i < 6; i++) {
         const c = el.slots[i].firstElementChild;
         if (!c) continue;
         c.classList.toggle('poor', me.energy < BB.content.card(me.deck.hand[i]).cost);
@@ -259,6 +266,14 @@
 
     disarm() { this.armed = null; this.sel = -1; this.dragging = false; this.hoverLane = -1; }
 
+    discardSelected() {
+      if (this.armed !== 'card' || this.sel < 0) { BB.ui.toast(T('battle.discard_hint')); return; }
+      const me = this.match.players[0];
+      const r = this.match.execute({ type: 'discard', player: 0, hand: this.sel, cardId: me.deck.hand[this.sel] });
+      if (r === 'Ok') { BB.audio.play('card'); BB.vibrate(10); }
+      this.disarm();
+    }
+
     pointerMove(e) {
       if (!this.armed) return;
       this.hoverLane = BB.renderer.laneAt(e.clientX, e.clientY);
@@ -268,6 +283,7 @@
       const wasDrag = this.dragging;
       this.dragging = false;
       if (!this.armed || this.paused || this.match.over) return;
+      if (wasDrag && this.armed === 'card' && e.target.closest && e.target.closest('#trash')) { this.discardSelected(); return; }
       if (e.target.closest && e.target.closest('.tap')) return; // soltou sobre a interface
       const lane = BB.renderer.laneAt(e.clientX, e.clientY);
       if (lane < 0) { if (!wasDrag) this.disarm(); return; }
@@ -298,6 +314,7 @@
       this.paused = true; this.disarm();
       BB.ui.modal(T('battle.paused'), '', [
         { label: T('battle.resume'), cls: 'green', fn: () => { this.paused = false; } },
+        { label: T('ui.settings'), cls: 'dark', fn: () => { this.paused = false; this.openSettings(); } },
         { label: T('battle.surrender'), cls: 'red', fn: () => BB.ui.modal(T('battle.surrender'), T('battle.confirm_surrender'), [
           { label: T('battle.yes'), cls: 'red', fn: () => { this.paused = false; this.match.surrender(0); } },
           { label: T('battle.no'), cls: 'dark', fn: () => { this.paused = false; } },
@@ -332,7 +349,12 @@
         if (steps >= 8) this.acc = 0;
       }
       for (const e of m.drainEvents()) this.onEvent(e);
-      BB.renderer.draw(m, this.paused ? 0 : dt, { armed: !!this.armed, hoverLane: this.hoverLane });
+      let ghost = null;
+      if (this.armed === 'card' && this.hoverLane >= 0 && this.sel >= 0) {
+        const def = BB.content.cards[m.players[0].deck.hand[this.sel]];
+        if (def && !def.isSpell) ghost = { lane: this.hoverLane, x: m.deployX(0, this.hoverLane), def };
+      }
+      BB.renderer.draw(m, this.paused ? 0 : dt, { armed: !!this.armed, hoverLane: this.hoverLane, ghost });
       this.refreshHud();
       if (m.over) {
         if (this.endT === 0) this.showEnd();

@@ -53,7 +53,7 @@
       if (lanes[threatLane].threat > (hard ? 200 : 320) && this.playBest(p, threatLane, lanes[threatLane], true)) return;
       for (let l = 0; l < 3; l++) if (lanes[l].enemyCount >= (hard ? 3 : 4) && this.playSpell(p, l, lanes[l])) return;
       if (this.pushTimer > 0 && this.pushLane >= 0 && p.energy >= 3 && this.playBest(p, this.pushLane, lanes[this.pushLane], false)) return;
-      if (p.energy >= (hard ? 8 : 7)) {
+      if (p.energy >= Math.min(hard ? 8 : 7, this.m.energyCap - 0.3)) {
         const lane = argMax(lanes, (x) => -x.enemyPower + x.myPower * 0.5);
         if (this.playBest(p, lane, lanes[lane], false)) { this.pushLane = lane; this.pushTimer = hard ? 4 : 0; }
       }

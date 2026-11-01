@@ -84,16 +84,19 @@
     },
   };
 
+  // Mão no estilo duelo: começa com algumas cartas e compra uma automaticamente a cada intervalo,
+  // até o limite da mão. Carta jogada ou descartada volta para o fim do baralho.
   class DeckState {
-    constructor(deck, handSize, rng) {
+    constructor(deck, handStart, rng) {
       const list = rng.shuffle(deck.slice());
-      this.hand = list.slice(0, handSize);
-      this.queue = list.slice(handSize);
+      this.hand = list.slice(0, handStart);
+      this.queue = list.slice(handStart);
     }
     get next() { return this.queue.length ? this.queue[0] : null; }
+    draw() { if (this.queue.length) this.hand.push(this.queue.shift()); }
     play(i) {
-      const id = this.hand[i];
-      if (this.queue.length) { this.hand[i] = this.queue.shift(); this.queue.push(id); }
+      const id = this.hand.splice(i, 1)[0];
+      this.queue.push(id);
       return id;
     }
   }
@@ -117,7 +120,7 @@
         const baron = content.baron(ps.baronId), castle = content.castle(ps.castleId);
         const hp = castle.hp > 0 ? castle.hp : B.castleHp;
         return {
-          index: i, baron, castle, deck: new DeckState(ps.deck, B.handSize, this.rng), levels: ps.levels || {},
+          index: i, baron, castle, deck: new DeckState(ps.deck, B.handStart || 4, this.rng), drawTimer: 0, levels: ps.levels || {},
           energy: B.startEnergy, castleHp: hp, castleMaxHp: hp, castleShield: 0, castleShieldTime: 0,
           baronCharge: (baron.initialCharge || 0) * baron.chargeSeconds, castleCooldown: castle.initialCooldown || 0,
           castleAttackCd: 0, mods: [],
@@ -132,6 +135,23 @@
     get doubleEnergy() { return this.timeLeft <= this.B.doubleEnergyLastSeconds; }
     castleFront(owner) { return owner === 0 ? this.B.castleFront : this.L - this.B.castleFront; }
     spawnX(owner) { return owner === 0 ? this.B.spawnOffset : this.L - this.B.spawnOffset; }
+    // energia máxima cresce com o tempo (começa baixa e vai aumentando)
+    get energyCap() {
+      const B = this.B;
+      if (!B.maxEnergyStart) return B.maxEnergy;
+      return Math.min(B.maxEnergy, B.maxEnergyStart + Math.floor(this.time / (B.maxEnergyGrowEvery || 8)));
+    }
+    get handMax() { return this.B.handMax || 6; }
+    // ponto de invocação: base do castelo, ou a posição da sua tropa mais avançada na rota (até o meio do campo)
+    deployX(owner, lane) {
+      const base = this.spawnX(owner), dir = dirOf(owner);
+      const f = this.frontUnit(owner, lane);
+      if (f === null) return base;
+      const limit = this.L / 2;
+      return dir > 0 ? Math.max(base, Math.min(f, limit)) : Math.min(base, Math.max(f, limit));
+    }
+    // raio de corpo (unidades da rota): tropas param de frente para o inimigo sem se atravessarem
+    bodyR(def) { return def.flying ? 3 : 2.2 + Math.min(1, (def.hp || 0) / 1800) * 1.6; }
     level(p, id) { return Math.max(1, p.levels[id] || 1); }
     baronReady(p) { return p.baronCharge >= p.baron.chargeSeconds; }
     baronProgress(p) { return p.baron.chargeSeconds <= 0 ? 1 : Math.min(1, p.baronCharge / p.baron.chargeSeconds); }
@@ -163,6 +183,11 @@
         if (!def.isSpell && this.aliveCount(c.player) + def.count > this.B.maxUnitsPerPlayer) return 'UnitCap';
         return 'Ok';
       }
+      if (c.type === 'discard') {
+        if (!(c.hand >= 0 && c.hand < p.deck.hand.length)) return 'InvalidHandIndex';
+        if (c.cardId && c.cardId !== p.deck.hand[c.hand]) return 'CardMismatch';
+        return 'Ok';
+      }
       if (c.type === 'baron') {
         if (!this.baronReady(p)) return 'NotReady';
         if (p.baron.requiresLane && !laneOk) return 'InvalidLane';
@@ -181,6 +206,7 @@
       if (r !== 'Ok') return r;
       const p = this.players[c.player];
       if (c.type === 'play') this.playCard(p, c.hand, c.lane);
+      else if (c.type === 'discard') { const id = p.deck.play(c.hand); this.emit('CardDiscarded', p.index, { id }); }
       else if (c.type === 'baron') this.useBaron(p, c.lane);
       else this.useCastle(p, c.lane);
       return r;
@@ -198,7 +224,7 @@
       const level = this.level(p, id);
       if (def.isSpell) { p.stats.spellsCast++; this.castSpell(p, def, lane, this.content.levelMult(level), level); }
       else {
-        const x = this.spawnX(p.index);
+        const x = this.deployX(p.index, lane);
         for (let i = 0; i < def.count; i++) {
           this.spawnUnit(p.index, def, lane, x - dirOf(p.index) * 1.4 * i, level);
           p.stats.unitsDeployed++;
@@ -238,7 +264,11 @@
       if (this.doubleEnergy && !this.doubleAnnounced) { this.doubleAnnounced = true; this.emit('DoubleEnergy', -1, {}); }
       for (const p of this.players) {
         const rate = B.energyPerSecond * (this.doubleEnergy ? 2 : 1);
-        p.energy = Math.min(B.maxEnergy, p.energy + rate * dt);
+        p.energy = Math.min(this.energyCap, p.energy + rate * dt);
+        if (p.deck.hand.length < this.handMax) {
+          p.drawTimer += dt;
+          if (p.drawTimer >= (B.drawInterval || 4)) { p.drawTimer = 0; p.deck.draw(); }
+        }
         p.baronCharge = Math.min(p.baron.chargeSeconds, p.baronCharge + dt);
         if (p.castleCooldown > 0) p.castleCooldown -= dt;
         if (p.castleShieldTime > 0) { p.castleShieldTime -= dt; if (p.castleShieldTime <= 0) p.castleShield = 0; }
@@ -290,7 +320,7 @@
       }
       const front = this.castleFront(1 - u.owner);
       const dist = (front - u.x) * u.dir;
-      if (dist <= d.range + 0.01) {
+      if (dist <= d.range + this.bodyR(d) + 0.01) {
         u.state = 'AttackingCastle'; u.targetId = 0;
         if (u.attackCd <= 0) {
           u.attackCd = Math.max(0, u.attackCd + d.attackInterval);
@@ -303,7 +333,7 @@
       if (u.attackCd < 0) u.attackCd = 0;
       if (d.moveSpeed <= 0) { u.state = 'Idle'; return; }
       u.state = 'Moving';
-      u.x += u.dir * Math.min(d.moveSpeed * moveMult * dt, Math.max(0, dist - d.range));
+      u.x += u.dir * Math.min(d.moveSpeed * moveMult * dt, Math.max(0, dist - d.range - this.bodyR(d)));
     }
 
     modifiers(u) {
@@ -327,7 +357,7 @@
       for (const e of this.units) {
         if (e.hp <= 0 || e.owner === u.owner || e.lane !== u.lane || !Match.canTarget(u.def, e)) continue;
         const d = Math.abs(e.x - u.x);
-        if (d <= u.def.range + 0.01 && d < bestD) { best = e; bestD = d; }
+        if (d <= u.def.range + this.bodyR(u.def) + this.bodyR(e.def) + 0.01 && d < bestD) { best = e; bestD = d; }
       }
       return best;
     }

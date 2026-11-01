@@ -248,7 +248,7 @@ BB.STRINGS = {
 "ui.rotate": "Gire o celular para jogar",
 "result.again": "Jogar de novo",
 "help.title": "Como jogar",
-"help.text": "Arraste uma carta até uma das 3 rotas (ou toque na carta e depois na rota).\nSuas tropas avançam e lutam sozinhas.\nCada carta gasta energia, que recarrega com o tempo.\nUse o Poder do Barão e o Poder do Castelo (à esquerda) quando estiverem prontos.\nDestrua o castelo inimigo ou tenha mais vida no castelo quando o tempo acabar!",
+"help.text": "Arraste uma carta até uma das 3 rotas e solte. A rota brilha e mostra onde a criatura vai aparecer.\nSe você já tem uma tropa na rota, a nova nasce junto da mais avançada (até o meio do campo).\nA energia começa em 1 e o máximo vai subindo com o tempo. Cartas coloridas podem ser jogadas.\nVocê compra uma carta nova a cada poucos segundos e pode ter até 6 na mão. Mão cheia? Arraste uma carta para a lixeira.\nUse os poderes do Barão e do castelo quando estiverem prontos e destrua o castelo inimigo!",
 "help.ok": "Entendi!",
 "update.title": "Nova versão!",
 "update.go": "Atualizar",
@@ -256,7 +256,10 @@ BB.STRINGS = {
 "battle.wins": "{0} vitórias",
 "battle.card_level": "Cartas nível {0}",
 "battle.offline_short": "Offline",
-"battle.auto": "Auto"
+"battle.auto": "Auto",
+"battle.hand_full": "MÃO CHEIA!",
+"battle.energy_max": "MÁXIMO: {0}",
+"battle.discard_hint": "Arraste uma carta até a lixeira para descartar"
 },
 "en": {
 "app.title": "BASTION BARONS",
@@ -505,7 +508,7 @@ BB.STRINGS = {
 "ui.rotate": "Rotate your phone to play",
 "result.again": "Play again",
 "help.title": "How to play",
-"help.text": "Drag a card to one of the 3 lanes (or tap the card, then the lane).\nYour troops march and fight on their own.\nEach card costs energy, which refills over time.\nUse the Baron Power and Castle Power (left) when they are ready.\nDestroy the enemy castle, or have more castle health when time runs out!",
+"help.text": "Drag a card onto one of the 3 lanes and release. The lane glows and shows where the creature will appear.\nIf you already have a troop in that lane, the new one spawns next to your front-most troop (up to midfield).\nEnergy starts at 1 and its maximum grows over time. Colored cards can be played.\nYou draw a new card every few seconds and can hold up to 6. Hand full? Drag a card to the bin.\nUse your Baron and castle powers when ready and destroy the enemy castle!",
 "help.ok": "Got it!",
 "update.title": "New version!",
 "update.go": "Update",
@@ -513,6 +516,9 @@ BB.STRINGS = {
 "battle.wins": "{0} wins",
 "battle.card_level": "Card level {0}",
 "battle.offline_short": "Offline",
-"battle.auto": "Auto"
+"battle.auto": "Auto",
+"battle.hand_full": "HAND FULL!",
+"battle.energy_max": "MAX: {0}",
+"battle.discard_hint": "Drag a card to the bin to discard it"
 }
 };

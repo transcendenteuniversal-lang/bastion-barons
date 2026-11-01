@@ -237,8 +237,12 @@
       const p = BB.profile, C = BB.content, size = C.balance.deckSize;
       const s = state || { idx: p.activeDeck, work: p.decks[p.activeDeck].slice() };
       const valid = BB.DeckRules.validate(s.work, C, p) === 'Ok';
-      const slots = s.work.map((id) => ui.cardHtml(C.card(id), BB.Progress.owned(p, id), { level: true, attrs: 'data-rm="' + id + '"' })).join('') +
-        '<div class="slot"></div>'.repeat(Math.max(0, size - s.work.length));
+      // baralho: cada criatura aparece já invocada, andando sobre um pedestal (feitiços mostram o efeito)
+      const slots = s.work.map((id) => {
+        const def = C.card(id), o = BB.Progress.owned(p, id);
+        return `<div class="ped ${def.rarity}" data-rm="${id}"><canvas width="180" height="150" data-unit="${id}"></canvas><div class="ped-base"></div>
+          <div class="cost">${def.cost}</div><div class="ped-lv">${T('ui.level', o ? o.level : 1)}</div><div class="ped-name">${esc(BB.cardName(id))}</div></div>`;
+      }).join('') + '<div class="ped empty"></div>'.repeat(Math.max(0, size - s.work.length));
       const avail = C.collectible.filter((c) => BB.Progress.owned(p, c.id) && !s.work.includes(c.id)).sort((a, b) => a.cost - b.cost || a.id.localeCompare(b.id));
       screen('deck', topbar(T('ui.deck_title', s.idx + 1), true) + `
         <div class="deckinfo"><div class="tabs">${[0, 1, 2].map((i) => `<button class="btn small ${i === s.idx ? 'on' : ''}" data-tab="${i}">${i + 1}</button>`).join('')}</div>
@@ -247,6 +251,7 @@
         <div class="deckzone">${slots}</div>
         <div class="content"><p class="muted center" style="margin:0 0 .6rem">${T('ui.deck_tap_remove')}</p><div class="grid">${avail.map((c) => ui.cardHtml(c, BB.Progress.owned(p, c.id), { level: true, attrs: 'data-add="' + c.id + '"' })).join('')}</div></div>`);
       bindBack('deck', () => ui.show('menu'));
+      BB.art.animatePreviews(app());
       app().querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { BB.audio.play('click'); const i = +b.dataset.tab; ui.show('deck', { idx: i, work: p.decks[i].slice() }); });
       app().querySelectorAll('[data-rm]').forEach((el) => el.onclick = () => { BB.audio.play('click'); s.work = s.work.filter((x) => x !== el.dataset.rm); ui.show('deck', s); });
       app().querySelectorAll('[data-add]').forEach((el) => el.onclick = () => {

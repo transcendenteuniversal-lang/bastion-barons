@@ -61,13 +61,40 @@ test('baralho exige 14 cartas únicas, colecionáveis e possuídas', () => {
   const p = BB.Progress.create(content); const no = d.slice(); no[0] = 'phoenix';
   eq(BB.DeckRules.validate(no, content, p), 'NotOwned');
 });
-test('carta jogada vai para o fim da fila e a próxima entra na mão', () => {
+test('mão começa com 4, compra 1 a cada intervalo e para em 6', () => {
   const m = newMatch(); const dk = m.players[0].deck;
-  const next = dk.next, played = dk.hand[2]; dk.play(2);
-  eq(dk.hand[2], next); eq(dk.queue[dk.queue.length - 1], played);
+  eq(dk.hand.length, content.balance.handStart);
+  run(m, content.balance.drawInterval + 0.1); eq(dk.hand.length, content.balance.handStart + 1);
+  run(m, 60); eq(dk.hand.length, content.balance.handMax);
+});
+test('carta jogada sai da mão e vai para o fim do baralho; descarte libera espaço', () => {
+  const m = newMatch(); const dk = m.players[0].deck; m.players[0].energy = 10;
+  const id = dk.hand[0]; const n = dk.hand.length;
+  eq(m.execute({ type: 'play', player: 0, hand: 0, cardId: id, lane: 1 }), 'Ok');
+  eq(dk.hand.length, n - 1); eq(dk.queue[dk.queue.length - 1], id);
+  const d = dk.hand[0];
+  eq(m.execute({ type: 'discard', player: 0, hand: 0, cardId: d }), 'Ok');
+  eq(dk.hand.length, n - 2); eq(dk.queue[dk.queue.length - 1], d);
+});
+test('energia começa em 1 e o máximo cresce com o tempo até 10', () => {
+  const m = newMatch(); eq(m.players[0].energy, 1); eq(m.energyCap, content.balance.maxEnergyStart);
+  run(m, 20); assert(m.energyCap > content.balance.maxEnergyStart); assert(m.players[0].energy <= m.energyCap + 1e-9);
+  run(m, 80); eq(m.energyCap, 10);
+});
+test('nova tropa nasce na posição da tropa mais avançada da rota, até o meio', () => {
+  const m = newMatch(); const k = content.card('royal_knight');
+  eq(m.deployX(0, 1), m.spawnX(0));
+  m.spawnUnit(0, k, 1, 30, 1); near(m.deployX(0, 1), 30, 1e-9);
+  m.spawnUnit(0, k, 1, 80, 1); near(m.deployX(0, 1), m.L / 2, 1e-9);
+  eq(m.deployX(0, 2), m.spawnX(0));
+});
+test('tropas param de frente, sem atravessar o inimigo', () => {
+  const m = newMatch(); const k = content.card('royal_knight');
+  const a = m.spawnUnit(0, k, 0, 40, 1), b = m.spawnUnit(1, k, 0, 60, 1);
+  run(m, 6); assert(b.x - a.x >= m.bodyR(k) * 2 - 0.01, 'distância ' + (b.x - a.x));
 });
 test('energia regenera e para no máximo', () => {
-  const m = newMatch(); const e0 = m.players[0].energy; run(m, 2); assert(m.players[0].energy > e0); run(m, 60); near(m.players[0].energy, 10, 1e-6);
+  const m = newMatch(); const e0 = m.players[0].energy; run(m, 2); assert(m.players[0].energy > e0); run(m, 90); near(m.players[0].energy, 10, 1e-6);
 });
 test('sem energia suficiente a carta é recusada', () => {
   const m = newMatch(); m.players[0].energy = 0; eq(m.execute({ type: 'play', player: 0, hand: 0, lane: 1 }), 'NotEnoughEnergy'); eq(m.units.length, 0);
