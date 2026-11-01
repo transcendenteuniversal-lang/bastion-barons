@@ -30,6 +30,12 @@ ORDER = ['royal_knight', 'paladin', 'barbarian', 'red_orc', 'shadow_assassin', '
 ORDER2 = ['royal_cleric', 'dwarf_engineer', 'dwarf_turret', 'rei_bastion', 'elara', 'malachar', 'thorg', 'eldrin',
           'fx_fireball', 'fx_freeze', 'fx_divine_heal', 'fx_lightning', 'fx_arcane_shield', 'fx_poison', 'fx_arrow_rain', 'fx_skeleton_summon',
           'fx_imperial_shield', 'fx_dragon_breath', 'fx_ice_storm']
+# Terceiro lote ("Clean chibi ..." / "Clean VFX ..." no nome): tropas refeitas no estilo limpo + efeitos extras
+ORDER3 = ['royal_knight', 'paladin', 'barbarian', 'red_orc', 'shadow_assassin', 'stone_guardian', 'dwarf_warrior', 'royal_lancer',
+          'elven_archer', 'royal_archer', 'arcane_mage', 'shadow_sorceress', 'necromancer', 'goblin_gunner', 'fire_dragon', 'ice_dragon',
+          'phoenix', 'stone_golem', 'mountain_troll', 'royal_griffin', 'guardian_ent', 'infernal_demon', 'skeleton',
+          'fx_royal_command', 'fx_elven_rain', 'fx_army_of_dead', 'fx_orc_fury', 'fx_arcane_storm',
+          'fx_deploy', 'fx_death', 'fx_hit', 'fx_castle_hit', 'fx_castle_destroyed', 'fx_victory']
 BARONS = {'rei_bastion', 'elara', 'malachar', 'thorg', 'eldrin'}
 UNITS = set(ORDER[:26]) | BARONS  # tropas, invocações e Barões (linha 1 = andar/parado, linha 2 = ataque/poder)
 # trechos do vídeo (frações) usados em cada linha; padrão: andar 0–50%, atacar 50–100%
@@ -55,7 +61,8 @@ def import_videos(paths):
         n = int(m.group(1))
         if not 1 <= n <= len(ORDER):
             print('número fora da lista:', p); continue
-        order = ORDER2 if 'clean' in os.path.basename(p).lower() else ORDER
+        name = os.path.basename(p).lower()
+        order = ORDER3 if ('clean-chibi' in name or 'clean-vfx' in name) else ORDER2 if 'clean' in name else ORDER
         if n > len(order):
             print('número fora da lista:', p); continue
         uid = order[n - 1]
