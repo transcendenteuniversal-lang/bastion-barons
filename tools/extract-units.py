@@ -56,6 +56,13 @@ def import_videos(paths):
     os.makedirs(SRC, exist_ok=True)
     done = []
     for p in paths:
+        bm = re.search(r'baron-(bastion|elara|malachar|thorg|eldrin)-(idle|power|victory|defeat|hurt|cheer)', os.path.basename(p).lower())
+        if bm:  # animações dos Barões: o nome do prompt identifica Barão e animação (não depende do número)
+            bid = 'rei_bastion' if bm.group(1) == 'bastion' else bm.group(1)
+            dst = os.path.join(ROOT, 'art', 'source', 'barons', bid + '_' + bm.group(2) + '.mp4')
+            subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', p, '-an', '-c:v', 'libx264', '-crf', '30', '-preset', 'slow', '-pix_fmt', 'yuv420p', dst], check=True)
+            print('barão:', bid, bm.group(2))
+            continue
         m = re.search(r'(?:^|[-_/])(\d{3})_', os.path.basename(p)) or re.match(r'(\d{3})', os.path.basename(p))
         if not m:
             print('sem número:', p); continue
