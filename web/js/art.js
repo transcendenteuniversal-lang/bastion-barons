@@ -37,7 +37,7 @@
       return im;
     },
     cardImage(def) { return BB.art.image(BB.art.cardUrl(def)); },
-    preload(content) { for (const c of content.allCards) BB.art.cardImage(c); for (const b of content.barons) BB.art.image(BB.art.baronUrl(b.id)); },
+    preload(content) { for (const c of content.allCards) { BB.art.cardImage(c); if (BB.SPRITES && BB.SPRITES[c.id]) BB.art.image('img/units/' + c.id + '.webp'); } for (const b of content.barons) BB.art.image(BB.art.baronUrl(b.id)); },
     hasArt: (id) => !NO_ART.includes(id),
   };
 })(window.BB);

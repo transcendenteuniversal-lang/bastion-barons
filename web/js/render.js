@@ -71,8 +71,8 @@
       const laneW = (i) => ARENA.lanes[i].xR - ARENA.lanes[i].xL;
       switch (e.type) {
         case 'UnitAttack': {
-          if (v) v.lunge = 0.22;
           const def = m.content.cards[e.id];
+          if (v) { v.lunge = 0.22; v.atk = 0; v.atkDur = def ? Math.max(0.45, Math.min(1.1, def.attackInterval * 0.85)) : 0.6; }
           if (!def || !v) break;
           if (def.range > 4) {
             const tv = e.targetId ? this.views.get(e.targetId) : null;
@@ -224,7 +224,7 @@
         if (!v) {
           const size = 0.8 + Math.min(1, u.def.hp / 1800) * 0.5;
           v = { id: u.id, u, x: tx, y: ty, r: ARENA.unitR * l.k * size, lift: u.flying ? 52 * l.k : 0, born: 0, lunge: 0, flash: 0, lastHp: u.hp,
-            fly: u.flying ? 1 : 0, owner: u.owner, img: BB.art.cardImage(u.def), phase: Math.random() * 10, dying: -1 };
+            fly: u.flying ? 1 : 0, owner: u.owner, img: BB.art.cardImage(u.def), phase: Math.random() * 10, dying: -1, atk: -1, atkDur: 0.6 };
           this.views.set(u.id, v);
         }
         v.u = u;
@@ -244,6 +244,9 @@
       if (v.lunge > 0) v.lunge -= dt;
       if (v.flash > 0) v.flash -= dt;
       const dir = v.owner === 0 ? 1 : -1;
+      const sp = BB.SPRITES && BB.SPRITES[u.def.id];
+      const sheet = sp ? BB.art.image('img/units/' + u.def.id + '.webp') : null;
+      if (sheet && sheet.complete && sheet.naturalWidth) return this.drawSprite(v, u, sp, sheet, dt, dir);
       let x = v.x, r = v.r;
       const y = v.y;
       const moving = u.state === 'Moving';
@@ -277,6 +280,48 @@
         g.fillStyle = v.owner === 0 ? '#1d3f9a' : '#8a1a20'; g.beginPath(); g.arc(x - r * 0.8, cy + r * 0.75, r * 0.34, 0, TAU); g.fill();
         g.fillStyle = '#fff'; g.font = 'bold ' + Math.round(r * 0.42) + 'px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
         g.fillText(u.level, x - r * 0.8, cy + r * 0.77);
+      }
+      g.restore();
+    }
+
+    // Tropa animada (quadros extraídos dos vídeos: linha 0 = andar, linha 1 = ataque; desenhados virados para a direita)
+    drawSprite(v, u, sp, sheet, dt, dir) {
+      const g = this.g, k = ARENA.lanes[u.lane].k;
+      const bodyPx = (v.fly ? 112 : 124) * k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3);
+      let scale = v.born < 1 ? 0.3 + 0.7 * easeOutBack(v.born) : 1, alpha = 1;
+      if (v.dying >= 0) { scale *= 1 - v.dying / 0.4; alpha = 1 - v.dying / 0.4; }
+      const s = (bodyPx / sp.body) * scale;
+      let row = 0, frame = 0;
+      if (v.atk >= 0 && v.atk < v.atkDur && v.dying < 0) {
+        row = 1; frame = Math.min(sp.attack - 1, Math.floor((v.atk / v.atkDur) * sp.attack)); v.atk += dt;
+      } else {
+        v.atk = -1;
+        if (u.state === 'Moving' || v.fly) frame = Math.floor(v.phase * 11) % sp.walk;
+      }
+      const lift = v.fly ? 46 * k : 0, bob = v.fly ? Math.sin(v.phase * 3) * 5 : 0;
+      const foot = v.y + v.r * 0.55;
+      g.save(); g.globalAlpha = alpha;
+      // sombra e marca do time no chão
+      g.fillStyle = 'rgba(0,0,0,.3)'; g.beginPath(); g.ellipse(v.x, foot, bodyPx * 0.32, bodyPx * 0.09, 0, 0, TAU); g.fill();
+      g.strokeStyle = v.owner === 0 ? '#3f8bff' : '#ff4a4a'; g.lineWidth = 4;
+      g.beginPath(); g.ellipse(v.x, foot, bodyPx * 0.3, bodyPx * 0.085, 0, 0, TAU); g.stroke();
+      g.save();
+      g.translate(v.x, foot - lift + bob);
+      if (dir < 0) g.scale(-1, 1);
+      if (v.flash > 0) g.filter = 'brightness(1.9)';
+      else if (u.state === 'Stunned') g.filter = 'saturate(.35) brightness(1.25) hue-rotate(160deg)';
+      else if (u.poisonTime > 0) g.filter = 'sepia(.4) hue-rotate(50deg) saturate(1.4)';
+      g.drawImage(sheet, frame * sp.w, row * sp.h, sp.w, sp.h, -sp.ax * s, -sp.ay * s, sp.w * s, sp.h * s);
+      g.restore();
+      const top = foot - lift + bob - bodyPx * scale;
+      if (u.shield > 0) { g.strokeStyle = '#8fe3ff'; g.lineWidth = 4; g.beginPath(); g.ellipse(v.x, top + bodyPx * 0.5, bodyPx * 0.42, bodyPx * 0.58, 0, 0, TAU); g.stroke(); }
+      if (u.slow < 1) { g.strokeStyle = '#bfefff'; g.lineWidth = 3; g.setLineDash([7, 5]); g.beginPath(); g.ellipse(v.x, foot, bodyPx * 0.36, bodyPx * 0.11, 0, 0, TAU); g.stroke(); g.setLineDash([]); }
+      const pct = Math.max(0, u.hp / u.maxHp);
+      if (v.dying < 0 && (pct < 0.999 || u.shield > 0)) {
+        const bw = bodyPx * 0.6, bh = 8, bx = v.x - bw / 2, by = top - 14;
+        g.fillStyle = 'rgba(0,0,0,.75)'; g.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
+        g.fillStyle = v.owner === 0 ? '#3f8bff' : '#ff4a4a'; g.fillRect(bx, by, bw * pct, bh);
+        if (u.level > 1) { g.fillStyle = '#fff'; g.font = 'bold 16px sans-serif'; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(u.level, bx - 5, by + 4); }
       }
       g.restore();
     }
