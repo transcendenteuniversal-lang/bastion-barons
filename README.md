@@ -36,7 +36,7 @@ web/            o jogo (abre direto no navegador: web/index.html)
   js/sim.js       regras da partida (sem desenho; roda também no Node e no futuro servidor)
   js/ai.js        IA
   js/progress.js  perfil, progressão e economia
-  js/render.js    desenho do campo, castelos, Barões, tropas e efeitos
+  js/render.js    desenho sobre a arte da arena (img/arena.webp): tropas, Barões e efeitos
   js/battle.js    laço da batalha, toque/arraste e HUD
   js/ui.js        menus
   js/audio.js     música e efeitos gerados

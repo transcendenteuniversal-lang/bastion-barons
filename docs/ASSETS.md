@@ -12,6 +12,7 @@
 |---|---|---|
 | Dragão de Gelo, Troll, Demônio, Fênix | Variações de cor do dragão e do orc do mockup | Salvar `web/img/cards/<id>.webp` (256×256) e tirar a variação de `prepare-art.py` |
 | Bárbaro, Assassino, Guerreiro Anão, Lanceiro, Ent, Clériga, Engenheiro, Torre Anã, Relâmpago, Escudo Arcano, Veneno, Chuva de Flechas, Cura Divina | Emblema gerado com ícone | Salvar `web/img/cards/<id>.webp` e incluir o id em `HAS_ART` (`web/js/art.js`) |
+| Arena | Arte oficial `art/source/arena.png` (o HUD é encaixado nas molduras dela) | Trocar a imagem mantendo as mesmas molduras; posições em `BB.ARENA` (`web/js/render.js`) |
 | Tropas em campo | Medalhão redondo com a ilustração da carta | Sprites animados por personagem (como no Rift Rumble), em `web/img/units/<id>/` |
 | Música e efeitos | Gerados pelo próprio jogo (Web Audio) | Arquivos de áudio licenciados |
 

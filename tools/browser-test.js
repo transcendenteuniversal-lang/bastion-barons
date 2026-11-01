@@ -8,7 +8,7 @@ fs.mkdirSync(out, { recursive: true });
 
 (async () => {
   const browser = await chromium.launch();
-  const ctx = await browser.newContext({ viewport: { width: 860, height: 400 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+  const ctx = await browser.newContext({ viewport: { width: Number(process.env.VW || 860), height: Number(process.env.VH || 400) }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -35,26 +35,28 @@ fs.mkdirSync(out, { recursive: true });
   await page.tap('[data-d=normal]'); await wait(500); await shot('09-ajuda');
   await page.tap('.modal .btn'); await wait(300);
 
+  // centro de cada rota em pixels de tela (coordenadas da arte da arena)
+  const lanes = await page.evaluate(() => BB.ARENA.lanes.map((l) => ({ x: BB.renderer.X(830), y: BB.renderer.Y(l.y) })));
   // arrastar carta até a rota do meio
-  const card = await page.$('#hand .card');
+  const card = await page.$('#slot0 .card');
   const box = await card.boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
-  await page.mouse.move(430, 190, { steps: 6 });
+  await page.mouse.move(lanes[1].x, lanes[1].y, { steps: 6 });
   await wait(100); await shot('10-arrastando');
   await page.mouse.up();
   // tocar carta e depois a rota de cima
   await wait(1500);
-  await page.tap('#hand .card:nth-child(2)'); await wait(100);
-  await page.tap('canvas#field', { position: { x: 430, y: 105 } });
+  await page.tap('#slot1 .card'); await wait(100);
+  await page.tap('canvas#field', { position: lanes[0] });
   await wait(5000); await shot('11-batalha');
   // poder do Barão e do castelo (forçando carga)
   await page.evaluate(() => { const p = BB.battle.match.players[0]; p.baronCharge = 999; p.castleCooldown = 0; p.energy = 10; });
   await page.tap('#baronBtn'); await wait(100);
-  if (await page.evaluate(() => BB.battle.armed === 'baron')) await page.tap('canvas#field', { position: { x: 430, y: 190 } });
+  if (await page.evaluate(() => BB.battle.armed === 'baron')) await page.tap('canvas#field', { position: lanes[1] });
   await page.tap('#castleBtn'); await wait(100);
-  if (await page.evaluate(() => BB.battle.armed === 'castle')) await page.tap('canvas#field', { position: { x: 430, y: 190 } });
-  for (let i = 0; i < 3; i++) { await page.evaluate(() => { BB.battle.match.players[0].energy = 10; }); await page.tap('#hand .card:nth-child(' + (i + 1) + ')'); await page.tap('canvas#field', { position: { x: 430, y: 105 + i * 85 } }); await wait(150); }
+  if (await page.evaluate(() => BB.battle.armed === 'castle')) await page.tap('canvas#field', { position: lanes[1] });
+  for (let i = 0; i < 3; i++) { await page.evaluate(() => { BB.battle.match.players[0].energy = 10; }); await page.tap('#slot' + i + ' .card'); await page.tap('canvas#field', { position: lanes[i] }); await wait(150); }
   await wait(250); await shot('12-poderes');
   await wait(6000); await shot('13-combate');
   const mid = await page.evaluate(() => ({ units: BB.battle.match.units.length, played: BB.battle.match.players[0].stats.cardsPlayed, baron: BB.battle.match.players[0].stats.baronUses, castle: BB.battle.match.players[0].stats.castleUses }));

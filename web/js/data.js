@@ -9,7 +9,7 @@ BB.CONTENT = {
   "maxEnergy": 10,
   "energyPerSecond": 0.36,
   "doubleEnergyLastSeconds": 60,
-  "handSize": 4,
+  "handSize": 5,
   "deckSize": 14,
   "laneLength": 100,
   "spawnOffset": 9,
