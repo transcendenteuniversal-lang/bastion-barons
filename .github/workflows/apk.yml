@@ -1,0 +1,56 @@
+# A cada push no branch principal que muda o jogo: roda os testes, compila o APK e publica um Release.
+# O app instalado consulta o último Release e oferece "Atualizar".
+name: APK
+
+on:
+  push:
+    paths:
+      - 'web/**'
+      - 'android/**'
+      - 'tools/**'
+      - '.github/workflows/apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Testes das regras do jogo
+        run: node tools/sim-test.js
+
+      - name: Ferramentas do Android
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends android-sdk-platform-23 aapt apksigner zipalign dalvik-exchange
+
+      - name: Compilar APK
+        run: ./tools/build-apk.sh
+
+      - name: Publicar Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CODE=$(git rev-list --count HEAD)
+          TAG="v$CODE"
+          NOTES=$(git log -1 --pretty=%B | grep -v -e '^Co-Authored-By' -e '^Claude-Session')
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" release/BastionBarons.apk --clobber
+          else
+            gh release create "$TAG" release/BastionBarons.apk --title "Bastion Barons 1.0.$CODE" --notes "$NOTES" --latest
+          fi

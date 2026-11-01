@@ -1,6 +1,6 @@
 # Design de jogo — números iniciais
 
-Todos os valores ficam em `Resources/Data/content.json` e podem ser ajustados sem mexer no código.
+Todos os valores ficam em `web/js/data.js` e podem ser ajustados sem mexer na lógica.
 
 ## Partida
 

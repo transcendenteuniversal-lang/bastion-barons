@@ -1,61 +1,59 @@
 # BASTION BARONS
 
-Jogo mobile de **estratégia em tempo real + batalha de cartas** em fantasia medieval. Dois castelos, três rotas horizontais, tropas que avançam sozinhas, feitiços, um **Barão** comandante ao lado de cada castelo e **poderes de castelo**.
+Jogo de **estratégia em tempo real + batalha de cartas** em fantasia medieval para celular (Android). Ele é feito em **HTML5 Canvas + JavaScript** e empacotado como app Android nativo (WebView), do mesmo jeito que o Rift Rumble.
 
-- **Motor:** Unity 6 (C#), plataforma inicial Android
-- **Status:** Fases 1 a 4 jogáveis offline contra IA, sem PvP online. Ver [`docs/STATUS.md`](docs/STATUS.md).
-- **Idiomas:** Português (Brasil) e Inglês. Espanhol, Francês e Alemão estão planejados.
+**Baixar o APK:** [último Release](https://github.com/transcendenteuniversal-lang/bastion-barons/releases/latest) → `BastionBarons.apk`
 
-![Banner](Marketing/Store/banner_barons.png)
+![Batalha](docs/screens/batalha.webp)
 
-## O que já funciona (offline)
+### Atualização automática
+A cada push que muda o jogo, o GitHub Actions (`.github/workflows/apk.yml`) roda os testes, compila o APK e publica um Release novo (`v<número>`). Ao abrir, o app consulta o último Release. Se houver versão mais nova, ele mostra **Nova versão → Atualizar**, que baixa o APK. Basta tocar no arquivo para instalar por cima (a assinatura é sempre a mesma, e o progresso é mantido).
 
+## Como jogar
+- Arraste uma carta até uma das **3 rotas** (ou toque na carta e depois na rota). As tropas avançam e lutam sozinhas.
+- Cada carta gasta **energia**, que recarrega com o tempo e **dobra no último minuto**.
+- O **Barão** fica no seu castelo, não pode ser atacado e tem um **poder** que carrega com o tempo. O **castelo** também tem um poder próprio. Os dois botões ficam no canto inferior esquerdo.
+- Para vencer, destrua o castelo inimigo. Se o tempo (3 min) acabar, vence quem tiver mais vida no castelo. Se empatar, vence quem destruiu mais tropas.
+
+## O que já existe (offline contra IA)
 | Sistema | Detalhes |
 |---|---|
-| Batalha | 3 rotas, 2 castelos, tropas terrestres e voadoras, combate automático, partidas de 3 min, energia em dobro no último minuto, desempate definido |
-| Cartas | 32 cartas (24 tropas + 8 feitiços), 5 raridades, baralho de 14, mão de 4 com a próxima carta visível |
-| Barões | Rei Bastion, Elara, Thorg, Malachar e Eldrin. O poder carrega com o tempo e é ativado manualmente. O Barão fica no castelo e não pode ser atacado |
+| Cartas | 32 (24 tropas + 8 feitiços), 5 raridades, habilidades: área, aura, invocação, renascimento, lentidão, regeneração, cura, torre, "só castelos" |
+| Barões | Rei Bastion (Comando Real), Elara (Chuva Élfica), Thorg (Fúria Orc), Malachar (Exército dos Mortos), Eldrin (Tempestade Arcana) |
 | Castelos | Fortaleza Real (Escudo Imperial), Fortaleza Glacial (Tempestade de Gelo), Castelo Dracônico (Sopro do Dragão) |
-| IA | Fácil, Normal e Difícil. A dificuldade muda só a qualidade das decisões, nunca os atributos |
-| Progressão | XP e nível de conta, desbloqueio de Barões e castelos, ouro, evolução de cartas (cópias + ouro), recompensa de carta por vitória com chances visíveis e proteção contra azar |
-| Coleção | Filtros por raridade, tipo, classe e custo, busca por nome, detalhes, evolução |
-| Baralho | 3 baralhos salvos, validação (14 cartas únicas que o jogador possui) |
-| Telas | Abertura, menu, modos, Barões, castelos, coleção, detalhe da carta, baralho, batalha, pausa, resultado, histórico e configurações (áudio, gráficos, idioma, nome, privacidade, créditos, apagar progresso) |
-| Salvamento | Perfil local em JSON com escrita atômica e reparo de saves corrompidos |
-| Testes | 34 testes EditMode (NUnit) cobrindo combate, energia, baralho, Barões, castelos, vitória/derrota, determinismo, IA e progressão |
+| IA | Fácil, Normal, Difícil. A dificuldade muda só as decisões, nunca os atributos (a Difícil venceu a Fácil em 19 de 20 partidas no teste) |
+| Progressão | XP e nível de conta, desbloqueio de Barões e castelos, ouro, evolução de cartas, carta por vitória com chances visíveis e proteção contra azar |
+| Telas | Abertura, menu, modos, Barões, castelos, coleção (filtros e busca), detalhe e evolução da carta, 3 baralhos, batalha, pausa, resultado, histórico, configurações |
+| Outros | Português e inglês, música e sons originais gerados pelo jogo, vibração, progresso salvo no aparelho |
 
-## Como abrir e jogar
-
-1. Instale o **Unity 6** (6000.0 LTS) com o módulo **Android Build Support**.
-2. Abra esta pasta no Unity Hub. Na primeira abertura, o script `ProjectSetup` cria a cena `Assets/Scenes/Main.unity`, os materiais base, o ícone e as configurações Android.
-3. Pressione **Play**. O jogo é montado inteiro por código, sem precisar de prefabs.
-4. Para rodar os testes, abra **Window → General → Test Runner → EditMode → Run All**.
-5. Para gerar os builds, use **Bastion Barons → Build → Android APK (teste)** ou **Android AAB (Google Play)**. Detalhes em [`docs/BUILD.md`](docs/BUILD.md).
+Ainda não feito: PvP online, contas, loja e compras, baús, missões, passe, clãs, painel admin, espanhol, francês e alemão. Detalhes em [`docs/STATUS.md`](docs/STATUS.md).
 
 ## Estrutura
-
 ```
-Assets/BastionBarons/
-  Scripts/Core/     Simulação pura em C#, sem Unity (partida, cartas, IA, progressão). Reutilizável no servidor
-  Scripts/Game/     Cliente Unity: telas, HUD, visual 3D, áudio, salvamento, localização
-  Scripts/Editor/   Configuração automática do projeto e builds Android
-  Resources/Data/   content.json: cartas, Barões, castelos e balanceamento (ajustável sem mexer no código)
-  Resources/Localization/  Tabelas de texto (pt-BR, en)
-  Resources/Art/    Logo, ícone e fundo oficiais
-  Tests/EditMode/   Testes automatizados
-Art/Reference/      Artes de referência (mockup da batalha, visão geral das telas)
-Marketing/          Material de loja e divulgação
-docs/               Status, arquitetura, design, ativos, build e privacidade
+web/            o jogo (abre direto no navegador: web/index.html)
+  js/data.js      cartas, Barões, castelos e balanceamento (edite aqui para rebalancear)
+  js/strings.js   textos em pt e en
+  js/sim.js       regras da partida (sem desenho; roda também no Node e no futuro servidor)
+  js/ai.js        IA
+  js/progress.js  perfil, progressão e economia
+  js/render.js    desenho do campo, castelos, Barões, tropas e efeitos
+  js/battle.js    laço da batalha, toque/arraste e HUD
+  js/ui.js        menus
+  js/audio.js     música e efeitos gerados
+  js/update.js    atualização automática pelo GitHub Releases
+android/        app Android (WebView), ícones e chave de assinatura de desenvolvimento
+art/source/     arte original enviada (logo, ícone, banner, mockups)
+tools/          prepare-art.py (recorta a arte), build-apk.sh, sim-test.js, browser-test.js
+docs/           status, arquitetura, design, ativos, build, privacidade
 ```
 
-## Documentação
-
-- [`docs/STATUS.md`](docs/STATUS.md): o que está pronto, o que falta, testes, dependências e credenciais
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): módulos, fluxo da simulação e plano do servidor autoritativo
-- [`docs/GAME_DESIGN.md`](docs/GAME_DESIGN.md): regras e números de balanceamento
-- [`docs/ASSETS.md`](docs/ASSETS.md): arte e áudio provisórios e onde substituí-los
-- [`docs/BUILD.md`](docs/BUILD.md): compilação, assinatura, APK, AAB e CI
-- [`docs/PRIVACY.md`](docs/PRIVACY.md): rascunho da política de privacidade (LGPD)
+## Testar
+```bash
+node tools/sim-test.js                    # 37 testes das regras
+node tools/browser-test.js screenshots    # joga no navegador (Playwright) e tira capturas
+./tools/build-apk.sh                      # gera release/BastionBarons.apk
+```
+No computador, também dá para abrir `web/index.html` no navegador e jogar com o mouse.
 
 ---
-BASTION BARONS é uma propriedade intelectual original. Nenhum personagem, carta, nome ou interface foi copiado de outros jogos.
+BASTION BARONS é uma propriedade intelectual original.

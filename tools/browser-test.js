@@ -1,0 +1,84 @@
+// Teste no navegador: abre o jogo como celular (toque), navega pelos menus, joga uma batalha e tira capturas.
+// Uso: node tools/browser-test.js <pasta-de-saida>
+const { chromium } = require('playwright');
+const path = require('path');
+const fs = require('fs');
+const out = process.argv[2] || 'screenshots';
+fs.mkdirSync(out, { recursive: true });
+
+(async () => {
+  const browser = await chromium.launch();
+  const ctx = await browser.newContext({ viewport: { width: 860, height: 400 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  const shot = (n) => page.screenshot({ path: path.join(out, n + '.png') });
+  const wait = (ms) => page.waitForTimeout(ms);
+
+  await page.goto('file://' + path.join(__dirname, '..', 'web', 'index.html'));
+  await wait(600); await shot('01-abertura');
+  await wait(1400); await shot('02-menu');
+
+  await page.tap('[data-go=barons]'); await wait(300); await shot('03-baroes');
+  await page.tap('#backBtn');
+  await page.tap('[data-go=castles]'); await wait(300); await shot('04-castelos');
+  await page.tap('#backBtn');
+  await page.tap('[data-go=collection]'); await wait(400); await shot('05-colecao');
+  await page.tap('#grid .card'); await wait(300); await shot('06-carta');
+  await page.tap('#backBtn'); await page.tap('#backBtn');
+  await page.tap('[data-go=deck]'); await wait(400); await shot('07-baralho');
+  await page.tap('#backBtn');
+
+  // batalha
+  await page.tap('[data-go=mode]'); await wait(300); await shot('08-modos');
+  await page.tap('[data-d=normal]'); await wait(500); await shot('09-ajuda');
+  await page.tap('.modal .btn'); await wait(300);
+
+  // arrastar carta até a rota do meio
+  const card = await page.$('#hand .card');
+  const box = await card.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(430, 190, { steps: 6 });
+  await wait(100); await shot('10-arrastando');
+  await page.mouse.up();
+  // tocar carta e depois a rota de cima
+  await wait(1500);
+  await page.tap('#hand .card:nth-child(2)'); await wait(100);
+  await page.tap('canvas#field', { position: { x: 430, y: 105 } });
+  await wait(5000); await shot('11-batalha');
+  // poder do Barão e do castelo (forçando carga)
+  await page.evaluate(() => { const p = BB.battle.match.players[0]; p.baronCharge = 999; p.castleCooldown = 0; p.energy = 10; });
+  await page.tap('#baronBtn'); await wait(100);
+  if (await page.evaluate(() => BB.battle.armed === 'baron')) await page.tap('canvas#field', { position: { x: 430, y: 190 } });
+  await page.tap('#castleBtn'); await wait(100);
+  if (await page.evaluate(() => BB.battle.armed === 'castle')) await page.tap('canvas#field', { position: { x: 430, y: 190 } });
+  for (let i = 0; i < 3; i++) { await page.evaluate(() => { BB.battle.match.players[0].energy = 10; }); await page.tap('#hand .card:nth-child(' + (i + 1) + ')'); await page.tap('canvas#field', { position: { x: 430, y: 105 + i * 85 } }); await wait(150); }
+  await wait(250); await shot('12-poderes');
+  await wait(6000); await shot('13-combate');
+  const mid = await page.evaluate(() => ({ units: BB.battle.match.units.length, played: BB.battle.match.players[0].stats.cardsPlayed, baron: BB.battle.match.players[0].stats.baronUses, castle: BB.battle.match.players[0].stats.castleUses }));
+
+  // pausa
+  await page.tap('#pauseBtn'); await wait(200); await shot('14-pausa');
+  await page.tap('.modal .btn.green'); await wait(200);
+
+  // acelera até o fim com o jogador controlado por IA
+  await page.evaluate(() => {
+    const m = BB.battle.match; const me = new BB.AI(m, 0, 'hard', 3);
+    for (let i = 0; i < 20 * 400 && !m.over; i++) { me.tick(); BB.battle.ai.tick(); m.step(); }
+  });
+  await wait(1200); await shot('15-fim');
+  await wait(3000); await shot('16-resultado');
+  const end = await page.evaluate(() => ({ screen: BB.ui.current(), battles: BB.profile.battles, history: BB.profile.history.length }));
+  await page.tap('[data-go=menu]'); await wait(300);
+  await page.tap('[data-go=history]'); await wait(300); await shot('17-historico');
+  await page.tap('#backBtn');
+  await page.tap('[data-go=settings]'); await wait(300); await shot('18-config');
+  await page.tap('#lang'); await wait(200); await shot('19-ingles');
+
+  console.log(JSON.stringify({ mid, end }, null, 0));
+  console.log(errors.length ? 'ERROS:\n' + errors.join('\n') : 'sem erros no console');
+  await browser.close();
+  process.exit(errors.length ? 1 : 0);
+})();

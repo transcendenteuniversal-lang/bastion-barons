@@ -1,52 +1,33 @@
 # Arquitetura — BASTION BARONS
 
-## 1. Módulos (assemblies)
-
-| Assembly | Depende de | Responsabilidade |
+## Camadas
+| Arquivo | Papel | Depende de |
 |---|---|---|
-| `BastionBarons.Core` (`noEngineReferences: true`) | — | Regras puras: conteúdo (`ContentDatabase`), partida (`Match`), baralho (`DeckState`, `DeckRules`), IA (`AiController`), progressão/economia (`Progression`, `PlayerProfile`), RNG determinístico |
-| `BastionBarons.Game` | Core, UnityEngine.UI | Cliente: bootstrap (`GameApp`), navegação (`Router`/`ScreenBase`), telas, HUD, visual 3D, áudio, salvamento local, localização, qualidade |
-| `BastionBarons.Editor` | Core, Game | `ProjectSetup` (cena, materiais, Player Settings Android) e `BuildScript` (APK/AAB) |
-| `BastionBarons.Tests.EditMode` | Core, Game, NUnit | Testes automatizados |
+| `web/js/data.js` | Conteúdo e balanceamento (cartas, Barões, castelos, economia) | — |
+| `web/js/sim.js` | Regras puras: `Content`, `Match`, `DeckState`, `DeckRules`, `Rng` | data |
+| `web/js/ai.js` | IA (`BB.AI`) | sim |
+| `web/js/progress.js` | Perfil, XP, desbloqueios, evolução, recompensas, salvamento local | sim |
+| `web/js/render.js` | Canvas: cenário, castelos, Barões, tropas, efeitos (só lê o estado) | sim, art |
+| `web/js/battle.js` | Laço de 20 ticks/s, entrada por toque/arraste, HUD, fim de partida | todos |
+| `web/js/ui.js` | Menus em HTML | todos |
+| `android/` | Activity com WebView, ponte JavaScript (vibrar, abrir link, sair) | — |
 
-Como o Core não depende da Unity, ele pode ser compilado num servidor .NET. Assim, a lógica que decide o resultado da partida fica num único lugar.
+`sim.js`, `ai.js` e `progress.js` não usam o navegador: rodam no Node, nos testes, e poderão rodar no servidor.
 
-## 2. Fluxo da partida
-
+## Fluxo da partida
 ```
- entrada (toque) ──► Command ──► Match.Validate ──► Match.Execute ──► estado
-                                                            │
- IA (AiController.Tick) ──► Command ───────────────────────┘
- relógio fixo (20 Hz) ──► Match.Step ──► SimEvents ──► BattleRunner (efeitos, sons, animações)
-                                     └──► estado ──► UnitView/CastleView/HUD (só leitura)
+toque/arraste ─► comando {type, player, hand, cardId, lane} ─► Match.validate ─► Match.execute
+IA.tick() ─────► comando ─────────────────────────────────────┘
+relógio fixo (20 Hz) ─► Match.step() ─► eventos ─► Renderer (efeitos), sons, vibração
 ```
+- Toda mudança de estado passa por comando validado (energia, mão, rota, recarga, limite de tropas). Comandos inválidos são recusados.
+- Mesma semente + mesmos comandos = mesma partida (testado). Isso permite replays e verificação no servidor.
 
-- A visualização **nunca** altera o estado. Ela só lê `Match` e consome eventos.
-- Todas as mudanças passam por `Command`. É exatamente isso que o servidor vai receber dos clientes.
-- O `Match` é determinístico para a mesma semente e a mesma sequência de comandos (há teste para isso).
+## Plano do PvP (Fase 5)
+- Servidor Nakama com *match handler* autoritativo em TypeScript ou Node, **usando o mesmo `sim.js`**.
+- O cliente envia comandos. O servidor executa `Match.step` a 20 Hz e envia snapshots e eventos (~10 Hz). O cliente interpola.
+- Validação de energia, cartas e resultado só no servidor. Reconexão por snapshot completo. `forfeitByDisconnect` se o jogador não voltar.
+- Anti-cheat: limite de comandos por segundo, log de recusas, replays (semente + comandos).
 
-## 3. Dados e balanceamento
-
-`Resources/Data/content.json` guarda todas as cartas, Barões, castelos e o `balance` (energia, duração, vida do castelo, custos de evolução, chances de raridade, recompensas). O `ContentDatabase` valida o arquivo e rejeita conteúdo inválido com a lista de erros.
-`ContentLoader.Load()` dá prioridade a `persistentDataPath/content_override.json`, que poderá ser baixado do servidor ou do painel admin. Assim dá para rebalancear sem publicar uma nova versão do app. Num PvP, o servidor usa a mesma versão de conteúdo e rejeita clientes com versão diferente.
-
-## 4. Plano do multiplayer (Fase 5)
-
-- **Servidor:** Nakama com *authoritative match handler*. Duas opções:
-  1. Serviço de partidas em .NET que referencia `BastionBarons.Core` (mesmo código do cliente), orquestrado pelo Nakama via matchmaker e RPC (recomendado, para não duplicar as regras);
-  2. Porta das regras para o runtime TypeScript ou Go do Nakama (exige manter duas implementações e testes de paridade).
-- **Protocolo:** o cliente envia `Command` (`PlayCard{handIndex, cardId, lane}`, `Baron{lane}`, `CastlePower{lane}`) com número de sequência. O servidor roda `Match.Step` a 20 Hz e transmite snapshots e eventos a ~10 Hz. O cliente interpola.
-- **Validação:** energia, mão, recarga e limites são verificados no servidor (`Match.Validate`). O resultado é calculado só no servidor.
-- **Reconexão:** o servidor guarda o `Match` por N segundos. Ao voltar, o cliente recebe um snapshot completo. Se não voltar, `Match.ForfeitByDisconnect` encerra a partida.
-- **Anti-cheat:** limite de comandos por segundo, log de comandos rejeitados, detecção de padrões impossíveis, replays guardados (semente + comandos).
-- **Persistência:** perfil, inventário e economia no Postgres (via Nakama storage e wallet). O perfil local atual será migrado no primeiro login.
-
-## 5. Economia (Fase 6)
-
-Toda concessão de recurso em modo online passa por RPC no servidor (`Progression.*` roda lá). Compras via Google Play Billing com o recibo validado no servidor (Play Developer API) antes de creditar. A loja vende apenas cosméticos, passe e recursos, sem poder exclusivo.
-
-## 6. Cliente
-
-- Sem prefabs obrigatórios. Telas e mundo são montados por código. Para trocar a arte, basta colocar o prefab ou a textura no caminho convencionado (ver ASSETS.md).
-- `Router` destrói e recria cada tela, o que simplifica a troca de idioma.
-- Entrada: toque/arraste na carta e soltar na rota (ou tocar na carta e depois na rota). Raycast contra `LaneTag`.
+## Economia (Fase 6)
+No modo online, as recompensas e evoluções passam a ser calculadas no servidor (`progress.js` roda lá). As compras pela Google Play têm o recibo validado no servidor antes de creditar.
