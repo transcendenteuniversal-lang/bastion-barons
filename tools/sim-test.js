@@ -5,6 +5,7 @@ const path = require('path');
 for (const f of ['data', 'strings', 'sim', 'ai', 'progress']) require(path.join(__dirname, '..', 'web', 'js', f + '.js'));
 const BB = global.BB;
 const content = new BB.Content(BB.CONTENT);
+content.balance.testUnlockAll = false; // os testes conferem as regras normais de desbloqueio
 let passed = 0, failed = 0;
 
 function test(name, fn) {

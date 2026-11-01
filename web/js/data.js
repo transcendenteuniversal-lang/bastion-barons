@@ -3,6 +3,7 @@ window.BB = window.BB || {};
 BB.CONTENT = {
  "version": "0.1.0",
  "balance": {
+  "testUnlockAll": true,
   "tickRate": 20,
   "matchSeconds": 180,
   "startEnergy": 5,

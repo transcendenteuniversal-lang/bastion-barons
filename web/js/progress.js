@@ -22,12 +22,21 @@
 
     repair(p, content) {
       const b = content.balance;
+      // campos ausentes em saves antigos recebem o valor padrão
+      const num = (k, d) => { if (typeof p[k] !== 'number' || !isFinite(p[k])) p[k] = d; };
+      num('gold', 100); num('crystals', 0); num('xp', 0); num('accountLevel', 1); num('pity', 0);
+      num('battles', 0); num('wins', 0); num('losses', 0); num('draws', 0); num('winStreak', 0); num('bestWinStreak', 0);
+      num('music', 0.6); num('sfx', 0.8);
+      if (typeof p.vibration !== 'boolean') p.vibration = true;
+      if (typeof p.playerName !== 'string' || p.playerName.trim().length < 2) p.playerName = 'Barão';
       if (!Array.isArray(p.cards)) p.cards = [];
       if (!Array.isArray(p.decks)) p.decks = [];
       if (!Array.isArray(p.history)) p.history = [];
       p.cards = p.cards.filter((o) => o && content.cards[o.id] && !content.cards[o.id].token);
       for (const o of p.cards) o.level = Math.max(1, Math.min(b.maxCardLevel, o.level | 0));
       for (const id of b.starterCards) if (!P.owned(p, id)) p.cards.push({ id, level: 1, copies: 0 });
+      // modo de teste (balance.testUnlockAll): todas as cartas liberadas; desligar antes do lançamento
+      if (b.testUnlockAll) for (const c of content.collectible) if (!P.owned(p, c.id)) p.cards.push({ id: c.id, level: 1, copies: 0 });
       while (p.decks.length < 3) p.decks.push(b.starterDeck.slice());
       p.decks = p.decks.map((d) => (BB.DeckRules.validate(d, content, p) === 'Ok' ? d : b.starterDeck.slice()));
       p.activeDeck = Math.max(0, Math.min(2, p.activeDeck | 0));
@@ -51,8 +60,8 @@
     save(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) { /* armazenamento indisponível */ } },
     wipe() { try { localStorage.removeItem(KEY); } catch (e) { /* nada */ } },
 
-    baronUnlocked(p, b) { return p.accountLevel >= (b.unlockLevel || 1); },
-    castleUnlocked(p, c) { return p.accountLevel >= (c.unlockLevel || 1); },
+    baronUnlocked(p, b) { return !!(BB.content && BB.content.balance.testUnlockAll) || p.accountLevel >= (b.unlockLevel || 1); },
+    castleUnlocked(p, c) { return !!(BB.content && BB.content.balance.testUnlockAll) || p.accountLevel >= (c.unlockLevel || 1); },
     xpForNext(b, level) { return b.xpBase + b.xpPerLevel * (Math.max(1, level) - 1); },
 
     addXp(p, content, amount, unlocked) {
