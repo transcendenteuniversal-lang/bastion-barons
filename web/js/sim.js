@@ -143,12 +143,26 @@
     }
     get handMax() { return this.B.handMax || 6; }
     // ponto de invocação: base do castelo, ou a posição da sua tropa mais avançada na rota (até o meio do campo)
-    deployX(owner, lane) {
+    // Ponto de invocação. O jogador escolhe onde soltar (wantX); o limite de avanço é a sua tropa mais
+    // avançada em QUALQUER rota (até o meio do campo). Se houver inimigo mais avançado na rota, a tropa
+    // nasce na frente dele (do lado do seu castelo). Sem wantX: o ponto mais avançado permitido.
+    deployLimit(owner) {
       const base = this.spawnX(owner), dir = dirOf(owner);
-      const f = this.frontUnit(owner, lane);
-      if (f === null) return base;
-      const limit = this.L / 2;
-      return dir > 0 ? Math.max(base, Math.min(f, limit)) : Math.min(base, Math.max(f, limit));
+      let adv = base * dir;
+      for (const u of this.units) if (u.hp > 0 && u.owner === owner) adv = Math.max(adv, u.x * dir);
+      return dir * Math.min(adv, (this.L / 2) * dir);
+    }
+    deployX(owner, lane, wantX, def) {
+      const base = this.spawnX(owner), dir = dirOf(owner), limit = this.deployLimit(owner);
+      let x = typeof wantX === 'number' && isFinite(wantX) ? wantX : limit;
+      x = dir > 0 ? Math.max(base, Math.min(x, limit)) : Math.min(base, Math.max(x, limit));
+      const enemy = this.frontUnit(1 - owner, lane); // inimigo mais avançado (mais perto do seu castelo)
+      if (enemy !== null) {
+        const gap = this.bodyR(def || { hp: 600 }) + 3;
+        const before = enemy - dir * gap;
+        if (dir * (x - before) > 0) x = dir > 0 ? Math.max(base, before) : Math.min(base, before);
+      }
+      return x;
     }
     // raio de corpo (unidades da rota): tropas param de frente para o inimigo sem se atravessarem
     bodyR(def) { return def.flying ? 3 : 2.2 + Math.min(1, (def.hp || 0) / 1800) * 1.6; }
@@ -205,7 +219,7 @@
       const r = this.validate(c);
       if (r !== 'Ok') return r;
       const p = this.players[c.player];
-      if (c.type === 'play') this.playCard(p, c.hand, c.lane);
+      if (c.type === 'play') this.playCard(p, c.hand, c.lane, c.x);
       else if (c.type === 'discard') { const id = p.deck.play(c.hand); this.emit('CardDiscarded', p.index, { id }); }
       else if (c.type === 'baron') this.useBaron(p, c.lane);
       else this.useCastle(p, c.lane);
@@ -215,7 +229,7 @@
     surrender(player) { if (!this.over) this.end(1 - player, 'Surrender'); }
     forfeitByDisconnect(player) { if (!this.over) this.end(1 - player, 'Disconnect'); }
 
-    playCard(p, handIndex, lane) {
+    playCard(p, handIndex, lane, wantX) {
       const id = p.deck.play(handIndex);
       const def = this.content.card(id);
       p.energy -= def.cost;
@@ -224,7 +238,7 @@
       const level = this.level(p, id);
       if (def.isSpell) { p.stats.spellsCast++; this.castSpell(p, def, lane, this.content.levelMult(level), level); }
       else {
-        const x = this.deployX(p.index, lane);
+        const x = this.deployX(p.index, lane, wantX, def);
         for (let i = 0; i < def.count; i++) {
           this.spawnUnit(p.index, def, lane, x - dirOf(p.index) * 1.4 * i, level);
           p.stats.unitsDeployed++;
@@ -263,7 +277,9 @@
       const dt = this.dt, B = this.B;
       if (this.doubleEnergy && !this.doubleAnnounced) { this.doubleAnnounced = true; this.emit('DoubleEnergy', -1, {}); }
       for (const p of this.players) {
-        const rate = B.energyPerSecond * (this.doubleEnergy ? 2 : 1);
+        // a mana enche cada vez mais rápido (até +50% aos 2 min) e em dobro no último minuto
+        const ramp = 1 + (B.energyRamp || 0) * Math.min(1, this.time / Math.max(1, B.matchSeconds - B.doubleEnergyLastSeconds));
+        const rate = B.energyPerSecond * ramp * (this.doubleEnergy ? 2 : 1);
         p.energy = Math.min(this.energyCap, p.energy + rate * dt);
         if (p.deck.hand.length < this.handMax) {
           p.drawTimer += dt;

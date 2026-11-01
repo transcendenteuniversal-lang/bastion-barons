@@ -81,12 +81,23 @@ test('energia começa em 1 e o máximo cresce com o tempo até 10', () => {
   run(m, 20); assert(m.energyCap > content.balance.maxEnergyStart); assert(m.players[0].energy <= m.energyCap + 1e-9);
   run(m, 80); eq(m.energyCap, 10);
 });
-test('nova tropa nasce na posição da tropa mais avançada da rota, até o meio', () => {
+test('invocação: até a tropa mais avançada em qualquer rota (até o meio); na frente de inimigo avançado', () => {
   const m = newMatch(); const k = content.card('royal_knight');
   eq(m.deployX(0, 1), m.spawnX(0));
-  m.spawnUnit(0, k, 1, 30, 1); near(m.deployX(0, 1), 30, 1e-9);
-  m.spawnUnit(0, k, 1, 80, 1); near(m.deployX(0, 1), m.L / 2, 1e-9);
-  eq(m.deployX(0, 2), m.spawnX(0));
+  near(m.deployX(0, 1, 40, k), m.spawnX(0), 1e-9);              // sem tropas: só na base
+  m.spawnUnit(0, k, 2, 30, 1);                                   // tropa avançada em outra rota
+  near(m.deployX(0, 1, 40, k), 30, 1e-9);                        // vale para as 3 rotas
+  near(m.deployX(0, 0, 20, k), 20, 1e-9);                        // pode soltar antes do limite
+  m.spawnUnit(0, k, 2, 80, 1); near(m.deployX(0, 1, 90, k), m.L / 2, 1e-9); // até o meio
+  m.spawnUnit(1, k, 1, 25, 1);                                   // inimigo avançado na rota 1
+  near(m.deployX(0, 1, 45, k), 25 - m.bodyR(k) - 3, 1e-9);       // entra na frente dele
+  m.players[0].energy = 10; const h = m.players[0].deck.hand; h[0] = 'royal_knight';
+  eq(m.execute({ type: 'play', player: 0, hand: 0, cardId: 'royal_knight', lane: 0, x: 22 }), 'Ok');
+  near(m.units[m.units.length - 1].x, 22, 1e-9);
+});
+test('a mana enche mais rápido com o tempo', () => {
+  const a = newMatch(); a.players[0].energy = 0; a.step(); const e1 = a.players[0].energy;
+  const b = newMatch(); run(b, 100); b.players[0].energy = 0; b.step(); assert(b.players[0].energy > e1 * 1.3);
 });
 test('tropas param de frente, sem atravessar o inimigo', () => {
   const m = newMatch(); const k = content.card('royal_knight');

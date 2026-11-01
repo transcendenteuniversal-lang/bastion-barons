@@ -240,6 +240,21 @@ img { -webkit-user-drag: none; pointer-events: none; }
 .hb-pile.full .hb-pilebar i { background: #ff6a6a; }
 .hb-max { font-size: .62em; font-weight: 900; color: #9fe0ff; text-shadow: 0 .08em 0 #000; display: flex; align-items: center; }
 .hb-ebar u { position: absolute; top: -.1em; bottom: -.1em; width: .18em; margin-left: -.09em; background: #fff; box-shadow: 0 0 .4em #fff; text-decoration: none; transition: left .3s; }
+/* poderes em círculo: cinza enquanto carrega (contorno enche), colorido e piscando quando pronto */
+.hb-orb { --p: 0; border-radius: 50%; padding: .32em; background: conic-gradient(#ffd34d calc(var(--p) * 1turn), rgba(30,32,44,.92) 0);
+  box-shadow: 0 0 0 .1em #5a4410, 0 .25em .5em rgba(0,0,0,.6); }
+.hb-orb img, .hb-orb span { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: .12em solid #1b1e2a;
+  filter: grayscale(1) brightness(.7); transition: filter .25s; }
+.hb-orb span { font-size: 2.6em; background: radial-gradient(circle at 40% 30%, #3f78e0, #0d2160); }
+.hb-orb.ready { background: conic-gradient(#fff2a8, #ffd34d, #ffb21e, #fff2a8); animation: orbBlink .7s infinite alternate; }
+.hb-orb.ready img, .hb-orb.ready span { filter: none; }
+.hb-orb.armed { animation: none; box-shadow: 0 0 0 .14em #fff, 0 0 1.4em #ffd34d; }
+.hb-orb.fire { animation: hbFire .6s ease-out; }
+@keyframes orbBlink { from { box-shadow: 0 0 0 .1em #5a4410, 0 0 .2em #ffd34d; filter: brightness(1); } to { box-shadow: 0 0 0 .1em #ffd34d, 0 0 1.3em #ffd34d; filter: brightness(1.25); } }
+.hb-tip { padding: .6em .8em; border-radius: .6em; background: rgba(8,14,36,.96); border: .12em solid var(--gold2); box-shadow: 0 .3em .8em rgba(0,0,0,.6); pointer-events: none; }
+.hb-tip small { display: block; font-size: .6em; color: var(--gold1); text-transform: uppercase; font-weight: 900; }
+.hb-tip b { display: block; font-size: 1em; margin: .1em 0 .25em; }
+.hb-tip p { margin: 0; font-size: .72em; line-height: 1.3; color: #dfe6ff; }
 .end-title { position: absolute; left: 0; right: 0; top: 34%; text-align: center; font-size: 7rem; animation: pop .7s cubic-bezier(.2,1.6,.4,1); }
 
 /* ---------- sobreposições ---------- */

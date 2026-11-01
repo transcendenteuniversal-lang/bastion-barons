@@ -91,22 +91,13 @@
         <div class="hb-score me" data-r="598,8,766,78"><b>👑</b><span id="crownMe">0</span></div>
         <div class="hb-timer" data-r="764,8,910,78" id="timer">3:00</div>
         <div class="hb-score foe" data-r="908,8,1078,78"><span id="crownFoe">0</span><b>👑</b></div>
-        <button class="hb-btn big tap" data-r="1088,14,1146,70" id="emoteBtn">😃</button>
-        <button class="hb-btn auto tap" data-r="1152,14,1238,70" id="autoBtn">${T('battle.auto')}</button>
-        <div class="hb-emotes tap hidden" data-r="900,82,1238,152" id="emotes">${['👍', '😃', '😠', '😱', '👑'].map((e) => `<button data-e="${e}">${e}</button>`).join('')}</div>
+        <button class="hb-orb tap" data-r="22,770,172,920" id="baronBtn"><img src="${BB.art.baronUrl(me.baron.id)}"></button>
+        <button class="hb-orb castle tap" data-r="182,770,332,920" id="castleBtn"><span>${CASTLE_ICON[me.castle.ability] || '🏰'}</span></button>
+        <div class="hb-tip hidden" data-r="22,580,560,760" id="tip"></div>
+        <button class="hb-btn big tap" data-r="1350,800,1440,880" id="emoteBtn">😃</button>
+        <button class="hb-btn auto tap" data-r="1452,800,1640,880" id="autoBtn">⚔ ${T('battle.auto')}</button>
+        <div class="hb-emotes tap hidden" data-r="1290,706,1640,790" id="emotes">${['👍', '😃', '😠', '😱', '👑'].map((e) => `<button data-e="${e}">${e}</button>`).join('')}</div>
         <div class="hb-x2 hidden" data-r="690,84,986,116" id="x2">${T('battle.double_energy')}</div>
-
-        <button class="hb-power tap" data-r="10,752,330,936" id="baronBtn">
-          <img class="hb-icon" data-r="18,762,118,862" src="${BB.art.baronUrl(me.baron.id)}">
-          <div class="hb-pt" data-r="126,764,324,796">${T('baron.' + me.baron.id + '.ability')}</div>
-          <div class="hb-pd" data-r="126,798,324,868">${T('baron.' + me.baron.id + '.desc')}</div>
-          <div class="hb-bar" data-r="22,880,318,914"><i id="baronFill"></i><span id="baronState"></span></div></button>
-        <button class="hb-power castle tap" data-r="1342,752,1662,936" id="castleBtn">
-          <div class="hb-icon castle" data-r="1350,762,1450,862">${CASTLE_ICON[me.castle.ability] || '🏰'}</div>
-          <div class="hb-ph" data-r="1458,764,1656,790">${T('battle.castle_power')}</div>
-          <div class="hb-pt" data-r="1458,790,1656,820">${T('castle.' + me.castle.id + '.ability')}</div>
-          <div class="hb-pd" data-r="1458,820,1656,872">${T('castle.' + me.castle.id + '.desc')}</div>
-          <div class="hb-bar" data-r="1354,880,1650,914"><i id="castleFill"></i><span id="castleState"></span></div></button>
 
         <div class="hb-tray" data-r="338,744,1334,941"></div>
         <button class="hb-trash tap" data-r="346,770,420,872" id="trash">🗑</button>
@@ -115,19 +106,19 @@
         <div class="hb-enum" data-r="352,880,418,941" id="energyNum">1</div>
         <div class="hb-max" data-r="428,903,700,925" id="energyMax"></div>
         <div class="hb-ebar" data-r="704,908,1192,932" id="ebar"><i id="energyFill"></i><u id="energyCap"></u>${'<b></b>'.repeat(9)}</div>
-        <div class="hb-bubble hidden" data-r="270,110,380,185" id="bubbleMe"></div>
-        <div class="hb-bubble foe hidden" data-r="1292,110,1402,185" id="bubbleFoe"></div>
+        <div class="hb-bubble hidden" data-r="290,150,400,225" id="bubbleMe"></div>
+        <div class="hb-bubble foe hidden" data-r="1272,150,1382,225" id="bubbleFoe"></div>
         <div class="hb-hint" data-r="436,120,1236,170" id="hint"></div>`;
       this.el = {
         hpMe: $('#hpMe'), hpMeT: $('#hpMeT'), hpFoe: $('#hpFoe'), hpFoeT: $('#hpFoeT'), timer: $('#timer'), x2: $('#x2'), offline: $('#offline'),
         crownMe: $('#crownMe'), crownFoe: $('#crownFoe'), ebar: $('#ebar'),
-        baronBtn: $('#baronBtn'), baronFill: $('#baronFill'), baronState: $('#baronState'), castleBtn: $('#castleBtn'), castleFill: $('#castleFill'),
-        castleState: $('#castleState'), slots: [0, 1, 2, 3, 4, 5].map((i) => $('#slot' + i)), drawFill: $('#drawFill'), pileTxt: $('#pileTxt'), energyMax: $('#energyMax'), energyCap: $('#energyCap'), trash: $('#trash'), energyFill: $('#energyFill'), energyNum: $('#energyNum'), hint: $('#hint'),
+        baronBtn: $('#baronBtn'), castleBtn: $('#castleBtn'), tip: $('#tip'),
+        slots: [0, 1, 2, 3, 4, 5].map((i) => $('#slot' + i)), drawFill: $('#drawFill'), pileTxt: $('#pileTxt'), energyMax: $('#energyMax'), energyCap: $('#energyCap'), trash: $('#trash'), energyFill: $('#energyFill'), energyNum: $('#energyNum'), hint: $('#hint'),
         autoBtn: $('#autoBtn'), emotes: $('#emotes'), bubbles: [$('#bubbleMe'), $('#bubbleFoe')],
       };
       $('#pauseBtn').onclick = () => this.pause();
-      this.el.baronBtn.onclick = () => this.powerPressed('baron');
-      this.el.castleBtn.onclick = () => this.powerPressed('castle');
+      this.bindOrb(this.el.baronBtn, 'baron');
+      this.bindOrb(this.el.castleBtn, 'castle');
       $('#emoteBtn').onclick = () => { BB.audio.play('click'); this.el.emotes.classList.toggle('hidden'); };
       this.el.emotes.querySelectorAll('[data-e]').forEach((b) => b.onclick = () => { this.el.emotes.classList.add('hidden'); this.emote(0, b.dataset.e); });
       this.el.autoBtn.onclick = () => this.toggleAuto();
@@ -219,12 +210,10 @@
       el.energyFill.style.width = (me.energy / m.B.maxEnergy) * 100 + '%';
       el.energyNum.textContent = Math.floor(me.energy);
       const bReady = m.baronReady(me), cReady = m.castleReady(me);
-      el.baronFill.style.width = m.baronProgress(me) * 100 + '%';
-      el.baronState.textContent = bReady ? T('battle.ready') : Math.floor(m.baronProgress(me) * 100) + '%';
+      el.baronBtn.style.setProperty('--p', m.baronProgress(me));
       el.baronBtn.classList.toggle('ready', bReady && !m.over);
       el.baronBtn.classList.toggle('armed', this.armed === 'baron');
-      el.castleFill.style.width = m.castleProgress(me) * 100 + '%';
-      el.castleState.textContent = cReady ? T('battle.ready') : Math.ceil(Math.max(0, me.castleCooldown)) + 's';
+      el.castleBtn.style.setProperty('--p', m.castleProgress(me));
       el.castleBtn.classList.toggle('ready', cReady && !m.over);
       el.castleBtn.classList.toggle('armed', this.armed === 'castle');
       this.refreshHand();
@@ -266,6 +255,31 @@
 
     disarm() { this.armed = null; this.sel = -1; this.dragging = false; this.hoverLane = -1; }
 
+    // Círculo de poder: toque rápido usa; segurar mostra a descrição (soltar depois de segurar não usa)
+    bindOrb(btn, kind) {
+      let timer = null, held = false;
+      const me = () => this.match.players[0];
+      const info = () => kind === 'baron'
+        ? { t: T('baron.' + me().baron.id + '.ability'), h: BB.baronName(me().baron.id), d: T('baron.' + me().baron.id + '.desc') }
+        : { t: T('castle.' + me().castle.id + '.ability'), h: T('battle.castle_power'), d: T('castle.' + me().castle.id + '.desc') };
+      btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault(); held = false;
+        timer = setTimeout(() => {
+          held = true; const i = info();
+          this.el.tip.innerHTML = `<small>${esc(i.h)}</small><b>${esc(i.t)}</b><p>${esc(i.d)}</p>`;
+          this.el.tip.classList.remove('hidden');
+        }, 420);
+      });
+      const end = (use) => {
+        clearTimeout(timer);
+        if (held) { this.el.tip.classList.add('hidden'); held = false; return; }
+        if (use) this.powerPressed(kind);
+      };
+      btn.addEventListener('pointerup', () => end(true));
+      btn.addEventListener('pointerleave', () => end(false));
+      btn.addEventListener('pointercancel', () => end(false));
+    }
+
     discardSelected() {
       if (this.armed !== 'card' || this.sel < 0) { BB.ui.toast(T('battle.discard_hint')); return; }
       const me = this.match.players[0];
@@ -277,6 +291,7 @@
     pointerMove(e) {
       if (!this.armed) return;
       this.hoverLane = BB.renderer.laneAt(e.clientX, e.clientY);
+      this.hoverX = this.hoverLane >= 0 ? BB.renderer.simX(this.match, e.clientX, this.hoverLane) : null;
     }
 
     pointerUp(e) {
@@ -287,7 +302,7 @@
       if (e.target.closest && e.target.closest('.tap')) return; // soltou sobre a interface
       const lane = BB.renderer.laneAt(e.clientX, e.clientY);
       if (lane < 0) { if (!wasDrag) this.disarm(); return; }
-      if (this.armed === 'card') this.exec({ type: 'play', player: 0, hand: this.sel, cardId: this.match.players[0].deck.hand[this.sel], lane });
+      if (this.armed === 'card') this.exec({ type: 'play', player: 0, hand: this.sel, cardId: this.match.players[0].deck.hand[this.sel], lane, x: BB.renderer.simX(this.match, e.clientX, lane) });
       else this.exec({ type: this.armed, player: 0, lane });
     }
 
@@ -352,7 +367,7 @@
       let ghost = null;
       if (this.armed === 'card' && this.hoverLane >= 0 && this.sel >= 0) {
         const def = BB.content.cards[m.players[0].deck.hand[this.sel]];
-        if (def && !def.isSpell) ghost = { lane: this.hoverLane, x: m.deployX(0, this.hoverLane), def };
+        if (def && !def.isSpell) ghost = { lane: this.hoverLane, x: m.deployX(0, this.hoverLane, this.hoverX, def), def };
       }
       BB.renderer.draw(m, this.paused ? 0 : dt, { armed: !!this.armed, hoverLane: this.hoverLane, ghost });
       this.refreshHud();

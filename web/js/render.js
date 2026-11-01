@@ -14,8 +14,8 @@
       { y: 472, y0: 380, y1: 538, xL: 345, xR: 1327, k: 1 },
       { y: 652, y0: 545, y1: 742, xL: 292, xR: 1380, k: 1 },
     ],
-    castle: [{ x0: 0, y0: 0, x1: 360, y1: 700, gx: 190, gy: 470 }, { x0: 1312, y0: 0, x1: 1672, y1: 700, gx: 1482, gy: 470 }],
-    baron: [{ x: 226, y: 207, r: 56 }, { x: 1446, y: 207, r: 56 }],
+    castle: [{ x0: 0, y0: 0, x1: 360, y1: 760, gx: 190, gy: 540 }, { x0: 1312, y0: 0, x1: 1672, y1: 760, gx: 1482, gy: 540 }],
+    baron: [{ x: 226, y: 277, r: 56 }, { x: 1446, y: 277, r: 56 }],
     unitR: 46,
   };
   BB.ARENA = ARENA;
@@ -56,6 +56,12 @@
     laneX(m, x, i) {
       const l = ARENA.lanes[i], f0 = m.castleFront(0), f1 = m.castleFront(1);
       return l.xL + ((x - f0) / (f1 - f0)) * (l.xR - l.xL);
+    }
+    // posição na rota (unidades da simulação) a partir de um ponto da tela
+    simX(m, px, lane) {
+      const l = ARENA.lanes[lane], f0 = m.castleFront(0), f1 = m.castleFront(1);
+      const ix = (px - this.ox) / this.s;
+      return f0 + ((ix - l.xL) / (l.xR - l.xL)) * (f1 - f0);
     }
     laneAt(px, py) {
       const p = this.toImage(px, py);

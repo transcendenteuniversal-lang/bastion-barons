@@ -9,6 +9,7 @@ BB.CONTENT = {
   "startEnergy": 1,
   "maxEnergyStart": 3,
   "maxEnergyGrowEvery": 8,
+  "energyRamp": 0.5,
   "maxEnergy": 10,
   "energyPerSecond": 0.36,
   "doubleEnergyLastSeconds": 60,

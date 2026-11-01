@@ -3,9 +3,9 @@
 Todos os valores ficam em `web/js/data.js` e podem ser ajustados sem mexer na lógica.
 
 ## Partida
-- **Energia (mana):** começa em 1. O máximo começa em 3 e sobe 1 a cada 8 s, até 10. Cartas sem energia ficam cinza.
+- **Energia (mana):** começa em 1. O máximo começa em 3 e sobe 1 a cada 8 s, até 10. A mana enche cada vez mais rápido (até +50% aos 2 min) e em dobro no último minuto. Cartas sem energia ficam cinza.
 - **Mão:** começa com 4 cartas e compra 1 automaticamente a cada 4 s, até 6 (mão cheia). Para liberar espaço, arraste uma carta até a lixeira; ela volta para o fim do baralho.
-- **Invocação:** a criatura nasce no castelo ou, se você já tem tropa naquela rota, ao lado da sua tropa mais avançada (até o meio do campo).
+- **Invocação:** arraste e solte onde quiser, entre o seu castelo e o limite de avanço. O limite é a sua tropa mais avançada em qualquer uma das 3 rotas, até o meio do campo. Se houver um inimigo mais avançado na rota, a criatura nasce na frente dele.
 - **Combate:** cada criatura tem um corpo; as tropas param de frente para o inimigo, sem se atravessarem.
 
 - Duração: 180 s · energia inicial 5 · máximo 10 · regeneração 0.36/s (dobra nos últimos 60 s)
