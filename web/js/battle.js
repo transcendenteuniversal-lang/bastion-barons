@@ -70,39 +70,39 @@
       hud.classList.remove('hidden');
       const diffName = T('ui.' + this.difficulty);
       hud.innerHTML = `
-        <img class="h-portrait" data-r="20,16,120,114" src="${BB.art.baronUrl(me.baron.id)}">
-        <div class="h-name" data-r="134,24,438,100"><b>${esc(BB.profile.playerName)}</b><span>${BB.baronName(me.baron.id)} • ${BB.castleName(me.castle.id)}</span></div>
-        <div class="h-hp me" data-r="121,113,423,139"><i id="hpMe"></i><span id="hpMeT"></span></div>
-        <img class="h-portrait" data-r="1552,16,1652,114" src="${BB.art.baronUrl(foe.baron.id)}">
-        <div class="h-name foe" data-r="1234,24,1544,100"><b>${T('battle.ai', diffName)}</b><span>${BB.baronName(foe.baron.id)} • ${BB.castleName(foe.castle.id)}</span></div>
-        <div class="h-hp foe" data-r="1250,113,1551,139"><i id="hpFoe"></i><span id="hpFoeT"></span></div>
-        <div class="h-crown me" data-r="700,20,757,64" id="crownMe">0</div>
-        <div class="h-timer" data-r="773,18,902,66" id="timer">3:00</div>
-        <div class="h-crown foe" data-r="916,20,974,64" id="crownFoe">0</div>
-        <div class="h-x2 hidden" data-r="700,70,975,104" id="x2">${T('battle.double_energy')}</div>
-        <div class="h-off" data-r="700,70,975,100" id="offline">${T('battle.offline')}</div>
-        <button class="h-pause tap" data-r="462,18,514,68" id="pauseBtn">II</button>
-        <button class="h-power tap" data-r="14,610,324,743" id="baronBtn">
-          <img data-r="26,626,103,703" src="${BB.art.baronUrl(me.baron.id)}">
-          <div class="pw-t" data-r="112,616,320,648">${T('baron.' + me.baron.id + '.ability')}</div>
-          <div class="pw-d" data-r="112,648,320,708">${T('baron.' + me.baron.id + '.desc')}</div>
-          <div class="pw-bar" data-r="61,715,306,737"><i id="baronFill"></i><span id="baronState"></span></div></button>
+        <img class="h-portrait" data-r="32,20,126,118" src="${BB.art.baronUrl(me.baron.id)}">
+        <div class="h-name" data-r="140,26,440,94"><b>${esc(BB.profile.playerName)}</b><span>${BB.baronName(me.baron.id)} • ${BB.castleName(me.castle.id)}</span></div>
+        <div class="h-hp me" data-r="134,99,414,124"><i id="hpMe"></i><span id="hpMeT"></span></div>
+        <img class="h-portrait" data-r="1547,20,1641,118" src="${BB.art.baronUrl(foe.baron.id)}">
+        <div class="h-name foe" data-r="1234,26,1538,94"><b>${T('battle.ai', diffName)}</b><span>${BB.baronName(foe.baron.id)} • ${BB.castleName(foe.castle.id)}</span></div>
+        <div class="h-hp foe" data-r="1258,99,1538,124"><i id="hpFoe"></i><span id="hpFoeT"></span></div>
+        <div class="h-crown me" data-r="688,20,752,68" id="crownMe">0</div>
+        <div class="h-timer" data-r="770,18,903,70" id="timer">3:00</div>
+        <div class="h-crown foe" data-r="920,20,986,68" id="crownFoe">0</div>
+        <div class="h-x2 hidden" data-r="690,76,985,108" id="x2">${T('battle.double_energy')}</div>
+        <div class="h-off" data-r="690,76,985,104" id="offline">${T('battle.offline')}</div>
+        <button class="h-pause tap" data-r="462,20,516,74" id="pauseBtn">II</button>
+        <button class="h-power tap" data-r="27,682,333,816" id="baronBtn">
+          <img data-r="40,680,124,764" src="${BB.art.baronUrl(me.baron.id)}">
+          <div class="pw-t" data-r="138,690,328,722">${T('baron.' + me.baron.id + '.ability')}</div>
+          <div class="pw-d" data-r="138,722,328,776">${T('baron.' + me.baron.id + '.desc')}</div>
+          <div class="pw-bar" data-r="64,786,310,807"><i id="baronFill"></i><span id="baronState"></span></div></button>
         <button class="h-power castle tap" data-r="1362,768,1660,926" id="castleBtn">
           <div class="pw-h" data-r="1376,776,1650,800">${T('battle.castle_power')}</div>
           <div class="pw-t" data-r="1376,800,1650,834">${T('castle.' + me.castle.id + '.ability')}</div>
           <div class="pw-d" data-r="1376,834,1650,890">${T('castle.' + me.castle.id + '.desc')}</div>
           <div class="pw-bar" data-r="1376,894,1648,916"><i id="castleFill"></i><span id="castleState"></span></div></button>
-        <div class="h-tray tap" data-r="330,705,1356,941" id="tray"></div>
-        ${[378, 535, 692, 849, 1006, 1163].map((x, i) => `<div class="h-slot${i === 5 ? ' next' : ' tap'}" data-r="${x + 4},${722},${x + 138},${862}" id="slot${i}"></div>`).join('')}
-        <div class="h-nextlbl" data-r="1167,700,1301,722">${T('battle.next')}</div>
-        <div class="h-enum" data-r="357,862,428,934" id="energyNum">5</div>
-        <div class="h-ebar" data-r="433,886,1313,920"><i id="energyFill"></i>${'<b></b>'.repeat(9)}</div>
+        <div class="h-tray tap" data-r="355,700,1315,941" id="tray"></div>
+        ${[401, 577, 753, 929, 1106].map((x, i) => `<div class="h-slot${i === 4 ? ' next' : ' tap'}" data-r="${x + 3},${711},${x + 147},${861}" id="slot${i}"></div>`).join('')}
+        <div class="h-nextlbl" data-r="1106,690,1256,710">${T('battle.next')}</div>
+        <div class="h-enum" data-r="384,859,452,927" id="energyNum">5</div>
+        <div class="h-ebar" data-r="462,884,1285,917"><i id="energyFill"></i>${'<b></b>'.repeat(9)}</div>
         <div class="h-hint" data-r="436,240,1236,290" id="hint"></div>`;
       this.el = {
         hpMe: $('#hpMe'), hpMeT: $('#hpMeT'), hpFoe: $('#hpFoe'), hpFoeT: $('#hpFoeT'), timer: $('#timer'), x2: $('#x2'), offline: $('#offline'),
         crownMe: $('#crownMe'), crownFoe: $('#crownFoe'),
         baronBtn: $('#baronBtn'), baronFill: $('#baronFill'), baronState: $('#baronState'), castleBtn: $('#castleBtn'), castleFill: $('#castleFill'),
-        castleState: $('#castleState'), slots: [0, 1, 2, 3, 4, 5].map((i) => $('#slot' + i)), energyFill: $('#energyFill'), energyNum: $('#energyNum'), hint: $('#hint'),
+        castleState: $('#castleState'), slots: [0, 1, 2, 3, 4].map((i) => $('#slot' + i)), energyFill: $('#energyFill'), energyNum: $('#energyNum'), hint: $('#hint'),
       };
       $('#pauseBtn').onclick = () => this.pause();
       this.el.baronBtn.onclick = () => this.powerPressed('baron');
@@ -138,7 +138,7 @@
         this.el.slots[i].innerHTML = BB.ui.cardHtml(BB.content.card(id), BB.Progress.owned(BB.profile, id), { level: true, attrs: 'data-i="' + i + '"' });
         this.el.slots[i].firstElementChild.addEventListener('pointerdown', (e) => { e.preventDefault(); this.selectCard(i); });
       });
-      this.el.slots[5].innerHTML = me.deck.next ? BB.ui.cardHtml(BB.content.card(me.deck.next), null, {}) : '';
+      this.el.slots[4].innerHTML = me.deck.next ? BB.ui.cardHtml(BB.content.card(me.deck.next), null, {}) : '';
     }
 
     refreshHud() {
@@ -167,7 +167,7 @@
       el.castleBtn.classList.toggle('ready', cReady && !m.over);
       el.castleBtn.classList.toggle('armed', this.armed === 'castle');
       this.refreshHand();
-      for (let i = 0; i < me.deck.hand.length && i < 5; i++) {
+      for (let i = 0; i < me.deck.hand.length && i < 4; i++) {
         const c = el.slots[i].firstElementChild;
         if (!c) continue;
         c.classList.toggle('poor', me.energy < BB.content.card(me.deck.hand[i]).cost);

@@ -35,7 +35,8 @@ A primeira versão era um projeto Unity 6 (ainda está no histórico do git, no 
 - Espanhol, francês e alemão
 - Painel administrativo
 - AAB para a Google Play (exige a chave de upload nos Secrets)
-- Ilustrações próprias para 11 cartas sem arte (bárbaro, assassino, guerreiro anão, lanceiro, ent, clériga, engenheiro, relâmpago, escudo arcano, veneno, chuva de flechas, cura divina) e para a torre anã
+- Tropas animadas em corpo inteiro (hoje são medalhões com a ilustração da carta)
+- Os custos e as raridades na arte da coleção diferem de alguns valores do jogo (`web/js/data.js`). O jogo mostra os seus próprios valores por cima da arte
 
 ## Credenciais
 - Nenhuma é necessária para o APK de teste, porque a chave de desenvolvimento está em `android/`.

@@ -1,10 +1,8 @@
-// Arte: ilustrações recortadas da arte oficial (img/cards, img/barons). Cartas ainda sem ilustração própria
-// recebem um emblema provisório gerado aqui (lista em docs/ASSETS.md).
+// Arte: ilustrações da coleção oficial (img/cards) e retratos dos Barões (img/barons).
+// Só a Torre Anã (unidade invocada, sem carta) usa um emblema gerado aqui.
 (function (BB) {
   'use strict';
-  const HAS_ART = ['arcane_mage', 'elven_archer', 'fire_dragon', 'fireball', 'freeze', 'goblin_gunner', 'ice_dragon', 'infernal_demon', 'mountain_troll',
-    'necromancer', 'paladin', 'phoenix', 'red_orc', 'royal_archer', 'royal_griffin', 'royal_knight', 'shadow_sorceress', 'skeleton', 'skeleton_summon',
-    'stone_golem', 'stone_guardian'];
+  const NO_ART = ['dwarf_turret'];
   const GLYPH = { barbarian: '🪓', shadow_assassin: '🗡️', dwarf_warrior: '⚒️', royal_lancer: '🔱', guardian_ent: '🌳', royal_cleric: '✨', dwarf_engineer: '🔧',
     divine_heal: '💖', lightning: '⚡', arcane_shield: '🛡️', poison: '☠️', arrow_rain: '🏹', dwarf_turret: '🏰' };
   const CLASS_COLOR = { King: '#2d57c8', Paladin: '#c9d2e0', Archer: '#3e9b45', Mage: '#2e5fd6', Necromancer: '#6b2fb0', Orc: '#b8322b', Assassin: '#2b2b3a',
@@ -29,7 +27,7 @@
   BB.art = {
     cardUrl(def) {
       if (cache[def.id]) return cache[def.id];
-      return (cache[def.id] = HAS_ART.includes(def.id) ? 'img/cards/' + def.id + '.webp' : generated(def));
+      return (cache[def.id] = !NO_ART.includes(def.id) ? 'img/cards/' + def.id + '.webp' : generated(def));
     },
     baronUrl(id) { return 'img/barons/' + id + '.webp'; },
     // Imagens carregadas para desenhar no canvas da batalha
@@ -40,6 +38,6 @@
     },
     cardImage(def) { return BB.art.image(BB.art.cardUrl(def)); },
     preload(content) { for (const c of content.allCards) BB.art.cardImage(c); for (const b of content.barons) BB.art.image(BB.art.baronUrl(b.id)); },
-    hasArt: (id) => HAS_ART.includes(id),
+    hasArt: (id) => !NO_ART.includes(id),
   };
 })(window.BB);

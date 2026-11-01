@@ -79,6 +79,29 @@ cards["mountain_troll"] = hue(square(mock, (995, 190, 1195, 345)), 70, 0.6)
 cards["infernal_demon"] = hue(square(mock, (995, 190, 1195, 345)), -18, 1.4)
 cards["phoenix"] = hue(cards["fire_dragon"], 25, 1.2)
 
+
+# Coleção oficial das 32 cartas (art/source/cards_32.png): recorta só a ilustração, sem nome nem custo,
+# para que os textos continuem traduzíveis no jogo.
+SHEET = Image.open(os.path.join(SRC, "cards_32.png")).convert("RGB")
+ORDER = [
+    ["royal_knight", "paladin", "barbarian", "red_orc", "shadow_assassin", "stone_guardian", "dwarf_warrior", "royal_lancer"],
+    ["elven_archer", "royal_archer", "arcane_mage", "shadow_sorceress", "necromancer", "goblin_gunner", "fire_dragon", "ice_dragon"],
+    ["phoenix", "stone_golem", "mountain_troll", "royal_griffin", "guardian_ent", "infernal_demon", "royal_cleric", "dwarf_engineer"],
+    ["fireball", "freeze", "divine_heal", "lightning", "arcane_shield", "poison", "arrow_rain", "skeleton_summon"],
+]
+COL_X = [33, 222, 408, 593, 778, 963, 1150, 1338]  # borda esquerda de cada coluna
+ROW_TOP = [155, 360, 565, 778]                        # topo do cartão
+ROW_NAME = [283, 489, 695, 918]                       # início da faixa do nome
+for r, row in enumerate(ORDER):
+    for c, cid in enumerate(row):
+        y0, y1 = ROW_TOP[r] + 10, ROW_NAME[r] - 6
+        if cid == "skeleton_summon":
+            y1 = 896  # nome em duas linhas
+        side = min(y1 - y0, 108)
+        x0 = COL_X[c] + 53  # à direita do selo de custo
+        box = (x0, y1 - side, x0 + side, y1)
+        cards[cid] = SHEET.crop(box).resize((256, 256), Image.LANCZOS)
+
 for k, im in cards.items():
     save(im, os.path.join(WEB, "cards", k + ".webp"))
 
@@ -118,6 +141,9 @@ bg = Image.open(os.path.join(SRC, "splash_bg.png")).convert("RGB")
 bg.thumbnail((1280, 1280), Image.LANCZOS)
 save(bg, os.path.join(WEB, "menu_bg.webp"), 78)
 save(Image.open(os.path.join(SRC, "banner_barons.png")).convert("RGB").resize((1280, 720), Image.LANCZOS), os.path.join(WEB, "banner.webp"), 80)
+
+# Arena (campo de batalha com molduras do HUD)
+Image.open(os.path.join(SRC, "arena.png")).convert("RGB").save(os.path.join(WEB, "arena.webp"), "WEBP", quality=86, method=6)
 
 # Ícones Android
 icon = Image.open(os.path.join(SRC, "app_icon.png")).convert("RGB")

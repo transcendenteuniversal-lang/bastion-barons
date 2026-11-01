@@ -8,12 +8,13 @@
   // Medidas da arena em pixels da imagem (ver art/source/arena.png)
   const ARENA = {
     lanes: [ // centro Y, faixa Y, início/fim X (perspectiva: a rota de baixo é mais larga), escala das tropas
-      { y: 340, y0: 292, y1: 395, xL: 375, xR: 1305, k: 0.86 },
-      { y: 468, y0: 405, y1: 545, xL: 300, xR: 1380, k: 1.0 },
-      { y: 632, y0: 555, y1: 712, xL: 255, xR: 1430, k: 1.16 },
+      { y: 368, y0: 322, y1: 410, xL: 380, xR: 1295, k: 0.86 },
+      { y: 492, y0: 440, y1: 548, xL: 345, xR: 1330, k: 1.0 },
+      { y: 640, y0: 578, y1: 702, xL: 275, xR: 1400, k: 1.16 },
     ],
-    castle: [{ x0: 0, y0: 130, x1: 330, y1: 610, gx: 200, gy: 440 }, { x0: 1342, y0: 130, x1: 1672, y1: 610, gx: 1475, gy: 440 }],
-    baron: [{ x: 252, y: 236, r: 54 }, { x: 1420, y: 236, r: 54 }],
+    castle: [{ x0: 0, y0: 130, x1: 355, y1: 680, gx: 195, gy: 520 }, { x0: 1317, y0: 130, x1: 1672, y1: 680, gx: 1478, gy: 520 }],
+    // o Barão fica na sacada redonda do castelo
+    baron: [{ x: 232, y: 282, r: 56 }, { x: 1440, y: 282, r: 56 }],
     unitR: 46,
   };
   BB.ARENA = ARENA;
