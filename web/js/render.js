@@ -360,14 +360,23 @@
       if (!this.castleArt) return;
       const img = this.arena;
       if (!img.complete || !img.naturalWidth) return;
-      const Y0 = 752, X0 = 300, X1 = 1372, tw = X1 - X0;
-      const g = this.g, left = -this.ox / this.s - 4, right = (this.W - this.ox) / this.s + 4;
-      let start = X0; while (start > left) start -= tw;
-      for (let x = start; x < right; x += tw) g.drawImage(img, X0, Y0, tw, AH - Y0, x, Y0, tw, AH - Y0);
-      // sombra suave do muro sobre o piso
-      const gr = g.createLinearGradient(0, Y0 - 18, 0, Y0);
-      gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.28)');
-      g.fillStyle = gr; g.fillRect(left, Y0 - 18, right - left, 18);
+      // só nos cantos: o muro da frente da arena continua e sobe em curva até a borda da tela, cobrindo a base do castelo
+      const Y0 = 752, END = 170, RISE = 70, SRC0 = 300, SRCW = 400, g = this.g;
+      const left = -this.ox / this.s - 4;
+      const lift = (x) => { const t = Math.min(1, Math.max(0, (END - x) / 150)); return RISE * t * t * (3 - 2 * t); };
+      for (let side = 0; side < 2; side++) {
+        g.save(); if (side) { g.translate(AW, 0); g.scale(-1, 1); }
+        for (let x = END; x > left; x -= 3) {
+          const y = Y0 - lift(x), sx = SRC0 + (((END - x) % SRCW) + SRCW) % SRCW;
+          g.drawImage(img, sx, Y0, 3, AH - Y0, x - 3, y, 3.6, AH - Y0); g.drawImage(img, sx, Y0 + 40, 3, AH - Y0 - 40, x - 3, y + AH - Y0, 3.6, AH - Y0 - 40);
+        }
+        // sombra do muro sobre o piso, seguindo a curva
+        g.beginPath(); g.moveTo(END + 30, Y0);
+        for (let x = END; x > left; x -= 8) g.lineTo(x, Y0 - lift(x));
+        for (let x = left; x <= END + 30; x += 8) g.lineTo(x, Y0 - lift(Math.min(x, END)) - 16);
+        g.closePath(); g.fillStyle = 'rgba(0,0,0,.18)'; g.fill();
+        g.restore();
+      }
     }
 
     // posição do castelo (lado esquerdo) para que o pé do Barão caia no ponto da sacada
