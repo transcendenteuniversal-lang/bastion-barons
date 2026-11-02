@@ -34,28 +34,42 @@ def main(uid, path):
     for i in range(1, len(ROWS)):  # ajusta cada corte para a linha mais vazia perto do corte nominal
         lo, hi = bands[i] - 40, bands[i] + 40
         bands[i] = lo + int(np.argmin(rowmass[lo:hi]))
-    x0 = int(W * 0.1)  # pula a coluna de rótulos
+    x0 = int(W * 0.109)  # pula a coluna de rótulos (com a seta)
     colw = (W - x0) / COLS
     frames, scales = {}, {}
     for r, name in enumerate(ROWS):
         y0, y1 = bands[r], bands[r + 1]
-        row = []
+        # separa os personagens pelo desenho (não por coluna fixa): cada pedaço vai para o quadro
+        # cuja coluna contém o seu centro, então capa ou braço que passa da coluna continua inteiro
+        band = rgba[y0:y1].copy()
+        m = band[..., 3] > 60
+        m[:, :x0] = False
+        lab, n = ndimage.label(ndimage.binary_dilation(m, iterations=1))
+        lab = np.where(m, lab, 0)
+        row = [np.zeros_like(band) for _ in range(COLS)]
+        objs = ndimage.find_objects(lab)
+        sizes = ndimage.sum(m, lab, range(1, n + 1)) if n else []
+        for i, sl in enumerate(objs):
+            if sl is None or sizes[i] < 40:
+                continue
+            comp = lab == i + 1
+            ys, xs = np.nonzero(comp)
+            if xs.max() - xs.min() > colw * 1.45:  # dois personagens encostados: divide pelas colunas
+                for c in range(COLS):
+                    cx0, cx1 = int(x0 + c * colw), int(x0 + (c + 1) * colw)
+                    part = comp.copy(); part[:, :cx0] = False; part[:, cx1:] = False
+                    row[c][part] = band[part]
+                continue
+            c = int(np.clip((np.median(xs) - x0) // colw, 0, COLS - 1))
+            row[c][comp] = band[comp]
+        # mantém só o personagem principal de cada quadro (e efeitos ligados a ele)
         for c in range(COLS):
-            cx0, cx1 = int(x0 + c * colw), int(x0 + (c + 1) * colw)
-            cell = rgba[y0:y1, cx0:cx1].copy()
-            m = cell[..., 3] > 60
-            lab, n = ndimage.label(ndimage.binary_dilation(m, iterations=3))
-            if n:
-                sizes = ndimage.sum(m, lab, range(1, n + 1))
-                objs = ndimage.find_objects(lab)
-                cw = cell.shape[1]
-                def ok(i, sz):  # pedaços que tocam a borda lateral vêm do quadro vizinho
-                    sl = objs[i]
-                    edge = sl[1].start <= 1 or sl[1].stop >= cw - 1
-                    return sz >= sizes.max() * (0.3 if edge else 0.04)
-                keep = np.isin(lab, [i + 1 for i, sz in enumerate(sizes) if ok(i, sz)])
-                cell[..., 3] = np.where(keep, cell[..., 3], 0)
-            row.append(cell)
+            mm = row[c][..., 3] > 60
+            l2, n2 = ndimage.label(ndimage.binary_dilation(mm, iterations=4))
+            if n2:
+                sz = ndimage.sum(mm, l2, range(1, n2 + 1))
+                keep = np.isin(l2, [j + 1 for j, z in enumerate(sz) if z >= sz.max() * 0.06])
+                row[c][..., 3] = np.where(keep, row[c][..., 3], 0)
         frames[name] = row
         # escala da linha: o 1º quadro (pose de espera) define a altura do corpo
         ys = np.nonzero(row[0][..., 3].max(axis=1) > 60)[0]
@@ -79,11 +93,15 @@ def main(uid, path):
             boxes.append((xs.min() - cx, ys.min() - foot, xs.max() - cx, ys.max() - foot))
     L = int(-min(b[0] for b in boxes)) + 4; R = int(max(b[2] for b in boxes)) + 4
     T = int(-min(b[1] for b in boxes)) + 4; B = 6
-    fw, fh = L + R, T + B
+    G = 3  # margem transparente em volta de cada quadro: nada de um quadro aparece no vizinho
+    fw, fh = L + R + 2 * G, T + B + 2 * G
     sheet = Image.new('RGBA', (fw * COLS, fh * len(ROWS)), (0, 0, 0, 0))
     for r, name in enumerate(ROWS):
         for c, (img, cx, foot) in enumerate(out_cells[name]):
-            sheet.paste(img, (int(c * fw + L - cx), int(r * fh + T - foot)), img)
+            cell = Image.new('RGBA', (fw - 2 * G, fh - 2 * G), (0, 0, 0, 0))
+            cell.paste(img, (int(L - cx), int(T - foot)), img)  # recorta o que passar do quadro
+            sheet.paste(cell, (c * fw + G, r * fh + G))
+    L += G; T += G
     os.makedirs(os.path.join(ROOT, 'web', 'img', 'barons'), exist_ok=True)
     sheet.save(os.path.join(ROOT, 'web', 'img', 'barons', uid + '_anim.webp'), 'WEBP', quality=84, method=6)
     meta_path = os.path.join(ROOT, 'web', 'js', 'baron-anim.js')

@@ -2,10 +2,10 @@
 window.BB = window.BB || {};
 BB.BARON_ANIM = {
  "thorg": {
-  "ax": 110,
-  "ay": 168,
+  "ax": 106,
+  "ay": 172,
   "body": 150,
-  "h": 174,
+  "h": 181,
   "n": 8,
   "rows": [
    "idle",
@@ -15,6 +15,6 @@ BB.BARON_ANIM = {
    "hurt",
    "cheer"
   ],
-  "w": 209
+  "w": 225
  }
 };

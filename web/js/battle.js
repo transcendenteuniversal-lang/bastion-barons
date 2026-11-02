@@ -375,7 +375,7 @@
       if (m.over) {
         if (this.endT === 0) this.showEnd();
         this.endT += dt;
-        if (this.endT > 3.2) this.finish();
+        if (this.endT > 4.6) this.finish();
       }
     }
 
@@ -385,6 +385,7 @@
       document.getElementById('toast').innerHTML = '';
       BB.audio.stopMusic();
       BB.audio.play(m.winner === 0 ? 'victory' : 'defeat');
+      $('#hud').classList.add('ending');
       const key = m.winner === 0 ? 'result.victory' : m.winner === 1 ? 'result.defeat' : 'result.draw';
       const d = document.createElement('div');
       d.className = 'end-title title'; d.textContent = T(key);

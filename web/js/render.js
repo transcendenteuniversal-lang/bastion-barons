@@ -15,7 +15,11 @@
       { y: 652, y0: 545, y1: 742, xL: 292, xR: 1380, k: 1 },
     ],
     castle: [{ x0: 0, y0: 0, x1: 360, y1: 760, gx: 190, gy: 540 }, { x0: 1312, y0: 0, x1: 1672, y1: 760, gx: 1482, gy: 540 }],
-    baron: [{ x: 226, y: 277, r: 56 }, { x: 1446, y: 277, r: 56 }],
+    // Barão em pé no piso da sacada (pés escondidos atrás do parapeito, que é redesenhado na frente)
+    baron: [{ x: 178, y: 238, r: 56 }, { x: 1494, y: 238, r: 56 }],
+    // contorno do parapeito + escudo da sacada esquerda (a direita é espelhada)
+    railing: [[38, 283], [206, 282], [214, 268], [256, 260], [294, 268], [300, 262], [328, 248], [348, 226], [360, 204], [372, 210], [372, 300],
+      [340, 334], [300, 348], [272, 372], [252, 376], [230, 352], [200, 352], [38, 352]],
     unitR: 46,
   };
   BB.ARENA = ARENA;
@@ -209,6 +213,14 @@
       g.save();
       if (sh) g.translate((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh);
       g.translate(this.ox, this.oy); g.scale(this.s, this.s);
+      // fim de partida: câmera aproxima do Barão vencedor para mostrar a comemoração
+      if (m.over && m.winner >= 0) {
+        this.endZoom = Math.min(1, (this.endZoom || 0) + dt / 1.2);
+        const k = this.endZoom * this.endZoom * (3 - 2 * this.endZoom), b = ARENA.baron[m.winner];
+        const z = 1 + 1.6 * k, fx = b.x, fy = b.y - 10;
+        const tx = fx + (AW / 2 - fx) * k, ty = fy + (AH * 0.48 - fy) * k;
+        g.translate(tx, ty); g.scale(z, z); g.translate(-fx, -fy);
+      } else this.endZoom = 0;
       if (ready) g.drawImage(img, 0, 0, AW, AH);
       for (let i = 0; i < 2; i++) { if (this.castleHit[i] > 0) this.castleHit[i] -= dt; if (this.baronCast[i] > 0) this.baronCast[i] = Math.max(0, this.baronCast[i] - dt * 1.2); }
       if (m.over && m.winner >= 0) this.collapse[1 - m.winner] = Math.min(1, this.collapse[1 - m.winner] + dt * 0.6);
@@ -288,6 +300,24 @@
       return im.complete && im.naturalWidth ? im : null;
     }
 
+    // parapeito da sacada recortado da arena e desenhado na frente do Barão
+    drawRailing(owner) {
+      if (!this.railing) {
+        const img = this.arena;
+        if (!img.complete || !img.naturalWidth) return;
+        this.railing = [0, 1].map((side) => {
+          const c = document.createElement('canvas'); c.width = AW; c.height = 420;
+          const g = c.getContext('2d');
+          g.beginPath();
+          ARENA.railing.forEach(([x, y], i) => { const px = side ? AW - x : x; if (i) g.lineTo(px, y); else g.moveTo(px, y); });
+          g.closePath(); g.clip();
+          g.drawImage(img, 0, 0, AW, AH);
+          return c;
+        });
+      }
+      this.g.drawImage(this.railing[owner], 0, 0);
+    }
+
     setBaronAnim(owner, name) { this.baronState[owner] = { name, t: 0 }; }
     // reações do Barão (só interrompem a espera ou outra reação, nunca o poder)
     baronReact(owner, name) {
@@ -322,6 +352,7 @@
         g.save(); g.translate(b.x, foot); if (owner === 1) g.scale(-1, 1);
         g.drawImage(bsheet, fr * ba.w, row * ba.h, ba.w, ba.h, -ba.ax * s, -ba.ay * s, ba.w * s, ba.h * s);
         g.restore();
+        this.drawRailing(owner);
         return;
       }
       const sp = BB.SPRITES && BB.SPRITES[p.baron.id];
@@ -554,7 +585,7 @@
       g.globalAlpha = 1;
     }
 
-    reset() { this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; }
+    reset() { this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; this.endZoom = 0; }
   }
 
   function medallion(g, img, x, y, r, ring, lw, flip) {
