@@ -4,7 +4,7 @@
 O renderizador encaixa o ponto da sacada (bx, by) na posição do Barão da arena e escala por BALCONY."""
 import os, json
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from scipy import ndimage
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'art', 'source', 'castles')
@@ -31,6 +31,47 @@ FOOT_TO_GROUND = 470
 # arena (web/js/render.js ARENA): pé do Barão da esquerda e linha dos pés de cada rota
 BARON = (178, 238 + 54)
 LANES_Y = (322, 472, 652)
+ARENA_H = 941
+# frente reta do castelo da sacada para baixo (coordenadas da arena, lado esquerdo): passa por estes dois pontos
+# e segue até a borda de baixo da tela; abaixo da sacada tudo que passar da linha é cortado e o vão vira muro
+WALL_LINE = ((335, 472), (285, 652))
+STONE = {'royal_fortress': (20, 1420, 180, 1560)}  # pedaço de parede lisa (imagem original) usado como textura do muro
+
+
+def wall_front(im2, fx, fy, rail_bottom, stone):
+    """Prolonga o castelo até a borda de baixo com a frente numa linha reta (sem pontas nem degraus para fora)."""
+    (ax, ay), (bx, by) = WALL_LINE
+    slope = (bx - ax) / (by - ay)
+    xl = lambda yl: ax + (yl + fy - ay) * slope - fx  # x da linha (local) na altura yl (local)
+    H = max(im2.height, ARENA_H - fy + 4)
+    y0 = rail_bottom + 14
+    out = Image.new('RGBA', (im2.width, H), (0, 0, 0, 0))
+    # muro: textura de pedra repetida
+    tile = stone
+    tex = Image.new('RGBA', (im2.width, H))
+    for ty in range(0, H, tile.height):
+        for tx in range(0, im2.width, tile.width):
+            tex.paste(tile, (tx, ty))
+    poly = [(0, y0), (xl(y0), y0), (xl(H), H), (0, H)]
+    m = Image.new('L', out.size, 0); ImageDraw.Draw(m).polygon(poly, fill=255)
+    out.paste(tex, (0, 0), m)
+    # sombra suave perto da quina (dá volume)
+    sh = Image.new('L', out.size, 0); d = ImageDraw.Draw(sh)
+    for k in range(18):
+        d.line([(xl(y0) - k, y0), (xl(H) - k, H)], fill=int(90 * (1 - k / 18)), width=1)
+    out.paste(Image.new('RGBA', out.size, (20, 14, 30, 255)), (0, 0), Image.fromarray((np.asarray(sh) * (np.asarray(m) > 0)).astype(np.uint8)))
+    # castelo por cima, cortado na linha abaixo da sacada
+    cm = Image.new('L', out.size, 0); dc = ImageDraw.Draw(cm)
+    dc.rectangle((0, 0, im2.width, y0), fill=255); dc.polygon(poly, fill=255)
+    layer = Image.new('RGBA', out.size, (0, 0, 0, 0)); layer.paste(im2, (0, 0))
+    a = np.asarray(layer).copy(); a[..., 3] = (a[..., 3].astype(int) * (np.asarray(cm) > 0)).astype(np.uint8)
+    out.alpha_composite(Image.fromarray(a))
+    # acabamento dourado na quina, como as linhas das rotas
+    d = ImageDraw.Draw(out)
+    d.line([(xl(y0) + 2, y0), (xl(H) + 2, H)], fill=(60, 36, 10, 255), width=12)
+    d.line([(xl(y0), y0), (xl(H), H)], fill=(222, 166, 52, 255), width=8)
+    d.line([(xl(y0) - 2, y0), (xl(H) - 2, H)], fill=(255, 222, 120, 255), width=2)
+    return out
 
 
 def key(rgb):
@@ -76,12 +117,15 @@ def main():
         if sp:
             s = FOOT_TO_GROUND / (sp['ground'] - sp['foot'][1])
             im2 = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
-            im2.save(os.path.join(OUT, cid + '.webp'), 'WEBP', quality=88, method=6)
             P = lambda x, y: [round(x * s), round(y * s)]
             rail = [P(*q) for q in sp['rail']]
             rb = round(sp['railBottom'] * s)
-            # frente do castelo em cada rota (onde as tropas encostam): ponto mais à direita da arte na linha dos pés
             fx, fy = BARON[0] - round(sp['foot'][0] * s), BARON[1] - round(sp['foot'][1] * s)
+            sx0, sy0, sx1, sy1 = STONE[cid]
+            stone = im.crop((sx0 - x0, sy0 - y0, sx1 - x0, sy1 - y0)).resize((round((sx1 - sx0) * s), round((sy1 - sy0) * s)), Image.LANCZOS)
+            im2 = wall_front(im2, fx, fy, rb, stone)
+            im2.save(os.path.join(OUT, cid + '.webp'), 'WEBP', quality=88, method=6)
+            # frente do castelo em cada rota (onde as tropas encostam): ponto mais à direita da arte na linha dos pés
             al = np.asarray(im2)[..., 3]
             front = []
             for ly in LANES_Y:

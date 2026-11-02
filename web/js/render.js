@@ -211,7 +211,7 @@
       const key = m.players[0].castle.id + '|' + m.players[1].castle.id;
       if (this.frontKey === key) return;
       this.frontKey = key;
-      const edge = (id, i) => { const a = this.castleArtFor(id); const f = a && a.front && a.front[i]; return f == null ? null : f + (i === 0 ? 16 : -40); };
+      const edge = (id, i) => { const a = this.castleArtFor(id); const f = a && a.front && a.front[i]; return f == null ? null : f + (i === 0 ? 16 : -28); };
       ARENA.lanes.forEach((l, i) => {
         const [dL, dR] = ARENA.laneEnds[i];
         const e0 = edge(m.players[0].castle.id, i), e1 = edge(m.players[1].castle.id, i);

@@ -3,7 +3,7 @@ window.BB = window.BB || {};
 BB.CASTLES_ART = {
  "royal_fortress": {
   "w": 392,
-  "h": 954,
+  "h": 1138,
   "foot": [
    184,
    485
@@ -44,8 +44,8 @@ BB.CASTLES_ART = {
   ],
   "front": [
    384,
-   327,
-   357
+   345,
+   295
   ]
  }
 };
