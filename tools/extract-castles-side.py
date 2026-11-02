@@ -17,7 +17,9 @@ GATE = (565, 980)       # centro do portão (impactos)
 RAIL = [(400, 680), (560, 722), (700, 722), (845, 610), (848, 720), (760, 785), (560, 795), (400, 765)]
 BARON = (178, 292)      # pé do Barão na arena
 LANES_Y = (322, 472, 652)
-PAD_BOTTOM = 160        # castelo continua para baixo (atrás da barra de cartas, celulares mais altos)
+PAD_BOTTOM = 160
+# base: todos terminam na mesma diagonal (a da Fortaleza Real); o que passar dela é cortado (borda suave)
+BASE_CUT = [(1040, 712), (1100, 668), (1160, 611), (1220, 553), (1280, 502), (1396, 380), (1556, 220)]        # castelo continua para baixo (atrás da barra de cartas, celulares mais altos)
 
 
 def key(a):
@@ -45,7 +47,13 @@ def main():
     meta = {}
     for cid in IDS:
         a = np.asarray(Image.open(os.path.join(SRC, cid + '.webp')).convert('RGB')).astype(np.float32)
-        im = Image.fromarray(key(a))
+        k = key(a)
+        ys = np.arange(k.shape[0])
+        lim = np.interp(ys, [p[0] for p in BASE_CUT], [p[1] for p in BASE_CUT], left=1e9)
+        xs = np.arange(k.shape[1])[None, :]
+        cut = np.clip((lim[:, None] - xs) / 3.0, 0, 1)
+        k[..., 3] = (k[..., 3] * cut).astype(np.uint8)
+        im = Image.fromarray(k)
         # prolonga a base para baixo (estica as últimas linhas): não aparece fundo embaixo do castelo
         base = im.crop((0, im.height - 40, im.width, im.height)).resize((im.width, PAD_BOTTOM + 40))
         tall = Image.new('RGBA', (im.width, im.height + PAD_BOTTOM)); tall.paste(base, (0, im.height - 40)); tall.alpha_composite(im, (0, 0))

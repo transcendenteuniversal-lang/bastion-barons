@@ -213,7 +213,7 @@
       const key = m.players[0].castle.id + '|' + m.players[1].castle.id;
       if (this.frontKey === key) return;
       this.frontKey = key;
-      const edge = (id, i) => { const a = this.castleArtFor(id); const f = a && a.front && a.front[i]; return f == null ? null : f + (i === 0 ? 16 : -28); };
+      const edge = (id, i) => { const a = this.castleArtFor(id); const f = a && a.front && a.front[i]; return f == null ? null : f + [16, -4, -20][i]; };
       // Barão em pé na sacada do castelo escolhido
       for (let o = 0; o < 2; o++) {
         const a = this.castleArtFor(m.players[o].castle.id);
