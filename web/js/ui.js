@@ -348,6 +348,14 @@
     const grd = g.createLinearGradient(0, 0, 0, H); grd.addColorStop(0, '#5fb3f0'); grd.addColorStop(1, '#bfe6ff');
     g.fillStyle = grd; g.fillRect(0, 0, W, H);
     g.fillStyle = '#5daa3c'; g.fillRect(0, H * 0.82, W, H * 0.18);
+    const art = BB.CASTLES_ART && BB.CASTLES_ART[def.id];
+    if (art) { // arte do castelo (vista 3/4), centralizada no quadro
+      const im = BB.art.image('img/castles/' + def.id + '.webp');
+      const put = () => { const k = Math.min((W * 0.92) / art.w, (H * 0.94) / art.h); g.drawImage(im, (W - art.w * k) / 2, H - art.h * k - H * 0.02, art.w * k, art.h * k); };
+      if (im.complete && im.naturalWidth) { put(); return; }
+      im.addEventListener('load', put, { once: true });
+      return;
+    }
     const stone = def.stoneColor, roof = def.roofColor;
     g.fillStyle = stone; g.fillRect(W * 0.15, H * 0.5, W * 0.7, H * 0.33);
     for (const [x, w, h] of [[0.22, 0.16, 0.45], [0.78, 0.16, 0.45], [0.5, 0.24, 0.6]]) {

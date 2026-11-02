@@ -35,7 +35,9 @@
       this.cv = canvas; this.g = canvas.getContext('2d');
       this.views = new Map(); this.ghosts = []; this.fx = []; this.texts = [];
       this.shake = 0; this.castleHit = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.collapse = [0, 0]; this.t = 0; this.lastDt = 0;
-      this.arena = BB.art.image('img/arena.webp');
+      // com as artes dos castelos, a arena vem sem castelos e cada lado desenha o castelo escolhido
+      this.castleArt = !!(BB.CASTLES_ART && Object.keys(BB.CASTLES_ART).length);
+      this.arena = BB.art.image(this.castleArt ? 'img/arena_bg.webp' : 'img/arena.webp');
       this.resize();
     }
 
@@ -255,13 +257,17 @@
     // Estado do castelo sobre a arte: impacto, escudo, rachaduras, fumaça e destruição
     drawCastleState(m, owner) {
       const g = this.g, p = m.players[owner], c = ARENA.castle[owner];
-      // castelo modular: se houver arte própria (img/castles/<id>.webp, desenhada para o lado esquerdo), ela cobre o castelo da arena
-      if ((BB.CASTLE_ART || []).includes(p.castle.id)) {
+      // castelo escolhido (arte 3/4 desenhada para o lado esquerdo; o da direita é espelhado):
+      // o ponto da sacada encaixa exatamente onde o Barão pisa
+      const art = this.castleArtFor(p.castle.id);
+      if (art) {
         const im = BB.art.image('img/castles/' + p.castle.id + '.webp');
         if (im.complete && im.naturalWidth) {
           g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
-          const cl = ARENA.castle[0]; g.drawImage(im, cl.x0, cl.y0, cl.x1 - cl.x0, cl.y1 - cl.y0); g.restore();
+          g.drawImage(im, art.x, art.y, art.w, art.h); g.restore();
         }
+        const gx = art.x + art.gate[0], gy = art.y + art.gate[1];
+        c.gx = owner === 1 ? AW - gx : gx; c.gy = gy;
       }
       const w = c.x1 - c.x0, h = c.y1 - c.y0, cx = (c.x0 + c.x1) / 2;
       if (this.castleHit[owner] > 0) {
@@ -308,8 +314,27 @@
       return im.complete && im.naturalWidth ? im : null;
     }
 
+    // posição do castelo (lado esquerdo) para que o pé do Barão caia no ponto da sacada
+    castleArtFor(id) {
+      const a = this.castleArt && BB.CASTLES_ART[id];
+      if (!a) return null;
+      const b = ARENA.baron[0];
+      return Object.assign({ x: b.x - a.foot[0], y: b.y + 54 - a.foot[1] }, a);
+    }
+
     // parapeito da sacada recortado da arena e desenhado na frente do Barão
-    drawRailing(owner) {
+    drawRailing(owner, m) {
+      const art = m && this.castleArtFor(m.players[owner].castle.id);
+      if (art) {
+        const im = BB.art.image('img/castles/' + m.players[owner].castle.id + '.webp');
+        if (!im.complete || !im.naturalWidth) return;
+        const g = this.g;
+        g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
+        g.beginPath(); art.rail.forEach(([x, y], i) => (i ? g.lineTo(art.x + x, art.y + y) : g.moveTo(art.x + x, art.y + y)));
+        g.closePath(); g.clip();
+        g.drawImage(im, art.x, art.y, art.w, art.h); g.restore();
+        return;
+      }
       if (!this.railing) {
         const img = this.arena;
         if (!img.complete || !img.naturalWidth) return;
@@ -365,7 +390,7 @@
         g.save(); g.translate(b.x, foot); if ((owner === 1) !== faceLeft) g.scale(-1, 1);
         g.drawImage(bsheet, fr * ba.w, row * ba.h, ba.w, ba.h, -ba.ax * s, -ba.ay * s, ba.w * s, ba.h * s);
         g.restore();
-        this.drawRailing(owner);
+        this.drawRailing(owner, m);
         return;
       }
       const sp = BB.SPRITES && BB.SPRITES[p.baron.id];

@@ -150,6 +150,15 @@ _sh.paste(_ar.crop((0, 55, _ar.width, _ar.height)), (0, 0))
 _sh.paste(_ar.crop((0, 820, _ar.width, _ar.height)).resize((_ar.width, _ar.height - 765)), (0, 765))
 _sh.save(os.path.join(WEB, "arena.webp"), "WEBP", quality=86, method=6)
 
+# Arena sem castelos (os castelos escolhidos são desenhados por cima: tools/extract-castles.py)
+def arena_bg():
+    a = Image.open(os.path.join(SRC, "arena_clean_base.png")).convert("RGB").resize(_ar.size, Image.LANCZOS)
+    o = Image.new("RGB", a.size)
+    o.paste(a.crop((0, 55, a.width, a.height)), (0, 0))
+    o.paste(a.crop((0, 820, a.width, a.height)).resize((a.width, a.height - 765)), (0, 765))
+    o.save(os.path.join(WEB, "arena_bg.webp"), "WEBP", quality=86, method=6)
+arena_bg()
+
 # Ícones Android
 icon = Image.open(os.path.join(SRC, "app_icon.png")).convert("RGB")
 icon = icon.crop((60, 60, icon.width - 60, icon.height - 60))
