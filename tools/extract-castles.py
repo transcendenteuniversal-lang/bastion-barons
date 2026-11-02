@@ -67,14 +67,11 @@ def main():
         # vista de lado (cortada pela borda esquerda) tem prioridade sobre a antiga vista 3/4
         if f.endswith('_side.webp'):
             cid = f[:-10]
-        elif f.endswith('_34.webp') and not os.path.exists(os.path.join(SRC, f[:-8] + '_side.webp')):
-            cid = f[:-8]
         else:
             continue
         im = key(np.asarray(Image.open(os.path.join(SRC, f)).convert('RGB')))
         x0, y0, x1, y1 = im.getbbox()
         im = im.crop((x0, y0, x1, y1))
-        im.save(os.path.join(SRC, cid + '_cut.png'))
         sp = SPOTS.get(cid)
         if sp:
             s = FOOT_TO_GROUND / (sp['ground'] - sp['foot'][1])

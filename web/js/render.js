@@ -211,7 +211,7 @@
       const key = m.players[0].castle.id + '|' + m.players[1].castle.id;
       if (this.frontKey === key) return;
       this.frontKey = key;
-      const edge = (id, i) => { const a = this.castleArt && BB.CASTLES_ART[id]; const f = a && a.front && a.front[i]; return f == null ? null : f + (i === 0 ? 16 : -40); };
+      const edge = (id, i) => { const a = this.castleArtFor(id); const f = a && a.front && a.front[i]; return f == null ? null : f + (i === 0 ? 16 : -40); };
       ARENA.lanes.forEach((l, i) => {
         const [dL, dR] = ARENA.laneEnds[i];
         const e0 = edge(m.players[0].castle.id, i), e1 = edge(m.players[1].castle.id, i);
@@ -278,7 +278,7 @@
       // o ponto da sacada encaixa exatamente onde o Barão pisa
       const art = this.castleArtFor(p.castle.id);
       if (art) {
-        const im = BB.art.image('img/castles/' + p.castle.id + '.webp');
+        const im = BB.art.image(art.src);
         if (im.complete && im.naturalWidth) {
           g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
           g.drawImage(im, art.x, art.y, art.w, art.h); g.restore();
@@ -332,18 +332,21 @@
     }
 
     // posição do castelo (lado esquerdo) para que o pé do Barão caia no ponto da sacada
+    // castelo sem arte própria ainda: usa o mesmo formato (Fortaleza Real) para manter a linha da arena
     castleArtFor(id) {
-      const a = this.castleArt && BB.CASTLES_ART[id];
+      if (!this.castleArt) return null;
+      const key = BB.CASTLES_ART[id] ? id : 'royal_fortress';
+      const a = BB.CASTLES_ART[key];
       if (!a) return null;
       const b = ARENA.baron[0];
-      return Object.assign({ x: b.x - a.foot[0], y: b.y + 54 - a.foot[1] }, a);
+      return Object.assign({ x: b.x - a.foot[0], y: b.y + 54 - a.foot[1], src: 'img/castles/' + key + '.webp' }, a);
     }
 
     // parapeito da sacada recortado da arena e desenhado na frente do Barão
     drawRailing(owner, m) {
       const art = m && this.castleArtFor(m.players[owner].castle.id);
       if (art) {
-        const im = BB.art.image('img/castles/' + m.players[owner].castle.id + '.webp');
+        const im = BB.art.image(art.src);
         if (!im.complete || !im.naturalWidth) return;
         const g = this.g;
         g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
