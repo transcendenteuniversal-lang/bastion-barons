@@ -276,7 +276,7 @@
       }
 
       for (let i = 0; i < 2; i++) this.drawCastleState(m, i);
-      this.drawFrontWall();
+      // (muro de canto desligado: aguardando arte própria)
       this.syncViews(m, dt);
       const list = [...this.views.values(), ...this.ghosts].sort((a, b) => (a.fly - b.fly) || (a.y - b.y));
       for (const v of list) this.drawUnit(v, dt);
