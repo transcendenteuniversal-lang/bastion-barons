@@ -1,29 +1,3 @@
-// gerado por tools/castle-skins.py
+// gerado por tools/extract-castles5.py
 window.BB = window.BB || {};
-BB.CASTLE_SKINS = {
- "royal_fortress": {
-  "src": "img/castles/skin_royal_fortress.webp",
-  "w": 440,
-  "h": 941
- },
- "glacial_fortress": {
-  "src": "img/castles/skin_glacial_fortress.webp",
-  "w": 440,
-  "h": 941
- },
- "draconic_castle": {
-  "src": "img/castles/skin_draconic_castle.webp",
-  "w": 440,
-  "h": 941
- },
- "sylvan_sanctuary": {
-  "src": "img/castles/skin_sylvan_sanctuary.webp",
-  "w": 440,
-  "h": 941
- },
- "shadow_necropolis": {
-  "src": "img/castles/skin_shadow_necropolis.webp",
-  "w": 440,
-  "h": 941
- }
-};
+BB.CASTLES_ART = {"royal_fortress": {"w": 636, "h": 1229, "x": -300, "y": -376, "foot": [444, 668], "rail": [[330, 674], [444, 682], [540, 672], [578, 638], [614, 619], [641, 614], [641, 744], [330, 744]], "gate": [498, 932], "front": [334, 299, 326], "src": "img/castles/royal_fortress.webp"}, "glacial_fortress": {"w": 626, "h": 1229, "x": -300, "y": -376, "foot": [444, 668], "rail": [[330, 674], [444, 682], [540, 672], [578, 638], [614, 619], [641, 614], [641, 744], [330, 744]], "gate": [498, 932], "front": [322, 287, 312], "src": "img/castles/glacial_fortress.webp"}, "draconic_castle": {"w": 636, "h": 1229, "x": -300, "y": -376, "foot": [444, 668], "rail": [[330, 674], [444, 682], [540, 672], [578, 638], [614, 619], [641, 614], [641, 744], [330, 744]], "gate": [498, 932], "front": [333, 298, 323], "src": "img/castles/draconic_castle.webp"}, "sylvan_sanctuary": {"w": 634, "h": 1229, "x": -300, "y": -376, "foot": [444, 668], "rail": [[330, 674], [444, 682], [540, 672], [578, 638], [614, 619], [641, 614], [641, 744], [330, 744]], "gate": [498, 932], "front": [332, 296, 321], "src": "img/castles/sylvan_sanctuary.webp"}, "shadow_necropolis": {"w": 641, "h": 1229, "x": -300, "y": -376, "foot": [444, 668], "rail": [[330, 674], [444, 682], [540, 672], [578, 638], [614, 619], [641, 614], [641, 744], [330, 744]], "gate": [498, 932], "front": [339, 303, 327], "src": "img/castles/shadow_necropolis.webp"}};

@@ -214,6 +214,11 @@
       if (this.frontKey === key) return;
       this.frontKey = key;
       const edge = (id, i) => { const a = this.castleArtFor(id); const f = a && a.front && a.front[i]; return f == null ? null : f + (i === 0 ? 16 : -28); };
+      // Barão em pé na sacada do castelo escolhido
+      for (let o = 0; o < 2; o++) {
+        const a = this.castleArtFor(m.players[o].castle.id);
+        if (a && a.x != null) { const bx = a.x + a.foot[0], by = a.y + a.foot[1] - 54; ARENA.baron[o].x = o ? AW - bx : bx; ARENA.baron[o].y = by; }
+      }
       ARENA.lanes.forEach((l, i) => {
         const [dL, dR] = ARENA.laneEnds[i];
         const e0 = edge(m.players[0].castle.id, i), e1 = edge(m.players[1].castle.id, i);
@@ -348,6 +353,7 @@
       const key = BB.CASTLES_ART[id] ? id : 'royal_fortress';
       const a = BB.CASTLES_ART[key];
       if (!a) return null;
+      if (a.x != null) return a; // posição fixa na arena (pode passar da borda: celulares largos)
       const b = ARENA.baron[0];
       return Object.assign({ x: b.x - a.foot[0], y: b.y + 54 - a.foot[1], src: 'img/castles/' + key + '.webp' }, a);
     }
