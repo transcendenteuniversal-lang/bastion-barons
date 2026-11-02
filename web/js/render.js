@@ -237,10 +237,17 @@
       const img = this.arena;
       const ready = img.complete && img.naturalWidth;
       if (ready && (this.ox > 1 || this.oy > 1)) {
-        g.save(); g.filter = 'blur(14px) brightness(.7)';
-        const cs = Math.max(this.W / AW, this.H / AH);
-        g.drawImage(img, (this.W - AW * cs) / 2, (this.H - AH * cs) / 2, AW * cs, AH * cs);
-        g.restore();
+        if (this.oy <= 1) {
+          // celular largo: as sobras dos lados mostram a própria arena espelhada (muro e piso continuam, sem desfoque)
+          const w = AW * this.s, h = AH * this.s;
+          g.save(); g.translate(this.ox, 0); g.scale(-1, 1); g.drawImage(img, 0, this.oy, w, h); g.restore();
+          g.save(); g.translate(this.ox + 2 * w, 0); g.scale(-1, 1); g.drawImage(img, 0, this.oy, w, h); g.restore();
+        } else {
+          g.save(); g.filter = 'blur(14px) brightness(.7)';
+          const cs = Math.max(this.W / AW, this.H / AH);
+          g.drawImage(img, (this.W - AW * cs) / 2, (this.H - AH * cs) / 2, AW * cs, AH * cs);
+          g.restore();
+        }
       }
       let sh = 0;
       if (this.shake > 0) { this.shake -= dt; sh = this.shake * 14; }
