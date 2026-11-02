@@ -141,7 +141,10 @@
 
     tryCastle(p, lanes, threatLane) {
       if (!this.m.castleReady(p)) return;
-      if (p.castle.ability === 'ImperialShield') {
+      if (p.castle.ability === 'ForestBlessing') {
+        const hurt = this.m.units.filter((u) => u.owner === this.me && u.hp > 0 && u.hp < u.maxHp * 0.6).length;
+        if (this.m.hpPct(p) < 0.85 || hurt >= 3) this.issue({ type: 'castle', lane: threatLane });
+      } else if (p.castle.ability === 'ImperialShield') {
         if (lanes[threatLane].frontDist < 12 && this.m.hpPct(p) < 0.95) this.issue({ type: 'castle', lane: threatLane });
       } else if (lanes[threatLane].enemyCount >= 2 && lanes[threatLane].threat > 150) this.issue({ type: 'castle', lane: threatLane });
     }

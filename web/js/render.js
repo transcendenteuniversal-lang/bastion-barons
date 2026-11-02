@@ -153,8 +153,16 @@
           break;
         }
         case 'CastleUsed': {
-          const c = e.id === 'draconic_castle' ? '#ff6a1e' : e.id === 'glacial_fortress' ? '#9fe6ff' : '#8fe3ff';
-          const key = { royal_fortress: 'fx_imperial_shield', draconic_castle: 'fx_dragon_breath', glacial_fortress: 'fx_ice_storm' }[e.id];
+          const c = { draconic_castle: '#ff6a1e', glacial_fortress: '#9fe6ff', sylvan_sanctuary: '#7dff8a', shadow_necropolis: '#b06bff' }[e.id] || '#8fe3ff';
+          // ícones/efeitos próprios dos castelos novos ainda não chegaram: usa efeitos parecidos
+          const key = { royal_fortress: 'fx_imperial_shield', draconic_castle: 'fx_dragon_breath', glacial_fortress: 'fx_ice_storm',
+            sylvan_sanctuary: 'fx_sylvan_blessing', shadow_necropolis: 'fx_soul_drain' }[e.id];
+          if (!this.fxSheet(key) && e.id === 'sylvan_sanctuary' && this.fxSheet('fx_divine_heal')) {
+            for (let l = 0; l < 3; l++) this.fx.push({ k: 'lane', lane: l, t: 0, d: 0.9, c });
+            const cs = ARENA.castle[e.player];
+            this.fx.push({ k: 'anim', key: 'fx_divine_heal', x: (cs.x0 + cs.x1) / 2, y: cs.y1 - 20, h: 380, t: 0, d: 1.4 });
+            break;
+          }
           const castle = ARENA.castle[e.player];
           if (key && this.fxSheet(key)) {
             if (e.lane < 0) this.fx.push({ k: 'anim', key, x: (castle.x0 + castle.x1) / 2, y: castle.y1 - 20, h: 420, t: 0, d: 1.6 });

@@ -412,7 +412,7 @@
           if (e.player === 1 && !m.over) BB.ui.toast(BB.baronName(e.id) + ': ' + T('baron.' + e.id + '.ability'));
           break;
         case 'CastleUsed':
-          BB.audio.play(e.id === 'draconic_castle' ? 'dragon' : 'magic');
+          BB.audio.play(e.id === 'draconic_castle' ? 'dragon' : e.id === 'sylvan_sanctuary' ? 'heal' : 'magic');
           if (e.player === 1 && !m.over) BB.ui.toast(BB.castleName(e.id) + ': ' + T('castle.' + e.id + '.ability'));
           break;
         case 'CastleDamaged':

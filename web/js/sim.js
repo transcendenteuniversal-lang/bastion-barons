@@ -578,6 +578,20 @@
         case 'ImperialShield': p.castleShield = c.value; p.castleShieldTime = c.duration; break;
         case 'DragonBreath': this.damageLane(p.index, l, c.value, -1, 0); break;
         case 'IceStorm': this.players[1 - p.index].mods.push({ lane: l, dmg: 1, move: 1 - c.value, atk: 1 - (c.value2 || 0), time: c.duration }); break;
+        case 'ForestBlessing': { // cura o castelo e todas as tropas aliadas (fração da vida máxima)
+          p.castleHp = Math.min(p.castleMaxHp, p.castleHp + c.value);
+          for (const u of this.units) if (u.hp > 0 && u.owner === p.index) u.hp = Math.min(u.maxHp, u.hp + u.maxHp * (c.value2 || 0));
+          break;
+        }
+        case 'SoulDrain': { // dano na rota; o castelo recupera parte do dano causado
+          let dealt = 0;
+          for (const e of this.units) {
+            if (e.hp <= 0 || e.owner === p.index || e.lane !== l) continue;
+            const before = e.hp; this.applyDamage(e, c.value, p.index); dealt += before - Math.max(0, e.hp);
+          }
+          p.castleHp = Math.min(p.castleMaxHp, p.castleHp + dealt * (c.value2 || 0));
+          break;
+        }
       }
       p.castleCooldown = c.cooldown;
       p.stats.castleUses++;

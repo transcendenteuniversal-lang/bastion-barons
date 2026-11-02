@@ -784,6 +784,30 @@ BB.CONTENT = {
    "unlockLevel": 3,
    "roofColor": "#9B1C1C",
    "stoneColor": "#6E6560"
+  },
+  {
+   "id": "sylvan_sanctuary",
+   "ability": "ForestBlessing",
+   "cooldown": 50,
+   "initialCooldown": 20,
+   "value": 350,
+   "value2": 0.3,
+   "requiresLane": false,
+   "unlockLevel": 4,
+   "roofColor": "#3E8E3A",
+   "stoneColor": "#8C7B5E"
+  },
+  {
+   "id": "shadow_necropolis",
+   "ability": "SoulDrain",
+   "cooldown": 50,
+   "initialCooldown": 20,
+   "value": 220,
+   "value2": 0.6,
+   "requiresLane": true,
+   "unlockLevel": 5,
+   "roofColor": "#5B2A86",
+   "stoneColor": "#4A4552"
   }
  ]
 };

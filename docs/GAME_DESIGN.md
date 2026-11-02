@@ -70,6 +70,8 @@ O Barão fica junto ao castelo, não tem vida e não pode ser atacado. O poder c
 | Fortaleza Real | Escudo Imperial | 50 s (20 s) | nível 1 | Escudo de 600 pontos no castelo por 10s. |
 | Fortaleza Glacial | Tempestade de Gelo | 50 s (20 s) | nível 2 | Inimigos da rota ficam 50% mais lentos por 6s. |
 | Castelo Dracônico | Sopro do Dragão | 50 s (20 s) | nível 3 | 300 de dano em todos os inimigos da rota. |
+| Santuário Silvestre | Bênção da Floresta | 50 s (20 s) | nível 4 | Cura 350 do castelo e 30% da vida de todas as suas tropas. |
+| Necrópole Sombria | Dreno de Almas | 50 s (20 s) | nível 5 | 220 de dano nos inimigos da rota; o castelo recupera 60% do dano causado. |
 
 ## Progressão
 

@@ -35,7 +35,7 @@ const play = (m, player, id, lane) => m.execute({ type: 'play', player, hand: fo
 console.log('Conteúdo');
 test('37 cartas colecionáveis (29 tropas + 8 feitiços), 5 Barões, 3 castelos', () => {
   eq(content.collectible.length, 37); eq(content.collectible.filter((c) => !c.isSpell).length, 29);
-  eq(content.barons.length, 5); eq(content.castles.length, 3);
+  eq(content.barons.length, 5); eq(content.castles.length, 5);
 });
 test('todas as cartas, Barões e castelos têm textos em pt e en', () => {
   for (const lang of ['pt', 'en']) {
@@ -199,6 +199,20 @@ test('Escudo Imperial absorve dano do castelo', () => {
   eq(m.execute({ type: 'castle', player: 0, lane: 0 }), 'Ok');
   const hp = m.players[0].castleHp; m.damageCastle(0, 300, 1); near(m.players[0].castleHp, hp, 0.01);
   eq(m.execute({ type: 'castle', player: 0, lane: 0 }), 'NotReady');
+});
+test('Bênção da Floresta cura castelo e tropas aliadas', () => {
+  const m = newMatch({ castle0: 'sylvan_sanctuary' }); m.players[0].castleCooldown = 0;
+  const u = m.spawnUnit(0, content.card('royal_knight'), 1, 20, 1); u.hp = u.maxHp * 0.2;
+  m.players[0].castleHp -= 500; const hp = m.players[0].castleHp;
+  eq(m.execute({ type: 'castle', player: 0, lane: 0 }), 'Ok');
+  near(m.players[0].castleHp, hp + 350, 0.01); near(u.hp, u.maxHp * 0.5, 0.01);
+});
+test('Dreno de Almas causa dano na rota e cura o castelo', () => {
+  const m = newMatch({ castle0: 'shadow_necropolis' }); m.players[0].castleCooldown = 0;
+  const a = m.spawnUnit(1, content.card('royal_knight'), 0, 70, 1), b = m.spawnUnit(1, content.card('royal_knight'), 2, 70, 1);
+  m.players[0].castleHp -= 1000; const hp = m.players[0].castleHp, ha = a.hp, hb = b.hp;
+  eq(m.execute({ type: 'castle', player: 0, lane: 0 }), 'Ok');
+  near(a.hp, ha - 220, 0.01); near(b.hp, hb, 0.01); near(m.players[0].castleHp, hp + 220 * 0.6, 0.01);
 });
 test('Tempestade de Gelo desacelera inimigos da rota', () => {
   const m = newMatch({ castle0: 'glacial_fortress' }); m.players[0].castleCooldown = 0;
