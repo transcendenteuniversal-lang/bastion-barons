@@ -14,6 +14,11 @@
 ## Animações dos Barões (folha de quadros)
 `tools/extract-baron-sheet.py <id> <folha>` lê uma folha com fundo verde em 6 linhas × 8 quadros (espera, poder, vitória, derrota, dano, comando; a coluna de rótulos à esquerda é ignorada). O script remove o fundo, tira pedaços dos quadros vizinhos, alinha os quadros pelos pés e gera `web/img/barons/<id>_anim.webp` e `web/js/baron-anim.js`. Já feitos os 5 Barões (`art/source/barons/<id>_sheet.webp`). Cada linha pode ter de 6 a 10 quadros e o fundo pode ser verde ou magenta: os personagens são encontrados pelo corpo, e efeitos (raios, chamas) ficam com o personagem.
 
+## Tropas e magias em folhas de quadros
+`tools/extract-unit-sheet.py` lê `art/source/sheets/sheetN.png` (fundo verde; por linha: retrato, "ANDAR", quadros de caminhada, divisória, "ATAQUE", quadros de ataque). A configuração no topo do script diz qual linha vira qual carta, quantos quadros cada parte tem e onde começam os quadros. Quadros de ataque que são só efeito (explosão, raio) são juntados ao quadro anterior do personagem. A saída é `web/img/units/<id>_s.webp` mais `web/js/sheets.js`, que substitui a animação de vídeo dessas cartas.
+
+Mapeamento usado: Guerreiro Real → Cavaleiro Real; Colosso de Ferro → Guardião de Pedra; Besteiro → Arqueiro Real; Guardião de Escudo → Paladino; Orc Guerreiro → Orc Vermelho; Curandeira → Clériga; Gigante de Guerra → Guerreiro Anão; Goblin Explosivo → Atirador Goblin; Escudo Imperial → poder do castelo Escudo Imperial. Sem carta (guardados): Lobo de Guerra, Caçador de Goblins, Druida, Invocador de Esqueletos, Morcego Vampírico.
+
 ## Provisórios (substituir quando houver arte própria)
 | Item | Hoje | Como substituir |
 |---|---|---|

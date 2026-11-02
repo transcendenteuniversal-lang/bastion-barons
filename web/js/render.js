@@ -120,11 +120,11 @@
         case 'SpellCast': {
           const c = SPELL_COLOR[e.id] || '#f7c548';
           const l = ARENA.lanes[e.lane], lh = l.y1 - l.y0, sx = this.laneX(m, e.x, e.lane);
-          const SPELL_FX = { // posição e tamanho de cada efeito animado
-            fireball: { x: sx, h: lh * 2.4, d: 0.9 }, freeze: { x: sx, h: lh * 1.9, d: 1.1 }, poison: { x: sx, h: lh * 1.9, d: 1.3 },
-            divine_heal: { x: sx, h: lh * 2.2, d: 1.2 }, arcane_shield: { x: sx, h: lh * 2.0, d: 1.2 },
-            lightning: { x: sx, h: lh * 2.6, d: 1.0 }, arrow_rain: { x: (l.xL + l.xR) / 2, w: (l.xR - l.xL) * 0.75, d: 1.2 },
-            skeleton_summon: { x: sx, h: lh * 1.3, d: 0.8 },
+          const SPELL_FX = { // posição e tamanho de cada efeito animado (altura em relação à rota)
+            fireball: { x: sx, h: lh * 1.25, d: 0.9 }, freeze: { x: sx, h: lh * 1.15, d: 1.1 }, poison: { x: sx, h: lh * 1.05, d: 1.4 },
+            divine_heal: { x: sx, h: lh * 1.0, d: 1.1 }, arcane_shield: { x: sx, h: lh * 1.4, d: 1.2 },
+            lightning: { x: sx, h: lh * 1.5, d: 1.0 }, arrow_rain: { x: (l.xL + l.xR) / 2, h: lh * 1.2, d: 1.2 },
+            skeleton_summon: { x: sx, h: lh * 1.0, d: 1.0 },
           };
           const anim = SPELL_FX[e.id];
           if (anim && this.fxSheet('fx_' + e.id)) this.fx.push(Object.assign({ k: 'anim', key: 'fx_' + e.id, y: l.y1 - lh * 0.15, t: 0 }, anim));
@@ -296,7 +296,7 @@
 
     fxSheet(key) {
       if (!BB.FX || !BB.FX[key]) return null;
-      const im = BB.art.image('img/units/' + key + '.webp');
+      const im = BB.art.image(BB.fxSrc(key));
       return im.complete && im.naturalWidth ? im : null;
     }
 
@@ -359,7 +359,7 @@
         return;
       }
       const sp = BB.SPRITES && BB.SPRITES[p.baron.id];
-      const sheet = sp ? BB.art.image('img/units/' + p.baron.id + '.webp') : null;
+      const sheet = sp ? BB.art.image(BB.unitSrc(p.baron.id)) : null;
       if (sheet && sheet.complete && sheet.naturalWidth) {
         // de pé na sacada: parado em loop; ao usar o poder, toca a animação do poder
         const foot = b.y + 54 - (win ? Math.abs(Math.sin(this.t * 7)) * 14 : 0);
@@ -453,7 +453,7 @@
       if (v.flash > 0) v.flash -= dt;
       const dir = v.owner === 0 ? 1 : -1;
       const sp = BB.SPRITES && BB.SPRITES[u.def.id];
-      const sheet = sp ? BB.art.image('img/units/' + u.def.id + '.webp') : null;
+      const sheet = sp ? BB.art.image(BB.unitSrc(u.def.id)) : null;
       if (sheet && sheet.complete && sheet.naturalWidth) return this.drawSprite(v, u, sp, sheet, dt, dir);
       let x = v.x, r = v.r;
       const y = v.y;
@@ -504,7 +504,7 @@
         row = 1; frame = Math.min(sp.attack - 1, Math.floor((v.atk / v.atkDur) * sp.attack)); v.atk += dt;
       } else {
         v.atk = -1;
-        if (u.state === 'Moving' || v.fly) frame = Math.floor(v.phase * 11) % sp.walk;
+        if (u.state === 'Moving' || v.fly) frame = Math.floor(v.phase * (sp.fps || 11)) % sp.walk;
       }
       const lift = v.fly ? 46 * k : 0, bob = v.fly ? Math.sin(v.phase * 3) * 5 : 0;
       const foot = v.y;
@@ -542,7 +542,7 @@
       g.save();
       g.strokeStyle = 'rgba(255,230,120,.95)'; g.lineWidth = 4; g.setLineDash([12, 8]);
       g.beginPath(); g.ellipse(x, l.y, 46, 13, 0, 0, TAU); g.stroke(); g.setLineDash([]);
-      const sp = BB.SPRITES && BB.SPRITES[gh.def.id], sheet = sp ? BB.art.image('img/units/' + gh.def.id + '.webp') : null;
+      const sp = BB.SPRITES && BB.SPRITES[gh.def.id], sheet = sp ? BB.art.image(BB.unitSrc(gh.def.id)) : null;
       g.globalAlpha = 0.55 + 0.15 * Math.sin(this.t * 8);
       if (sheet && sheet.complete && sheet.naturalWidth) {
         const bodyPx = (gh.def.flying ? 126 : 140) * (0.86 + Math.min(1, gh.def.hp / 1800) * 0.3), s = bodyPx / sp.body;

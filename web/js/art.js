@@ -27,6 +27,10 @@
   // castelos com arte própria em img/castles/<id>.webp (vazio = usa o castelo desenhado na arena)
   BB.CASTLE_ART = [];
 
+  // caminho da folha de uma tropa / efeito (folhas de quadros têm 'src' próprio)
+  BB.unitSrc = (id) => (BB.SPRITES && BB.SPRITES[id] && BB.SPRITES[id].src) || 'img/units/' + id + '.webp';
+  BB.fxSrc = (key) => (BB.FX && BB.FX[key] && BB.FX[key].src) || 'img/units/' + key + '.webp';
+
   BB.art = {
     cardUrl(def) {
       if (cache[def.id]) return cache[def.id];
@@ -40,8 +44,8 @@
       return im;
     },
     cardImage(def) { return BB.art.image(BB.art.cardUrl(def)); },
-    preload(content) { for (const c of content.allCards) { BB.art.cardImage(c); if (BB.SPRITES && BB.SPRITES[c.id]) BB.art.image('img/units/' + c.id + '.webp'); } for (const b of content.barons) { BB.art.image(BB.art.baronUrl(b.id)); if (BB.BARON_ANIM && BB.BARON_ANIM[b.id]) BB.art.image('img/barons/' + b.id + '_anim.webp'); if (BB.SPRITES && BB.SPRITES[b.id]) BB.art.image('img/units/' + b.id + '.webp'); }
-      for (const k in BB.FX || {}) BB.art.image('img/units/' + k + '.webp'); },
+    preload(content) { for (const c of content.allCards) { BB.art.cardImage(c); if (BB.SPRITES && BB.SPRITES[c.id]) BB.art.image(BB.unitSrc(c.id)); } for (const b of content.barons) { BB.art.image(BB.art.baronUrl(b.id)); if (BB.BARON_ANIM && BB.BARON_ANIM[b.id]) BB.art.image('img/barons/' + b.id + '_anim.webp'); if (BB.SPRITES && BB.SPRITES[b.id]) BB.art.image(BB.unitSrc(b.id)); }
+      for (const k in BB.FX || {}) BB.art.image(BB.fxSrc(k)); },
     hasArt: (id) => !NO_ART.includes(id),
 
     // Prévia animada (tela de baralho): criatura andando com tamanho padrão da carta; feitiço com sua animação de efeito
@@ -62,13 +66,13 @@
       g.clearRect(0, 0, W, H);
       const sp = BB.SPRITES && BB.SPRITES[def.id], fx = BB.FX && BB.FX['fx_' + def.id];
       if (sp) {
-        const im = BB.art.image('img/units/' + def.id + '.webp');
+        const im = BB.art.image(BB.unitSrc(def.id));
         if (!im.complete || !im.naturalWidth) return;
         const body = (def.flying ? 108 : 122) * (0.86 + Math.min(1, def.hp / 1800) * 0.3), s = body / sp.body;
-        const fr = Math.floor(t * 11) % sp.walk, foot = H - 8 - (def.flying ? 18 + Math.sin(t * 3) * 4 : 0);
+        const fr = Math.floor(t * (sp.fps || 11)) % sp.walk, foot = H - 8 - (def.flying ? 18 + Math.sin(t * 3) * 4 : 0);
         g.drawImage(im, fr * sp.w, 0, sp.w, sp.h, W / 2 - sp.ax * s, foot - sp.ay * s, sp.w * s, sp.h * s);
       } else if (fx) {
-        const im = BB.art.image('img/units/fx_' + def.id + '.webp');
+        const im = BB.art.image(BB.fxSrc('fx_' + def.id));
         if (!im.complete || !im.naturalWidth) return;
         const fr = Math.floor((t % 2) / 2 * fx.n), s = Math.min((W - 10) / fx.w, (H - 10) / fx.h);
         g.drawImage(im, fr * fx.w, 0, fx.w, fx.h, (W - fx.w * s) / 2, H - 6 - fx.h * s, fx.w * s, fx.h * s);
