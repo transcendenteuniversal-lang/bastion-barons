@@ -229,7 +229,12 @@
       for (let i = 0; i < me.deck.hand.length && i < 6; i++) {
         const c = el.slots[i].firstElementChild;
         if (!c) continue;
-        c.classList.toggle('poor', me.energy < BB.content.card(me.deck.hand[i]).cost);
+        const cost = BB.content.card(me.deck.hand[i]).cost, frac = Math.min(1, me.energy / cost);
+        c.classList.toggle('poor', frac < 1);
+        let w = c.querySelector('.wipe');
+        if (!w) { w = document.createElement('div'); w.className = 'wipe'; c.appendChild(w); }
+        // parte já carregada fica limpa; o resto continua escuro, girando no sentido horário
+        w.style.background = frac >= 1 ? 'none' : 'conic-gradient(transparent 0 ' + (frac * 360).toFixed(1) + 'deg, rgba(0,0,0,.55) ' + (frac * 360).toFixed(1) + 'deg 360deg)';
         c.classList.toggle('sel', this.armed === 'card' && this.sel === i);
       }
       el.hint.textContent = this.armed ? T('battle.select_lane') : '';

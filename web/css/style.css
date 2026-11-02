@@ -208,7 +208,8 @@ img { -webkit-user-drag: none; pointer-events: none; }
 .hb-slot .card.Common { border-color: #c9d1dc; } .hb-slot .card.Rare { border-color: #3f8fff; } .hb-slot .card.Epic { border-color: #b05cff; }
 .hb-slot .card.Legendary { border-color: #ffb422; } .hb-slot .card.Mythic { border-color: #ff3d6e; }
 .hb-slot .card.sel { transform: translateY(-.7em) scale(1.05); border-color: #fff; filter: drop-shadow(0 0 .5em #ffd34d); }
-.hb-slot .card.poor { filter: grayscale(1) brightness(.62); border-color: #888 !important; }
+.hb-slot .card.poor { filter: grayscale(1) brightness(.85); border-color: #888 !important; }
+.hb-slot .card .wipe { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; }
 .hb-slot .card.poor .art { filter: none; }
 .hb-slot .card.poor .cost { filter: grayscale(.7) brightness(.8); }
 .nope { animation: nope .35s; }

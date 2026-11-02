@@ -251,7 +251,7 @@ BB.CONTENT = {
    "damage": 50,
    "attackInterval": 1,
    "moveSpeed": 5,
-   "range": 12,
+   "range": 40,
    "targets": "Both"
   },
   {

@@ -6,7 +6,7 @@
 
 | # | Carta | Na arena | Nome | Raridade | Voa | Custo | Vida | Dano | Intervalo | DPS | Velocidade | Alcance | Ataca | Habilidade | Descrição |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | ![](../web/img/cards/royal_archer.webp) | ![](img/arena/royal_archer.webp) | **Arqueiro Real** | Comum | Não | 2 | 260 | 50 | 1 s | 50 | 3,5 | 12 | Terra e ar | — | Ataque à distância barato. |
+| 1 | ![](../web/img/cards/royal_archer.webp) | ![](img/arena/royal_archer.webp) | **Arqueiro Real** | Comum | Não | 2 | 260 | 50 | 1 s | 50 | 3,5 | 40 | Terra e ar | — | Ataque à distância barato. |
 | 2 | ![](../web/img/cards/goblin_gunner.webp) | ![](img/arena/goblin_gunner.webp) | **Atirador Goblin** | Comum | Não | 2 | 220 | 35 | 0,5 s | 70 | 4,2 | 10 | Terra e ar | — | Disparos rápidos e baratos. |
 | 3 | ![](../web/img/cards/vampire_bat.webp) | ![](img/arena/vampire_bat.webp) | **Morcego Vampírico** | Rara | Sim | 2 | 320 | 110 | 1 s | 110 | 5,95 | 1,5 | Terra e ar | Roubo de vida: recupera 30% do dano causado | Voador muito rápido; recupera 30% do dano causado. |
 | 4 | ![](../web/img/cards/elven_archer.webp) | ![](img/arena/elven_archer.webp) | **Arqueira Élfica** | Rara | Não | 3 | 300 | 70 | 1 s | 70 | 3,5 | 14 | Terra e ar | — | Precisão de longo alcance. |
