@@ -11,7 +11,13 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 172,
   "src": "img/units/arcane_mage_s.webp",
   "w": 239,
-  "walk": 6
+  "walk": 6,
+  "wb": [
+   -50,
+   -133,
+   48,
+   2
+  ]
  },
  "barbarian": {
   "attack": 6,
@@ -22,29 +28,47 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 185,
   "src": "img/units/barbarian_s.webp",
   "w": 150,
-  "walk": 6
+  "walk": 6,
+  "wb": [
+   -45,
+   -129,
+   63,
+   2
+  ]
  },
  "dwarf_engineer": {
   "attack": 8,
-  "ax": 70,
+  "ax": 67,
   "ay": 145,
   "body": 128,
   "fps": 8,
   "h": 151,
   "src": "img/units/dwarf_engineer_s.webp",
-  "w": 139,
-  "walk": 6
+  "w": 136,
+  "walk": 6,
+  "wb": [
+   -47,
+   -129,
+   54,
+   2
+  ]
  },
  "dwarf_turret": {
   "attack": 7,
-  "ax": 63,
+  "ax": 61,
   "ay": 195,
   "body": 128,
   "fps": 8,
   "h": 201,
   "src": "img/units/dwarf_turret_s.webp",
   "w": 147,
-  "walk": 8
+  "walk": 8,
+  "wb": [
+   -53,
+   -177,
+   55,
+   2
+  ]
  },
  "dwarf_warrior": {
   "attack": 5,
@@ -55,40 +79,64 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 171,
   "src": "img/units/dwarf_warrior_s.webp",
   "w": 221,
-  "walk": 5
+  "walk": 5,
+  "wb": [
+   -52,
+   -129,
+   64,
+   2
+  ]
  },
  "elven_archer": {
   "attack": 6,
-  "ax": 82,
+  "ax": 60,
   "ay": 161,
   "body": 128,
   "fps": 8,
   "h": 167,
   "src": "img/units/elven_archer_s.webp",
-  "w": 152,
-  "walk": 6
+  "w": 130,
+  "walk": 6,
+  "wb": [
+   -49,
+   -132,
+   65,
+   2
+  ]
  },
  "fire_dragon": {
   "attack": 3,
-  "ax": 70,
-  "ay": 144,
+  "ax": 85,
+  "ay": 141,
   "body": 128,
   "fps": 8,
-  "h": 154,
+  "h": 151,
   "src": "img/units/fire_dragon_s.webp",
-  "w": 327,
-  "walk": 4
+  "w": 337,
+  "walk": 4,
+  "wb": [
+   -80,
+   -131,
+   78,
+   2
+  ]
  },
  "forest_druid": {
   "attack": 4,
-  "ax": 72,
+  "ax": 69,
   "ay": 183,
   "body": 128,
   "fps": 8,
   "h": 194,
   "src": "img/units/forest_druid_s.webp",
   "w": 358,
-  "walk": 5
+  "walk": 5,
+  "wb": [
+   -51,
+   -156,
+   91,
+   2
+  ]
  },
  "goblin_gunner": {
   "attack": 5,
@@ -99,29 +147,47 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 170,
   "src": "img/units/goblin_gunner_s.webp",
   "w": 238,
-  "walk": 5
+  "walk": 5,
+  "wb": [
+   -54,
+   -129,
+   68,
+   2
+  ]
  },
  "goblin_hunter": {
   "attack": 6,
-  "ax": 63,
+  "ax": 60,
   "ay": 145,
   "body": 128,
   "fps": 8,
   "h": 151,
   "src": "img/units/goblin_hunter_s.webp",
-  "w": 175,
-  "walk": 6
+  "w": 172,
+  "walk": 6,
+  "wb": [
+   -42,
+   -130,
+   85,
+   2
+  ]
  },
  "guardian_ent": {
   "attack": 5,
-  "ax": 80,
+  "ax": 81,
   "ay": 140,
   "body": 128,
   "fps": 8,
   "h": 146,
   "src": "img/units/guardian_ent_s.webp",
-  "w": 141,
-  "walk": 5
+  "w": 142,
+  "walk": 5,
+  "wb": [
+   -53,
+   -132,
+   51,
+   2
+  ]
  },
  "ice_dragon": {
   "attack": 5,
@@ -131,8 +197,14 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "fps": 8,
   "h": 154,
   "src": "img/units/ice_dragon_s.webp",
-  "w": 240,
-  "walk": 5
+  "w": 238,
+  "walk": 5,
+  "wb": [
+   -64,
+   -130,
+   87,
+   2
+  ]
  },
  "infernal_demon": {
   "attack": 7,
@@ -143,7 +215,13 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 187,
   "src": "img/units/infernal_demon_s.webp",
   "w": 350,
-  "walk": 6
+  "walk": 6,
+  "wb": [
+   -60,
+   -173,
+   52,
+   2
+  ]
  },
  "mountain_troll": {
   "attack": 9,
@@ -154,18 +232,30 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 174,
   "src": "img/units/mountain_troll_s.webp",
   "w": 133,
-  "walk": 6
+  "walk": 6,
+  "wb": [
+   -49,
+   -134,
+   52,
+   2
+  ]
  },
  "necromancer": {
   "attack": 5,
-  "ax": 63,
+  "ax": 60,
   "ay": 150,
   "body": 128,
   "fps": 8,
   "h": 156,
   "src": "img/units/necromancer_s.webp",
   "w": 191,
-  "walk": 5
+  "walk": 5,
+  "wb": [
+   -42,
+   -128,
+   65,
+   2
+  ]
  },
  "paladin": {
   "attack": 5,
@@ -176,7 +266,13 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 179,
   "src": "img/units/paladin_s.webp",
   "w": 161,
-  "walk": 5
+  "walk": 5,
+  "wb": [
+   -52,
+   -129,
+   53,
+   2
+  ]
  },
  "phoenix": {
   "attack": 4,
@@ -187,7 +283,13 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 162,
   "src": "img/units/phoenix_s.webp",
   "w": 235,
-  "walk": 5
+  "walk": 5,
+  "wb": [
+   -58,
+   -144,
+   72,
+   2
+  ]
  },
  "red_orc": {
   "attack": 5,
@@ -198,29 +300,47 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 196,
   "src": "img/units/red_orc_s.webp",
   "w": 222,
-  "walk": 5
+  "walk": 5,
+  "wb": [
+   -65,
+   -129,
+   66,
+   2
+  ]
  },
  "royal_archer": {
   "attack": 6,
-  "ax": 96,
+  "ax": 51,
   "ay": 134,
   "body": 128,
   "fps": 8,
   "h": 140,
   "src": "img/units/royal_archer_s.webp",
-  "w": 171,
-  "walk": 6
+  "w": 126,
+  "walk": 6,
+  "wb": [
+   -44,
+   -129,
+   62,
+   2
+  ]
  },
  "royal_cleric": {
   "attack": 4,
-  "ax": 61,
+  "ax": 47,
   "ay": 141,
   "body": 128,
   "fps": 8,
   "h": 153,
   "src": "img/units/royal_cleric_s.webp",
-  "w": 313,
-  "walk": 5
+  "w": 304,
+  "walk": 5,
+  "wb": [
+   -42,
+   -128,
+   69,
+   2
+  ]
  },
  "royal_griffin": {
   "attack": 5,
@@ -231,7 +351,13 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 189,
   "src": "img/units/royal_griffin_s.webp",
   "w": 335,
-  "walk": 6
+  "walk": 6,
+  "wb": [
+   -66,
+   -132,
+   85,
+   2
+  ]
  },
  "royal_knight": {
   "attack": 6,
@@ -242,7 +368,13 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 154,
   "src": "img/units/royal_knight_s.webp",
   "w": 146,
-  "walk": 6
+  "walk": 6,
+  "wb": [
+   -49,
+   -128,
+   47,
+   2
+  ]
  },
  "royal_lancer": {
   "attack": 8,
@@ -253,7 +385,13 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 147,
   "src": "img/units/royal_lancer_s.webp",
   "w": 99,
-  "walk": 7
+  "walk": 7,
+  "wb": [
+   -38,
+   -136,
+   39,
+   2
+  ]
  },
  "shadow_assassin": {
   "attack": 6,
@@ -264,7 +402,13 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 152,
   "src": "img/units/shadow_assassin_s.webp",
   "w": 175,
-  "walk": 6
+  "walk": 6,
+  "wb": [
+   -50,
+   -130,
+   75,
+   2
+  ]
  },
  "shadow_sorceress": {
   "attack": 5,
@@ -275,29 +419,47 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 154,
   "src": "img/units/shadow_sorceress_s.webp",
   "w": 251,
-  "walk": 6
+  "walk": 6,
+  "wb": [
+   -49,
+   -128,
+   61,
+   2
+  ]
  },
  "skeleton": {
   "attack": 6,
-  "ax": 89,
+  "ax": 83,
   "ay": 182,
   "body": 128,
   "fps": 8,
   "h": 188,
   "src": "img/units/skeleton_s.webp",
-  "w": 179,
-  "walk": 6
+  "w": 172,
+  "walk": 6,
+  "wb": [
+   -58,
+   -135,
+   62,
+   2
+  ]
  },
  "skeleton_summoner": {
   "attack": 4,
-  "ax": 63,
+  "ax": 59,
   "ay": 167,
   "body": 128,
   "fps": 8,
   "h": 181,
   "src": "img/units/skeleton_summoner_s.webp",
-  "w": 374,
-  "walk": 5
+  "w": 381,
+  "walk": 5,
+  "wb": [
+   -54,
+   -154,
+   74,
+   2
+  ]
  },
  "stone_golem": {
   "attack": 5,
@@ -308,40 +470,64 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "h": 191,
   "src": "img/units/stone_golem_s.webp",
   "w": 301,
-  "walk": 6
+  "walk": 6,
+  "wb": [
+   -58,
+   -134,
+   65,
+   2
+  ]
  },
  "stone_guardian": {
   "attack": 6,
-  "ax": 84,
+  "ax": 78,
   "ay": 163,
   "body": 128,
   "fps": 8,
   "h": 169,
   "src": "img/units/stone_guardian_s.webp",
-  "w": 155,
-  "walk": 6
+  "w": 150,
+  "walk": 6,
+  "wb": [
+   -52,
+   -129,
+   56,
+   2
+  ]
  },
  "vampire_bat": {
   "attack": 4,
-  "ax": 111,
-  "ay": 160,
+  "ax": 110,
+  "ay": 159,
   "body": 128,
   "fps": 8,
-  "h": 166,
+  "h": 165,
   "src": "img/units/vampire_bat_s.webp",
-  "w": 204,
-  "walk": 4
+  "w": 202,
+  "walk": 4,
+  "wb": [
+   -89,
+   -130,
+   66,
+   2
+  ]
  },
  "war_wolf": {
   "attack": 5,
-  "ax": 110,
+  "ax": 109,
   "ay": 227,
   "body": 128,
   "fps": 8,
   "h": 234,
   "src": "img/units/war_wolf_s.webp",
-  "w": 254,
-  "walk": 5
+  "w": 252,
+  "walk": 5,
+  "wb": [
+   -75,
+   -136,
+   114,
+   3
+  ]
  }
 });
 Object.assign(BB.FX = BB.FX || {}, {

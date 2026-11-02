@@ -68,8 +68,12 @@
       if (sp) {
         const im = BB.art.image(BB.unitSrc(def.id));
         if (!im.complete || !im.naturalWidth) return;
-        const body = (def.flying ? 108 : 122) * (0.86 + Math.min(1, def.hp / 1800) * 0.3), s = body / sp.body;
-        const fr = Math.floor(t * (sp.fps || 11)) % sp.walk, foot = H - 8 - (def.flying ? 18 + Math.sin(t * 3) * 4 : 0);
+        const body = (def.flying ? 108 : 122) * (0.86 + Math.min(1, def.hp / 1800) * 0.3);
+        const lift = def.flying ? 14 + Math.sin(t * 2) * 3 : 0, foot = H - 8 - lift;
+        // cabe no quadro: nada cortado em cima nem dos lados
+        const wb = sp.wb || [-sp.ax, -sp.ay, sp.w - sp.ax, sp.h - sp.ay];
+        const s = Math.min(body / sp.body, (foot - 4) / -wb[1], (W / 2 - 2) / Math.max(-wb[0], wb[2], 1));
+        const fr = Math.floor(t * 5) % sp.walk; // passo calmo na vitrine
         g.drawImage(im, fr * sp.w, 0, sp.w, sp.h, W / 2 - sp.ax * s, foot - sp.ay * s, sp.w * s, sp.h * s);
       } else if (fx) {
         const im = BB.art.image(BB.fxSrc('fx_' + def.id));

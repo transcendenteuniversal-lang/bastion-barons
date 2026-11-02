@@ -74,12 +74,25 @@ fs.mkdirSync(out, { recursive: true });
   await wait(3000); await shot('16-resultado');
   const end = await page.evaluate(() => ({ screen: BB.ui.current(), battles: BB.profile.battles, history: BB.profile.history.length }));
   await page.tap('[data-go=menu]'); await wait(300);
+  // segunda batalha: o HUD (cartas e botões) tem que aparecer de novo
+  await page.tap('[data-go=mode]'); await wait(300);
+  await page.tap('[data-d=normal]'); await wait(500);
+  if (await page.$('.modal .btn')) { await page.tap('.modal .btn'); await wait(300); }
+  await wait(800); await shot('16b-segunda-batalha');
+  const second = await page.evaluate(() => {
+    const h = document.getElementById('hud'); const cs = getComputedStyle(h);
+    return { cls: h.className, visible: cs.display !== 'none' && cs.visibility !== 'hidden' && +cs.opacity > 0.5,
+      slotVisible: getComputedStyle(document.getElementById('slot0')).visibility !== 'hidden' };
+  });
+  if (!second.visible || !second.slotVisible) errors.push('HUD sumiu na segunda batalha: ' + JSON.stringify(second));
+  await page.evaluate(() => { BB.battle.stop(); BB.ui.show('menu'); });
+  await wait(300);
   await page.tap('[data-go=history]'); await wait(300); await shot('17-historico');
   await page.tap('#backBtn');
   await page.tap('[data-go=settings]'); await wait(300); await shot('18-config');
   await page.tap('#lang'); await wait(200); await shot('19-ingles');
 
-  console.log(JSON.stringify({ mid, end }, null, 0));
+  console.log(JSON.stringify({ mid, end, second }, null, 0));
   console.log(errors.length ? 'ERROS:\n' + errors.join('\n') : 'sem erros no console');
   await browser.close();
   process.exit(errors.length ? 1 : 0);

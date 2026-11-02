@@ -68,7 +68,7 @@
     buildHud() {
       const m = this.match, me = m.players[0], foe = m.players[1], p = BB.profile;
       const hud = $('#hud');
-      hud.classList.remove('hidden');
+      hud.classList.remove('hidden', 'ending'); // 'ending' ficava da partida anterior e escondia o HUD
       const diffName = T('ui.' + this.difficulty);
       const aiLevel = Math.max(1, ...Object.values(foe.levels || { a: 1 }));
       const CASTLE_ICON = { ImperialShield: '🛡️', DragonBreath: '🐉', IceStorm: '❄️' };

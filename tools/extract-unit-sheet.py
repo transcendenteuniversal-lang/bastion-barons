@@ -31,7 +31,11 @@ SHEETS = {
 STARTS = {'sheet1': (240, 930), 'sheet3': (240, 930), 'sheet4': (240, 928), 'sheet5': (240, 905),
           'sheet6': (276, 1006), 'sheet7': (322, 958), 'sheet9': (196, 196), 'sheet10': (0, 0),
           # por linha quando o layout muda dentro da folha
-          ('sheet8', 0): (236, 832), ('sheet8', 1): (236, 832), ('sheet8', 2): (236, 832), ('sheet8', 3): (236, 832), ('sheet8', 4): (258, 952)}
+          ('sheet8', 0): (236, 832), ('sheet8', 1): (236, 832), ('sheet8', 2): (236, 832), ('sheet8', 3): (236, 832), ('sheet8', 4): (258, 952),
+          ('sheet7', 2): (176, 958, 285), ('sheet7', 3): (176, 958, 285), ('sheet7', 4): (282, 958)}
+# (início, ataque, fim do rótulo): começa antes do rótulo (cauda/asa passam por baixo dele) e tira só o rótulo
+# personagens grudados no vizinho: o quadro fica só com o corpo principal
+STRICT = {'fire_dragon'}
 # ajuste de tamanho quando o personagem tem asas/arma alta (altura medida maior que o corpo)
 SIZE = {'infernal_demon': 1.3, 'forest_druid': 1.2, 'skeleton_summoner': 1.2}
 # quadros de ataque a descartar (dois personagens grudados no mesmo quadro)
@@ -53,7 +57,14 @@ def key(rgb):
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     k = g - np.maximum(r, b)
     alpha = np.clip((90 - k) / 60, 0, 1)
-    g = np.where(g > np.maximum(r, b), np.maximum(r, b) + (g - np.maximum(r, b)) * 0.25 * alpha, g)
+    mx = np.maximum(r, b)
+    # tira o reflexo verde da borda: semitransparente perde todo o excesso de verde
+    g = np.where((g > mx) & (alpha < 0.99), mx, g)
+    g = np.where(g > mx, mx + (g - mx) * 0.25 * alpha, g)
+    # a primeira linha de pixels da borda fica mais transparente (sem contorno verde)
+    solid = alpha > 0.5
+    edge = solid & ~ndimage.binary_erosion(solid, iterations=1)
+    alpha = np.where(edge, alpha * 0.5, alpha)
     return np.dstack([r, g, b, alpha * 255]).clip(0, 255).astype(np.uint8)
 
 
@@ -153,6 +164,25 @@ def split(band, m, x0, x1, n=None):
     return cells, bs
 
 
+def clean_cell(c, a, b, strict=False):
+    """Fica só o personagem do quadro: pedaços pequenos cortados na borda do quadro (vêm do vizinho)
+    ou longe do corpo são removidos."""
+    l2, n2 = ndimage.label(c if strict else ndimage.binary_dilation(c, iterations=2))
+    if n2 < 2:
+        return c
+    sz = ndimage.sum(c, l2, range(1, n2 + 1))
+    big = int(np.argmax(sz)); objs = ndimage.find_objects(l2); bsl = objs[big]
+    for j, sl in enumerate(objs):
+        if j == big or sz[j] > sz[big] * 0.45:
+            continue
+        at_edge = sl[1].start <= a + 3 or sl[1].stop >= b - 3
+        far = sl[1].stop < bsl[1].start - 25 or sl[1].start > bsl[1].stop + 25 or sl[0].stop < bsl[0].start - 25
+        outside = sl[1].stop < bsl[1].start + 10 or sl[1].start > bsl[1].stop - 10
+        if at_edge or far or sz[j] < 60 or (strict and (outside or sz[j] < sz[big] * 0.1)):
+            c = c & ~(l2 == j + 1)
+    return c
+
+
 def render_frames(band, cells, bs, anchor_cells=None, scale=1.0, body_box=None):
     """Recorta cada quadro, alinhado pelos pés e pelo centro do corpo."""
     out = []
@@ -210,8 +240,14 @@ def main():
             div = divs[0] if divs and counts[r][0] else None  # linhas só de efeito não têm divisória
             if div:
                 m[:, div - 3:div + 4] = False
-            sx0, sx1 = STARTS.get((name, r)) or STARTS[name]
+            st = STARTS.get((name, r)) or STARTS[name]
+            sx0, sx1 = st[0], st[1]
             m[:, :sx0] = False
+            if len(st) > 2:  # tira o rótulo: pedaços que terminam antes do fim do rótulo
+                lb, nl = ndimage.label(m)
+                for j, sl in enumerate(ndimage.find_objects(lb)):
+                    if sl is not None and sl[1].stop <= st[2]:
+                        m[lb == j + 1] = False
             if div:
                 m[:, div - 3:sx1] = False
             wx0 = sx0
@@ -239,7 +275,10 @@ def main():
                 print(f'{name} linha {r + 1}: {uid} {len(frames)} quadros')
                 continue
             wcells, wbs = split(band, m, wx0, div, counts[r][0])
+            wcells = [clean_cell(c, a_, b_, uid in STRICT) for c, (a_, b_) in zip(wcells, wbs)]
             acells, abs_ = split(band, m, sx1, W, counts[r][1])
+            acells = [clean_cell(c, a_, b_) if (c.any() and np.minimum(hist(band[c]), hist(np.concatenate([band[x] for x in wcells]))).sum() >= 0.42) else c
+                      for c, (a_, b_) in zip(acells, abs_)]  # quadros só de efeito ficam inteiros
             # referência de cor do personagem: quadros de caminhada
             ref = hist(np.concatenate([band[c] for c in wcells]))
             hh = [ (np.nonzero(c)[0].max() - np.nonzero(c)[0].min()) for c in wcells if c.any()]
@@ -259,7 +298,10 @@ def main():
             atk = [f for i, f in enumerate(atk) if i not in DROP.get(uid, [])]
             sheet, fw, fh, ax, ay = pack([walk, atk])
             sheet.save(os.path.join(OUT, uid + '_s.webp'), 'WEBP', quality=84, method=6)
-            sprites[uid] = {'w': fw, 'h': fh, 'ax': ax, 'ay': ay, 'body': BODY, 'walk': len(walk), 'attack': len(atk),
+            # caixa dos quadros de caminhada (relativa à âncora): a vitrine do baralho usa isso para caber
+            wbx = [(-a2, -a3, f.width - a2, f.height - a3) for f, a2, a3 in walk]
+            wb = [int(min(b[0] for b in wbx)), int(min(b[1] for b in wbx)), int(max(b[2] for b in wbx)) + 1, int(max(b[3] for b in wbx)) + 1]
+            sprites[uid] = {'w': fw, 'h': fh, 'ax': ax, 'ay': ay, 'body': BODY, 'walk': len(walk), 'attack': len(atk), 'wb': wb,
                             'fps': 8, 'src': 'img/units/' + uid + '_s.webp'}
             print(f'{name} linha {r + 1}: {uid} andar {len(walk)} / ataque {len(atk)} (de {len(acells)})')
     with open(os.path.join(ROOT, 'web', 'js', 'sheets.js'), 'w') as f:

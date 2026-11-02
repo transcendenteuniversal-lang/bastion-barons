@@ -352,7 +352,9 @@
         }
         const row = Math.max(0, ba.rows.indexOf(this.baronState[owner].name));
         const s = 150 / ba.body;
-        g.save(); g.translate(b.x, foot); if (owner === 1) g.scale(-1, 1);
+        // a folha da Elara foi desenhada olhando para a esquerda: inverte o lado
+        const faceLeft = ba.faceLeft || p.baron.id === 'elara';
+        g.save(); g.translate(b.x, foot); if ((owner === 1) !== faceLeft) g.scale(-1, 1);
         g.drawImage(bsheet, fr * ba.w, row * ba.h, ba.w, ba.h, -ba.ax * s, -ba.ay * s, ba.w * s, ba.h * s);
         g.restore();
         this.drawRailing(owner);
@@ -504,7 +506,7 @@
         row = 1; frame = Math.min(sp.attack - 1, Math.floor((v.atk / v.atkDur) * sp.attack)); v.atk += dt;
       } else {
         v.atk = -1;
-        if (u.state === 'Moving' || v.fly) frame = Math.floor(v.phase * (sp.fps || 11)) % sp.walk;
+        if (u.state === 'Moving' || v.fly) frame = Math.floor(v.phase * Math.min(7, sp.fps || 11)) % sp.walk;
       }
       const lift = v.fly ? 46 * k : 0, bob = v.fly ? Math.sin(v.phase * 3) * 5 : 0;
       const foot = v.y;
