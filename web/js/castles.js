@@ -41,6 +41,11 @@ BB.CASTLES_ART = {
     178,
     577
    ]
+  ],
+  "front": [
+   442,
+   417,
+   473
   ]
  },
  "glacial_fortress": {
@@ -83,6 +88,11 @@ BB.CASTLES_ART = {
     178,
     612
    ]
+  ],
+  "front": [
+   430,
+   409,
+   442
   ]
  },
  "royal_fortress": {
@@ -125,6 +135,11 @@ BB.CASTLES_ART = {
     69,
     568
    ]
+  ],
+  "front": [
+   384,
+   327,
+   357
   ]
  },
  "shadow_necropolis": {
@@ -167,6 +182,11 @@ BB.CASTLES_ART = {
     199,
     563
    ]
+  ],
+  "front": [
+   443,
+   445,
+   489
   ]
  },
  "sylvan_sanctuary": {
@@ -209,6 +229,11 @@ BB.CASTLES_ART = {
     196,
     595
    ]
+  ],
+  "front": [
+   484,
+   460,
+   523
   ]
  }
 };

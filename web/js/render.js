@@ -22,6 +22,7 @@
       [340, 334], [300, 348], [272, 372], [252, 376], [230, 352], [200, 352], [38, 352]],
     unitR: 46,
   };
+  ARENA.laneEnds = ARENA.lanes.map((l) => [l.xL, l.xR]); // padrão (castelo antigo da arena)
   BB.ARENA = ARENA;
 
   const SPELL_COLOR = {
@@ -204,8 +205,24 @@
     castlePoint(owner) { const c = ARENA.castle[owner]; return { x: c.gx, y: c.gy }; }
 
     // ------------------------------------------------------------ quadro
+    // cada rota começa na parede do castelo escolhido: as tropas encostam no castelo ao atacar
+    // (rota de cima: na beira da sacada; rotas 2 e 3: um pouco por dentro, colando na parede)
+    applyCastleFronts(m) {
+      const key = m.players[0].castle.id + '|' + m.players[1].castle.id;
+      if (this.frontKey === key) return;
+      this.frontKey = key;
+      const edge = (id, i) => { const a = this.castleArt && BB.CASTLES_ART[id]; const f = a && a.front && a.front[i]; return f == null ? null : f + (i === 0 ? 16 : -40); };
+      ARENA.lanes.forEach((l, i) => {
+        const [dL, dR] = ARENA.laneEnds[i];
+        const e0 = edge(m.players[0].castle.id, i), e1 = edge(m.players[1].castle.id, i);
+        l.xL = e0 == null ? dL : e0;
+        l.xR = e1 == null ? dR : AW - e1;
+      });
+    }
+
     draw(m, dt, ui) {
       this.t += dt; this.lastDt = dt;
+      this.applyCastleFronts(m);
       const g = this.g;
       g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
       // fundo: sobras laterais/verticais com a arte esticada e desfocada

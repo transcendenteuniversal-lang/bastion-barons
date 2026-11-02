@@ -28,6 +28,9 @@ SPOTS = {
 }
 # altura do pé do Barão até a base do castelo na arena (px da arena 1672x941): todos ficam com o mesmo porte
 FOOT_TO_GROUND = 470
+# arena (web/js/render.js ARENA): pé do Barão da esquerda e linha dos pés de cada rota
+BARON = (178, 238 + 54)
+LANES_Y = (322, 472, 652)
 
 
 def key(rgb):
@@ -80,8 +83,17 @@ def main():
             P = lambda x, y: [round(x * s), round(y * s)]
             rail = [P(*q) for q in sp['rail']]
             rb = round(sp['railBottom'] * s)
+            # frente do castelo em cada rota (onde as tropas encostam): ponto mais à direita da arte na linha dos pés
+            fx, fy = BARON[0] - round(sp['foot'][0] * s), BARON[1] - round(sp['foot'][1] * s)
+            al = np.asarray(im2)[..., 3]
+            front = []
+            for ly in LANES_Y:
+                y = ly - fy
+                rows = al[max(0, y - 6):max(1, y + 6)] if 0 <= y < al.shape[0] else None
+                xs = np.nonzero((rows > 128).any(axis=0))[0] if rows is not None else []
+                front.append(int(fx + xs.max()) if len(xs) else None)
             meta[cid] = {'w': im2.width, 'h': im2.height, 'foot': P(*sp['foot']), 'gate': P(*sp['gate']),
-                         'rail': rail + [[rail[-1][0], rb], [rail[0][0], rb]]}
+                         'rail': rail + [[rail[-1][0], rb], [rail[0][0], rb]], 'front': front}
         print(cid, 'recorte', (x0, y0, x1, y1))
     with open(os.path.join(ROOT, 'web', 'js', 'castles.js'), 'w') as fh:
         fh.write('// gerado por tools/extract-castles.py\nwindow.BB = window.BB || {};\nBB.CASTLES_ART = ' + json.dumps(meta, indent=1) + ';\n')
