@@ -24,6 +24,28 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "w": 150,
   "walk": 6
  },
+ "dwarf_engineer": {
+  "attack": 8,
+  "ax": 70,
+  "ay": 145,
+  "body": 128,
+  "fps": 8,
+  "h": 151,
+  "src": "img/units/dwarf_engineer_s.webp",
+  "w": 139,
+  "walk": 6
+ },
+ "dwarf_turret": {
+  "attack": 7,
+  "ax": 63,
+  "ay": 195,
+  "body": 128,
+  "fps": 8,
+  "h": 201,
+  "src": "img/units/dwarf_turret_s.webp",
+  "w": 147,
+  "walk": 8
+ },
  "dwarf_warrior": {
   "attack": 5,
   "ax": 109,
@@ -89,6 +111,28 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "src": "img/units/ice_dragon_s.webp",
   "w": 240,
   "walk": 5
+ },
+ "infernal_demon": {
+  "attack": 7,
+  "ax": 70,
+  "ay": 178,
+  "body": 128,
+  "fps": 8,
+  "h": 187,
+  "src": "img/units/infernal_demon_s.webp",
+  "w": 350,
+  "walk": 6
+ },
+ "mountain_troll": {
+  "attack": 9,
+  "ax": 69,
+  "ay": 168,
+  "body": 128,
+  "fps": 8,
+  "h": 174,
+  "src": "img/units/mountain_troll_s.webp",
+  "w": 133,
+  "walk": 6
  },
  "necromancer": {
   "attack": 5,
@@ -177,6 +221,17 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "src": "img/units/royal_knight_s.webp",
   "w": 146,
   "walk": 6
+ },
+ "royal_lancer": {
+  "attack": 8,
+  "ax": 55,
+  "ay": 141,
+  "body": 128,
+  "fps": 8,
+  "h": 147,
+  "src": "img/units/royal_lancer_s.webp",
+  "w": 99,
+  "walk": 7
  },
  "shadow_assassin": {
   "attack": 6,

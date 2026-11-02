@@ -21,18 +21,26 @@ SHEETS = {
     'sheet5': (128, [None, 'dwarf_warrior', 'necromancer', 'goblin_gunner', None, 'royal_cleric']),
     'sheet6': (142, ['fx_fireball', 'fx_arrow_rain', 'fx_freeze', 'fx_lightning', 'fx_divine_heal', 'fx_imperial_shield']),
     'sheet7': (172, ['fx_poison', 'fx_skeleton_summon', 'fire_dragon', None, 'guardian_ent']),
+    'sheet8': (142, ['royal_lancer', 'mountain_troll', 'infernal_demon', 'dwarf_engineer', 'dwarf_turret']),
 }
 
 
 # onde começam os quadros (depois do rótulo + seta): (caminhada, ataque) em px da folha
 STARTS = {'sheet1': (240, 930), 'sheet3': (240, 930), 'sheet4': (240, 928), 'sheet5': (240, 905),
-          'sheet6': (276, 1006), 'sheet7': (322, 958)}
+          'sheet6': (276, 1006), 'sheet7': (322, 958),
+          # por linha quando o layout muda dentro da folha
+          ('sheet8', 0): (236, 832), ('sheet8', 1): (236, 832), ('sheet8', 2): (236, 832), ('sheet8', 3): (236, 832), ('sheet8', 4): (258, 952)}
+# ajuste de tamanho quando o personagem tem asas/arma alta (altura medida maior que o corpo)
+SIZE = {'infernal_demon': 1.3}
+# quadros de ataque a descartar (dois personagens grudados no mesmo quadro)
+DROP = {'royal_lancer': [5]}
 COUNTS = {
     'sheet1': [(6, 6)] * 6, 'sheet3': [(6, 6)] * 6,
     'sheet4': [(5, 5), (5, 5), (5, 5), (5, 5), (5, 4), (5, 5)],
     'sheet5': [(5, 5)] * 6,
     'sheet6': [(5, 4), (5, 5), (5, 4), (5, 4), (5, 2), (5, 3)],
     'sheet7': [(0, 5), (0, 5), (4, 4), (4, 4), (5, 5)],
+    'sheet8': [(7, None), (6, 9), (6, 9), (6, 8), (8, 7)],
 }
 
 
@@ -198,7 +206,7 @@ def main():
             div = divs[0] if divs and counts[r][0] else None  # linhas só de efeito não têm divisória
             if div:
                 m[:, div - 3:div + 4] = False
-            sx0, sx1 = STARTS[name]
+            sx0, sx1 = STARTS.get((name, r)) or STARTS[name]
             m[:, :sx0] = False
             if div:
                 m[:, div - 3:sx1] = False
@@ -231,7 +239,7 @@ def main():
             # referência de cor do personagem: quadros de caminhada
             ref = hist(np.concatenate([band[c] for c in wcells]))
             hh = [ (np.nonzero(c)[0].max() - np.nonzero(c)[0].min()) for c in wcells if c.any()]
-            scale = BODY / float(np.median(hh))
+            scale = BODY / float(np.median(hh)) * SIZE.get(uid, 1.0)
             # quadro de ataque que é só efeito (projétil, explosão): junta ao quadro anterior do personagem
             merged_c, merged_b = [], []
             for c, bb in zip(acells, abs_):
@@ -241,7 +249,10 @@ def main():
                 else:
                     merged_c.append(c); merged_b.append(bb)
             walk = render_frames(band, wcells, wbs, scale=scale)
+            if uid == 'dwarf_turret':  # torre parada: primeiro quadro = torre pronta
+                walk = walk[::-1]
             atk = render_frames(band, merged_c, merged_b, scale=scale)
+            atk = [f for i, f in enumerate(atk) if i not in DROP.get(uid, [])]
             sheet, fw, fh, ax, ay = pack([walk, atk])
             sheet.save(os.path.join(OUT, uid + '_s.webp'), 'WEBP', quality=84, method=6)
             sprites[uid] = {'w': fw, 'h': fh, 'ax': ax, 'ay': ay, 'body': BODY, 'walk': len(walk), 'attack': len(atk),
