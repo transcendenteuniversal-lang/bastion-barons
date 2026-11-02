@@ -30,7 +30,7 @@
     constructor(canvas) {
       this.cv = canvas; this.g = canvas.getContext('2d');
       this.views = new Map(); this.ghosts = []; this.fx = []; this.texts = [];
-      this.shake = 0; this.castleHit = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.collapse = [0, 0]; this.t = 0; this.lastDt = 0;
+      this.shake = 0; this.castleHit = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.collapse = [0, 0]; this.t = 0; this.lastDt = 0;
       this.arena = BB.art.image('img/arena.webp');
       this.resize();
     }
@@ -100,7 +100,9 @@
           this.playFx('fx_deploy', this.laneX(m, e.x, e.lane), l.y + (l.y1 - l.y0) * 0.35, 95 * l.k, 0.55);
           break;
         }
-        case 'UnitDied': if (v) this.playFx('fx_death', v.x, v.y + v.r * 0.5 - v.lift, 90 * ARENA.lanes[v.u.lane].k, 0.6); break;
+        case 'UnitDied':
+          if (Math.random() < 0.25) this.baronReact(1 - e.player, 'cheer'); // o Barão comemora a tropa inimiga derrotada
+          if (v) this.playFx('fx_death', v.x, v.y + v.r * 0.5 - v.lift, 90 * ARENA.lanes[v.u.lane].k, 0.6); break;
         case 'MatchEnded': {
           if (e.player === 0 || e.player === 1) {
             const c = ARENA.castle[1 - e.player];
@@ -128,7 +130,7 @@
           break;
         }
         case 'BaronUsed': {
-          this.baronCast[e.player] = 1; this.baronAnim[e.player] = 0;
+          this.baronCast[e.player] = 1; this.baronAnim[e.player] = 0; this.setBaronAnim(e.player, 'power');
           const bab = m.players[e.player].baron.ability;
           const bkey = { RoyalCommand: 'fx_royal_command', ElvenRain: 'fx_elven_rain', ArmyOfDead: 'fx_army_of_dead', OrcFury: 'fx_orc_fury', ArcaneStorm: 'fx_arcane_storm' }[bab];
           if (bkey && this.fxSheet(bkey)) {
@@ -165,6 +167,8 @@
         }
         case 'CastleDamaged': {
           this.castleHit[e.player] = 0.18;
+          if (!this.lastHurt) this.lastHurt = [0, 0];
+          if (this.t - this.lastHurt[e.player] > 2.5) { this.lastHurt[e.player] = this.t; this.baronReact(e.player, 'hurt'); }
           if (!this.lastCastleFx) this.lastCastleFx = [0, 0];
           if (this.t - this.lastCastleFx[e.player] > 0.6) {
             this.lastCastleFx[e.player] = this.t;
@@ -284,9 +288,42 @@
       return im.complete && im.naturalWidth ? im : null;
     }
 
+    setBaronAnim(owner, name) { this.baronState[owner] = { name, t: 0 }; }
+    // reações do Barão (só interrompem a espera ou outra reação, nunca o poder)
+    baronReact(owner, name) {
+      const st = this.baronState[owner];
+      if (st.name === 'idle' || (name === 'hurt' && st.name === 'cheer')) this.setBaronAnim(owner, name);
+    }
+
     drawBaron(m, owner) {
       const g = this.g, p = m.players[owner], b = ARENA.baron[owner];
       const win = m.over && m.winner === owner, lose = m.over && m.winner === 1 - owner;
+      // folha de animações própria do Barão (espera, poder, vitória, derrota, dano, comando)
+      const ba = BB.BARON_ANIM && BB.BARON_ANIM[p.baron.id];
+      const bsheet = ba ? BB.art.image('img/barons/' + p.baron.id + '_anim.webp') : null;
+      if (bsheet && bsheet.complete && bsheet.naturalWidth) {
+        const foot = b.y + 54;
+        if (m.baronReady(p) && !m.over) {
+          g.fillStyle = 'rgba(255,215,100,' + (0.35 + 0.3 * Math.sin(this.t * 6)) + ')';
+          g.beginPath(); g.ellipse(b.x, foot, 62, 16, 0, 0, TAU); g.fill();
+        }
+        const st = this.baronState[owner];
+        if (m.over && st.name !== 'victory' && st.name !== 'defeat') this.setBaronAnim(owner, win ? 'victory' : lose ? 'defeat' : 'idle');
+        st.t += this.lastDt;
+        const SPEED = { idle: 0.2, power: 0.19, victory: 0.18, defeat: 0.2, hurt: 0.11, cheer: 0.15 };
+        let fr = Math.floor(st.t / SPEED[st.name]);
+        if (st.name === 'idle') fr %= ba.n;
+        else if (fr >= ba.n) {
+          if (st.name === 'victory' || st.name === 'defeat') fr = ba.n - 1 - (st.name === 'victory' ? Math.floor(st.t * 3) % 2 : 0);
+          else { this.setBaronAnim(owner, 'idle'); fr = 0; }
+        }
+        const row = Math.max(0, ba.rows.indexOf(this.baronState[owner].name));
+        const s = 150 / ba.body;
+        g.save(); g.translate(b.x, foot); if (owner === 1) g.scale(-1, 1);
+        g.drawImage(bsheet, fr * ba.w, row * ba.h, ba.w, ba.h, -ba.ax * s, -ba.ay * s, ba.w * s, ba.h * s);
+        g.restore();
+        return;
+      }
       const sp = BB.SPRITES && BB.SPRITES[p.baron.id];
       const sheet = sp ? BB.art.image('img/units/' + p.baron.id + '.webp') : null;
       if (sheet && sheet.complete && sheet.naturalWidth) {
@@ -517,7 +554,7 @@
       g.globalAlpha = 1;
     }
 
-    reset() { this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.castleHit = [0, 0]; }
+    reset() { this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; }
   }
 
   function medallion(g, img, x, y, r, ring, lw, flip) {

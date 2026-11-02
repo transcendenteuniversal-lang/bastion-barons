@@ -135,6 +135,7 @@
       if (!this.emoteAt) this.emoteAt = [0, 0];
       if (now - this.emoteAt[player] < 2500) return;
       this.emoteAt[player] = now;
+      BB.renderer.baronReact(player, 'cheer');
       const b = this.el.bubbles[player];
       b.textContent = e; b.classList.remove('hidden'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
       clearTimeout(b._t); b._t = setTimeout(() => b.classList.add('hidden'), 2000);
