@@ -92,7 +92,7 @@
         <div class="hb-timer" data-r="764,8,910,78" id="timer">3:00</div>
         <div class="hb-score foe" data-r="908,8,1078,78"><span id="crownFoe">0</span><b>👑</b></div>
         <button class="hb-orb tap" data-r="22,770,172,920" id="baronBtn"><img src="${BB.art.baronUrl(me.baron.id)}"></button>
-        <button class="hb-orb castle tap" data-r="182,770,332,920" id="castleBtn"><span>${CASTLE_ICON[me.castle.ability] || '🏰'}</span></button>
+        <button class="hb-orb castle tap" data-r="182,770,332,920" id="castleBtn"><img src="img/castle_icons/${me.castle.id}.webp"></button>
         <div class="hb-tip hidden" data-r="22,580,560,760" id="tip"></div>
         <button class="hb-btn big tap" data-r="1350,800,1440,880" id="emoteBtn">😃</button>
         <button class="hb-btn auto tap" data-r="1452,800,1640,880" id="autoBtn">⚔ ${T('battle.auto')}</button>

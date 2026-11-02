@@ -16,11 +16,12 @@ BODY = 128
 # folha -> (fim do retrato em px, [id por linha]); None = linha sem carta no jogo; 'fx_*' = efeito
 SHEETS = {
     'sheet1': (128, ['royal_knight', 'barbarian', 'elven_archer', 'arcane_mage', 'royal_griffin', 'skeleton']),
-    'sheet3': (128, ['stone_golem', 'stone_guardian', 'shadow_assassin', 'royal_archer', None, 'shadow_sorceress']),
-    'sheet4': (128, [None, 'paladin', 'red_orc', None, 'phoenix', 'ice_dragon']),
-    'sheet5': (128, [None, 'dwarf_warrior', 'necromancer', 'goblin_gunner', None, 'royal_cleric']),
-    'sheet6': (142, ['fx_fireball', 'fx_arrow_rain', 'fx_freeze', 'fx_lightning', 'fx_divine_heal', 'fx_imperial_shield']),
-    'sheet7': (172, ['fx_poison', 'fx_skeleton_summon', 'fire_dragon', None, 'guardian_ent']),
+    'sheet3': (128, ['stone_golem', 'stone_guardian', 'shadow_assassin', 'royal_archer', 'goblin_hunter', 'shadow_sorceress']),
+    'sheet4': (128, ['war_wolf', 'paladin', 'red_orc', None, 'phoenix', 'ice_dragon']),
+    'sheet5': (128, ['forest_druid', 'dwarf_warrior', 'necromancer', 'goblin_gunner', 'skeleton_summoner', 'royal_cleric']),
+    'sheet6': (142, ['fx_fireball', 'fx_arrow_rain', 'fx_freeze', 'fx_lightning', 'fx_divine_heal', None]),
+    'sheet7': (172, ['fx_poison', 'fx_skeleton_summon', 'fire_dragon', 'vampire_bat', 'guardian_ent']),
+    'sheet10': (0, ['fx_dragon_breath', 'fx_ice_storm', 'fx_imperial_shield']),
     'sheet9': (196, ['fx_royal_command', 'fx_elven_rain', 'fx_army_of_dead', 'fx_orc_fury', 'fx_arcane_storm']),
     'sheet8': (142, ['royal_lancer', 'mountain_troll', 'infernal_demon', 'dwarf_engineer', 'dwarf_turret']),
 }
@@ -28,11 +29,11 @@ SHEETS = {
 
 # onde começam os quadros (depois do rótulo + seta): (caminhada, ataque) em px da folha
 STARTS = {'sheet1': (240, 930), 'sheet3': (240, 930), 'sheet4': (240, 928), 'sheet5': (240, 905),
-          'sheet6': (276, 1006), 'sheet7': (322, 958), 'sheet9': (196, 196),
+          'sheet6': (276, 1006), 'sheet7': (322, 958), 'sheet9': (196, 196), 'sheet10': (0, 0),
           # por linha quando o layout muda dentro da folha
           ('sheet8', 0): (236, 832), ('sheet8', 1): (236, 832), ('sheet8', 2): (236, 832), ('sheet8', 3): (236, 832), ('sheet8', 4): (258, 952)}
 # ajuste de tamanho quando o personagem tem asas/arma alta (altura medida maior que o corpo)
-SIZE = {'infernal_demon': 1.3}
+SIZE = {'infernal_demon': 1.3, 'forest_druid': 1.2, 'skeleton_summoner': 1.2}
 # quadros de ataque a descartar (dois personagens grudados no mesmo quadro)
 DROP = {'royal_lancer': [5]}
 COUNTS = {
@@ -42,6 +43,7 @@ COUNTS = {
     'sheet6': [(5, 4), (5, 5), (5, 4), (5, 4), (5, 2), (5, 3)],
     'sheet7': [(0, 5), (0, 5), (4, 4), (4, 4), (5, 5)],
     'sheet9': [(0, 8)] * 5,
+    'sheet10': [(0, 8)] * 3,
     'sheet8': [(7, None), (6, 9), (6, 9), (6, 8), (8, 7)],
 }
 

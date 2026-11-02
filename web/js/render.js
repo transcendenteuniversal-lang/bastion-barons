@@ -164,7 +164,7 @@
                 const h = lh * 1.9, w = meta.w * (h / meta.h);
                 const x = e.player === 0 ? l.xL - 70 + w / 2 : l.xR + 70 - w / 2;
                 this.fx.push({ k: 'anim', key, x, y: l.y1 - lh * 0.05, h, t: 0, d: 1.4, flip: e.player === 1 });
-              } else this.fx.push({ k: 'anim', key, x: (l.xL + l.xR) / 2, y: l.y1 - lh * 0.1, w: (l.xR - l.xL) * 0.95, t: 0, d: 1.4, flip: e.player === 1 });
+              } else this.fx.push({ k: 'anim', key, x: (l.xL + l.xR) / 2, y: l.y1 - lh * 0.1, h: lh * 1.7, t: 0, d: 1.4, flip: e.player === 1 });
             }
           } else if (e.lane >= 0) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.9, c });
           break;

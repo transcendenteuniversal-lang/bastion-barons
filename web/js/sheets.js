@@ -79,6 +79,17 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "w": 327,
   "walk": 4
  },
+ "forest_druid": {
+  "attack": 4,
+  "ax": 72,
+  "ay": 183,
+  "body": 128,
+  "fps": 8,
+  "h": 194,
+  "src": "img/units/forest_druid_s.webp",
+  "w": 358,
+  "walk": 5
+ },
  "goblin_gunner": {
   "attack": 5,
   "ax": 125,
@@ -89,6 +100,17 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "src": "img/units/goblin_gunner_s.webp",
   "w": 238,
   "walk": 5
+ },
+ "goblin_hunter": {
+  "attack": 6,
+  "ax": 63,
+  "ay": 145,
+  "body": 128,
+  "fps": 8,
+  "h": 151,
+  "src": "img/units/goblin_hunter_s.webp",
+  "w": 175,
+  "walk": 6
  },
  "guardian_ent": {
   "attack": 5,
@@ -266,6 +288,17 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "w": 179,
   "walk": 6
  },
+ "skeleton_summoner": {
+  "attack": 4,
+  "ax": 63,
+  "ay": 167,
+  "body": 128,
+  "fps": 8,
+  "h": 181,
+  "src": "img/units/skeleton_summoner_s.webp",
+  "w": 374,
+  "walk": 5
+ },
  "stone_golem": {
   "attack": 5,
   "ax": 67,
@@ -287,6 +320,28 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "src": "img/units/stone_guardian_s.webp",
   "w": 155,
   "walk": 6
+ },
+ "vampire_bat": {
+  "attack": 4,
+  "ax": 111,
+  "ay": 160,
+  "body": 128,
+  "fps": 8,
+  "h": 166,
+  "src": "img/units/vampire_bat_s.webp",
+  "w": 204,
+  "walk": 4
+ },
+ "war_wolf": {
+  "attack": 5,
+  "ax": 110,
+  "ay": 227,
+  "body": 128,
+  "fps": 8,
+  "h": 234,
+  "src": "img/units/war_wolf_s.webp",
+  "w": 254,
+  "walk": 5
  }
 });
 Object.assign(BB.FX = BB.FX || {}, {
@@ -314,6 +369,12 @@ Object.assign(BB.FX = BB.FX || {}, {
   "src": "img/units/fx_divine_heal_s.webp",
   "w": 382
  },
+ "fx_dragon_breath": {
+  "h": 171,
+  "n": 8,
+  "src": "img/units/fx_dragon_breath_s.webp",
+  "w": 280
+ },
  "fx_elven_rain": {
   "h": 146,
   "n": 8,
@@ -332,11 +393,17 @@ Object.assign(BB.FX = BB.FX || {}, {
   "src": "img/units/fx_freeze_s.webp",
   "w": 198
  },
+ "fx_ice_storm": {
+  "h": 170,
+  "n": 8,
+  "src": "img/units/fx_ice_storm_s.webp",
+  "w": 226
+ },
  "fx_imperial_shield": {
-  "h": 161,
-  "n": 3,
+  "h": 190,
+  "n": 8,
   "src": "img/units/fx_imperial_shield_s.webp",
-  "w": 308
+  "w": 252
  },
  "fx_lightning": {
   "h": 161,

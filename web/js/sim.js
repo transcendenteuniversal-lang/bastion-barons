@@ -389,7 +389,11 @@
           if (Math.abs(e.x - cx) <= d.abilityRadius) this.applyDamage(e, dmg, u.owner);
         }
       } else {
-        this.applyDamage(target, dmg, u.owner);
+        let hit = dmg;
+        if (d.ability === 'BonusVs' && d.bonusTag && target.def.id.includes(d.bonusTag)) hit *= 1 + d.abilityValue;
+        const before = target.hp;
+        this.applyDamage(target, hit, u.owner);
+        if (d.ability === 'Lifesteal') u.hp = Math.min(u.maxHp, u.hp + Math.max(0, before - Math.max(0, target.hp)) * d.abilityValue);
         if (d.ability === 'SlowOnHit' && target.hp > 0) {
           target.slowTime = Math.max(target.slowTime, d.abilityDuration);
           target.slow = Math.min(target.slow, 1 - d.abilityValue);

@@ -33,8 +33,8 @@ function force(m, player, id) { const h = m.players[player].deck.hand; let i = h
 const play = (m, player, id, lane) => m.execute({ type: 'play', player, hand: force(m, player, id), cardId: id, lane });
 
 console.log('Conteúdo');
-test('32 cartas colecionáveis (24 tropas + 8 feitiços), 5 Barões, 3 castelos', () => {
-  eq(content.collectible.length, 32); eq(content.collectible.filter((c) => !c.isSpell).length, 24);
+test('37 cartas colecionáveis (29 tropas + 8 feitiços), 5 Barões, 3 castelos', () => {
+  eq(content.collectible.length, 37); eq(content.collectible.filter((c) => !c.isSpell).length, 29);
   eq(content.barons.length, 5); eq(content.castles.length, 3);
 });
 test('todas as cartas, Barões e castelos têm textos em pt e en', () => {
@@ -165,6 +165,14 @@ test('engenheiro anão constrói torre', () => {
   assert(m.units.some((u) => u.def.id === 'dwarf_turret'));
 });
 
+test('Caçador de Goblins: dobro de dano contra Goblin; Morcego recupera vida', () => {
+  const m = newMatch();
+  const h = m.spawnUnit(0, content.card('goblin_hunter'), 0, 40, 1), g = m.spawnUnit(1, content.card('goblin_gunner'), 0, 45, 1), k = m.spawnUnit(1, content.card('royal_knight'), 1, 45, 1);
+  g.maxHp = g.hp = 2000; m.attack(h, g, 1); m.attack(h, k, 1);
+  near(g.maxHp - g.hp, 420, 0.01); near(k.maxHp - k.hp, 210, 0.01);
+  const b = m.spawnUnit(0, content.card('vampire_bat'), 2, 40, 1); b.hp = 100;
+  const t = m.spawnUnit(1, content.card('stone_golem'), 2, 41, 1); m.attack(b, t, 1); near(b.hp, 133, 0.01);
+});
 console.log('Barões e castelos');
 test('poder do Barão só ativa quando carregado', () => {
   const m = newMatch({ baron0: 'eldrin' });

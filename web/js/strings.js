@@ -259,7 +259,17 @@ BB.STRINGS = {
 "battle.auto": "Auto",
 "battle.hand_full": "MÃO CHEIA!",
 "battle.energy_max": "MÁXIMO: {0}",
-"battle.discard_hint": "Arraste uma carta até a lixeira para descartar"
+"battle.discard_hint": "Arraste uma carta até a lixeira para descartar",
+"card.war_wolf.name": "Lobo de Guerra",
+"card.war_wolf.desc": "Tropa rápida que avança com ferocidade.",
+"card.goblin_hunter.name": "Caçador de Goblins",
+"card.goblin_hunter.desc": "Atirador à distância; causa o dobro de dano contra Goblins.",
+"card.forest_druid.name": "Druida da Floresta",
+"card.forest_druid.desc": "Cura aliados próximos periodicamente.",
+"card.skeleton_summoner.name": "Invocador de Esqueletos",
+"card.skeleton_summoner.desc": "Invoca 3 esqueletos a cada 9 segundos.",
+"card.vampire_bat.name": "Morcego Vampírico",
+"card.vampire_bat.desc": "Voador muito rápido; recupera 30% do dano causado."
 },
 "en": {
 "app.title": "BASTION BARONS",
@@ -519,6 +529,16 @@ BB.STRINGS = {
 "battle.auto": "Auto",
 "battle.hand_full": "HAND FULL!",
 "battle.energy_max": "MAX: {0}",
-"battle.discard_hint": "Drag a card to the bin to discard it"
+"battle.discard_hint": "Drag a card to the bin to discard it",
+"card.war_wolf.name": "War Wolf",
+"card.war_wolf.desc": "Fast troop that charges ferociously.",
+"card.goblin_hunter.name": "Goblin Hunter",
+"card.goblin_hunter.desc": "Ranged shooter; deals double damage to Goblins.",
+"card.forest_druid.name": "Forest Druid",
+"card.forest_druid.desc": "Periodically heals nearby allies.",
+"card.skeleton_summoner.name": "Skeleton Summoner",
+"card.skeleton_summoner.desc": "Summons 3 skeletons every 9 seconds.",
+"card.vampire_bat.name": "Vampire Bat",
+"card.vampire_bat.desc": "Very fast flyer; heals for 30% of damage dealt."
 }
 };
