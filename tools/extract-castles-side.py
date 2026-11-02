@@ -41,6 +41,46 @@ def key(a):
     return np.dstack([r, g, b, al * 255]).clip(0, 255).astype(np.uint8)
 
 
+def finish_edge(k, lim):
+    """Acabamento no corte da base: meio-fio de pedra com a cor da pedra do castelo e um friso dourado na borda
+    (igual às linhas douradas da arena), para o corte parecer o fim do piso e não um pedaço apagado."""
+    H, W = k.shape[:2]
+    out = k.astype(np.float32)
+    LIP, GOLD = 26, 7
+    a = out[..., 3] > 200
+    # cor da pedra: pixels pouco saturados e médios da metade de baixo do castelo
+    px = out[H // 2:][a[H // 2:]][:, :3]
+    sat = px.max(axis=1) - px.min(axis=1)
+    lum = px.mean(axis=1)
+    stone = np.median(px[(sat < 60) & (lum > 60) & (lum < 170)], axis=0)
+    gold_hi, gold_lo = np.array([255, 214, 110.]), np.array([176, 112, 30.])
+    for y in range(H):
+        L = lim[y]
+        if L > W + LIP or L < 0:
+            continue
+        # só onde o castelo existe perto do corte
+        x0 = int(L) - LIP
+        if x0 < 0 or not a[y, max(0, x0 - 20):max(1, x0)].any():
+            continue
+        for x in range(max(0, x0), min(W, int(L) + 1)):
+            d = L - x
+            if d <= GOLD:
+                t = d / GOLD
+                col = gold_lo + (gold_hi - gold_lo) * (1 - abs(t - 0.45) * 1.6).clip(0, 1)
+                if d < 1.2:
+                    col = col * 0.55
+            else:
+                t = (d - GOLD) / (LIP - GOLD)  # 0 perto do friso, 1 encostado no piso
+                col = stone * (0.72 + 0.38 * t)
+                if y % 30 < 2:
+                    col = col * 0.62  # junta das pedras
+                if d > LIP - 2:
+                    col = stone * 1.25  # luz na emenda com o piso
+            out[y, x, :3] = col
+            out[y, x, 3] = 255 if d >= 1 else 160
+    return out.clip(0, 255).astype(np.uint8)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     s = (LANES_Y[2] - BARON[1]) / (GATE_BOTTOM - FOOT[1])
@@ -53,6 +93,7 @@ def main():
         xs = np.arange(k.shape[1])[None, :]
         cut = np.clip((lim[:, None] - xs) / 3.0, 0, 1)
         k[..., 3] = (k[..., 3] * cut).astype(np.uint8)
+        k = finish_edge(k, lim)
         im = Image.fromarray(k)
         # prolonga a base para baixo (estica as últimas linhas): não aparece fundo embaixo do castelo
         base = im.crop((0, im.height - 40, im.width, im.height)).resize((im.width, PAD_BOTTOM + 40))
