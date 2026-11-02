@@ -361,7 +361,7 @@
       // peça de muro curvo nos cantos (img/corner_wall.webp): cobre a base do castelo e encontra o muro da arena
       const im = BB.art.image('img/corner_wall.webp');
       if (!im.complete || !im.naturalWidth) return;
-      const g = this.g, X = -330, Y = 448;
+      const g = this.g, X = -330, Y = 490;
       g.drawImage(im, X, Y);
       g.save(); g.translate(AW, 0); g.scale(-1, 1); g.drawImage(im, X, Y); g.restore();
     }
