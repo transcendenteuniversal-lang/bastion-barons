@@ -290,6 +290,18 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
  }
 });
 Object.assign(BB.FX = BB.FX || {}, {
+ "fx_arcane_storm": {
+  "h": 211,
+  "n": 8,
+  "src": "img/units/fx_arcane_storm_s.webp",
+  "w": 216
+ },
+ "fx_army_of_dead": {
+  "h": 170,
+  "n": 8,
+  "src": "img/units/fx_army_of_dead_s.webp",
+  "w": 206
+ },
  "fx_arrow_rain": {
   "h": 131,
   "n": 5,
@@ -301,6 +313,12 @@ Object.assign(BB.FX = BB.FX || {}, {
   "n": 2,
   "src": "img/units/fx_divine_heal_s.webp",
   "w": 382
+ },
+ "fx_elven_rain": {
+  "h": 146,
+  "n": 8,
+  "src": "img/units/fx_elven_rain_s.webp",
+  "w": 182
  },
  "fx_fireball": {
   "h": 140,
@@ -326,11 +344,23 @@ Object.assign(BB.FX = BB.FX || {}, {
   "src": "img/units/fx_lightning_s.webp",
   "w": 212
  },
+ "fx_orc_fury": {
+  "h": 177,
+  "n": 8,
+  "src": "img/units/fx_orc_fury_s.webp",
+  "w": 204
+ },
  "fx_poison": {
   "h": 184,
   "n": 5,
   "src": "img/units/fx_poison_s.webp",
   "w": 296
+ },
+ "fx_royal_command": {
+  "h": 187,
+  "n": 8,
+  "src": "img/units/fx_royal_command_s.webp",
+  "w": 200
  },
  "fx_skeleton_summon": {
   "h": 184,

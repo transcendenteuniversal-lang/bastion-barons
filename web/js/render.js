@@ -139,11 +139,11 @@
           const bkey = { RoyalCommand: 'fx_royal_command', ElvenRain: 'fx_elven_rain', ArmyOfDead: 'fx_army_of_dead', OrcFury: 'fx_orc_fury', ArcaneStorm: 'fx_arcane_storm' }[bab];
           if (bkey && this.fxSheet(bkey)) {
             if (e.lane < 0) { // Comando Real: todas as rotas
-              for (const l of ARENA.lanes) this.playFx(bkey, (l.xL + l.xR) / 2, l.y1, null, 1.6, { w: (l.xR - l.xL) * 0.55 });
+              for (const l of ARENA.lanes) this.playFx(bkey, (l.xL + l.xR) / 2, l.y1, (l.y1 - l.y0) * 1.5, 1.6);
             } else {
               const l = ARENA.lanes[e.lane];
               const x = bab === 'ArmyOfDead' ? this.laneX(m, m.spawnX(e.player), e.lane) : (l.xL + l.xR) / 2;
-              this.playFx(bkey, x, l.y1, bab === 'ArmyOfDead' ? (l.y1 - l.y0) * 1.8 : null, 1.8, bab === 'ArmyOfDead' ? {} : { w: (l.xR - l.xL) * 0.85 });
+              this.playFx(bkey, x, l.y1, (l.y1 - l.y0) * (bab === 'ArcaneStorm' ? 2.2 : 1.8), 1.8);
             }
             break;
           }

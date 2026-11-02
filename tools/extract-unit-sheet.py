@@ -21,13 +21,14 @@ SHEETS = {
     'sheet5': (128, [None, 'dwarf_warrior', 'necromancer', 'goblin_gunner', None, 'royal_cleric']),
     'sheet6': (142, ['fx_fireball', 'fx_arrow_rain', 'fx_freeze', 'fx_lightning', 'fx_divine_heal', 'fx_imperial_shield']),
     'sheet7': (172, ['fx_poison', 'fx_skeleton_summon', 'fire_dragon', None, 'guardian_ent']),
+    'sheet9': (196, ['fx_royal_command', 'fx_elven_rain', 'fx_army_of_dead', 'fx_orc_fury', 'fx_arcane_storm']),
     'sheet8': (142, ['royal_lancer', 'mountain_troll', 'infernal_demon', 'dwarf_engineer', 'dwarf_turret']),
 }
 
 
 # onde começam os quadros (depois do rótulo + seta): (caminhada, ataque) em px da folha
 STARTS = {'sheet1': (240, 930), 'sheet3': (240, 930), 'sheet4': (240, 928), 'sheet5': (240, 905),
-          'sheet6': (276, 1006), 'sheet7': (322, 958),
+          'sheet6': (276, 1006), 'sheet7': (322, 958), 'sheet9': (196, 196),
           # por linha quando o layout muda dentro da folha
           ('sheet8', 0): (236, 832), ('sheet8', 1): (236, 832), ('sheet8', 2): (236, 832), ('sheet8', 3): (236, 832), ('sheet8', 4): (258, 952)}
 # ajuste de tamanho quando o personagem tem asas/arma alta (altura medida maior que o corpo)
@@ -40,6 +41,7 @@ COUNTS = {
     'sheet5': [(5, 5)] * 6,
     'sheet6': [(5, 4), (5, 5), (5, 4), (5, 4), (5, 2), (5, 3)],
     'sheet7': [(0, 5), (0, 5), (4, 4), (4, 4), (5, 5)],
+    'sheet9': [(0, 8)] * 5,
     'sheet8': [(7, None), (6, 9), (6, 9), (6, 8), (8, 7)],
 }
 
