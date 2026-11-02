@@ -169,7 +169,7 @@ test('Caçador de Goblins: dobro de dano contra Goblin; Morcego recupera vida', 
   const m = newMatch();
   const h = m.spawnUnit(0, content.card('goblin_hunter'), 0, 40, 1), g = m.spawnUnit(1, content.card('goblin_gunner'), 0, 45, 1), k = m.spawnUnit(1, content.card('royal_knight'), 1, 45, 1);
   g.maxHp = g.hp = 2000; m.attack(h, g, 1); m.attack(h, k, 1);
-  near(g.maxHp - g.hp, 420, 0.01); near(k.maxHp - k.hp, 210, 0.01);
+  { const dh = content.card('goblin_hunter').damage; near(g.maxHp - g.hp, dh * 2, 0.01); near(k.maxHp - k.hp, dh, 0.01); }
   const b = m.spawnUnit(0, content.card('vampire_bat'), 2, 40, 1); b.hp = 100;
   const t = m.spawnUnit(1, content.card('stone_golem'), 2, 41, 1); m.attack(b, t, 1); near(b.hp, 133, 0.01);
 });
