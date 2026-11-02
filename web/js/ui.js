@@ -343,8 +343,16 @@
   };
 
   // ilustração do castelo nas telas de seleção (mesmo estilo do campo)
+  const CASTLE_CARDS = ['royal_fortress', 'glacial_fortress', 'draconic_castle', 'sylvan_sanctuary', 'shadow_necropolis'];
   function drawCastlePreview(cv, def) {
     const g = cv.getContext('2d'), W = cv.width, H = cv.height;
+    if (CASTLE_CARDS.includes(def.id)) { // quadro ilustrado do castelo (moldura dourada própria)
+      const im = BB.art.image('img/castle_cards/' + def.id + '.webp');
+      const put = () => { g.clearRect(0, 0, W, H); const k = Math.min(W / im.naturalWidth, H / im.naturalHeight); const w = im.naturalWidth * k, h = im.naturalHeight * k; g.drawImage(im, (W - w) / 2, (H - h) / 2, w, h); };
+      if (im.complete && im.naturalWidth) put(); else im.addEventListener('load', put, { once: true });
+      cv.style.background = 'transparent'; cv.style.border = 'none'; cv.style.boxShadow = 'none';
+      return;
+    }
     const grd = g.createLinearGradient(0, 0, 0, H); grd.addColorStop(0, '#5fb3f0'); grd.addColorStop(1, '#bfe6ff');
     g.fillStyle = grd; g.fillRect(0, 0, W, H);
     g.fillStyle = '#5daa3c'; g.fillRect(0, H * 0.82, W, H * 0.18);
