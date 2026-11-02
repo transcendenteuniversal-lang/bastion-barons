@@ -18,6 +18,8 @@ BARON_Y = 292                  # altura do pé do Barão na arena
 # parapeito da frente da sacada (px da coluna, y absoluto): desenhado por cima do Barão
 RAIL = [(25, 562), (120, 568), (200, 560), (232, 532), (262, 516), (284, 512), (284, 620), (25, 620)]
 LANES_Y = (322, 472, 652)
+# corte diagonal da frente (arena): passa em (x, y) com inclinação da borda das rotas; só abaixo de CUT_FROM
+CUT, CUT_SLOPE, CUT_FROM = (330, 472), 0.5095, 400
 GATE = (165, 777)              # centro do portão (px da coluna, y absoluto): impactos no castelo
 
 
@@ -68,8 +70,17 @@ def main():
         e[:, :EXT, :3] *= shade
         ext = Image.fromarray(e.clip(0, 255).astype(np.uint8))
         ext.paste(im, (EXT, 0), im)
-        ext.save(os.path.join(OUT, cid + '.webp'), 'WEBP', quality=86, method=6)
         y0 = round(oy)
+        # abaixo da sacada a frente segue a diagonal das rotas (perspectiva da arena): nada entra na rota de baixo
+        e = np.asarray(ext).copy()
+        ys, xs = np.mgrid[0:e.shape[0], 0:e.shape[1]]
+        ay, axx = ys + y0, xs - EXT
+        lim = CUT[0] - (ay - CUT[1]) * CUT_SLOPE
+        cut = np.clip((lim - axx) / 3.0, 0, 1)  # borda suave de 3 px
+        cut = np.where(ay < CUT_FROM, 1, cut)
+        e[..., 3] = (e[..., 3] * cut).astype(np.uint8)
+        ext = Image.fromarray(e)
+        ext.save(os.path.join(OUT, cid + '.webp'), 'WEBP', quality=86, method=6)
         A = np.asarray(ext)[..., 3]
         front = []
         for ly in LANES_Y:
