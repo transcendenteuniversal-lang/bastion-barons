@@ -38,7 +38,9 @@
       this.shake = 0; this.castleHit = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.collapse = [0, 0]; this.t = 0; this.lastDt = 0;
       // com as artes dos castelos, a arena vem sem castelos e cada lado desenha o castelo escolhido
       this.castleArt = !!(BB.CASTLES_ART && Object.keys(BB.CASTLES_ART).length);
-      this.arena = BB.art.image(this.castleArt ? 'img/arena_bg.webp' : 'img/arena.webp');
+      // castelos do modelo antigo com a cor do tema (tools/castle-skins.py): mesma geometria em todos
+      this.skins = !this.castleArt && !!(BB.CASTLE_SKINS && Object.keys(BB.CASTLE_SKINS).length);
+      this.arena = BB.art.image(this.castleArt || this.skins ? 'img/arena_bg.webp' : 'img/arena.webp');
       this.resize();
     }
 
@@ -276,6 +278,14 @@
       const g = this.g, p = m.players[owner], c = ARENA.castle[owner];
       // castelo escolhido (arte 3/4 desenhada para o lado esquerdo; o da direita é espelhado):
       // o ponto da sacada encaixa exatamente onde o Barão pisa
+      const skin = this.skins && (BB.CASTLE_SKINS[p.castle.id] || BB.CASTLE_SKINS.royal_fortress);
+      if (skin) {
+        const im = BB.art.image(skin.src);
+        if (im.complete && im.naturalWidth) {
+          g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
+          g.drawImage(im, 0, 0, skin.w, skin.h); g.restore();
+        }
+      }
       const art = this.castleArtFor(p.castle.id);
       if (art) {
         const im = BB.art.image(art.src);
@@ -344,6 +354,16 @@
 
     // parapeito da sacada recortado da arena e desenhado na frente do Barão
     drawRailing(owner, m) {
+      const skin = this.skins && m && (BB.CASTLE_SKINS[m.players[owner].castle.id] || BB.CASTLE_SKINS.royal_fortress);
+      if (skin) {
+        const im = BB.art.image(skin.src);
+        if (!im.complete || !im.naturalWidth) return;
+        const g = this.g;
+        g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
+        g.beginPath(); ARENA.railing.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+        g.closePath(); g.clip(); g.drawImage(im, 0, 0, skin.w, skin.h); g.restore();
+        return;
+      }
       const art = m && this.castleArtFor(m.players[owner].castle.id);
       if (art) {
         const im = BB.art.image(art.src);
