@@ -12,7 +12,7 @@
     current: () => current,
 
     show(name, args) {
-      if (BB.battle && name !== 'battle') { BB.battle.stop(); BB.battle = null; }
+      if (BB.battle) { BB.battle.stop(); BB.battle = null; }
       current = name; currentArgs = args;
       document.getElementById('overlay').innerHTML = '';
       app().innerHTML = '';

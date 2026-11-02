@@ -341,10 +341,13 @@
         if (m.over && st.name !== 'victory' && st.name !== 'defeat') this.setBaronAnim(owner, win ? 'victory' : lose ? 'defeat' : 'idle');
         st.t += this.lastDt;
         const SPEED = { idle: 0.2, power: 0.19, victory: 0.18, defeat: 0.2, hurt: 0.11, cheer: 0.15 };
+        const cnt = (name) => (ba.counts ? ba.counts[ba.rows.indexOf(name)] : ba.n) || ba.n;
         let fr = Math.floor(st.t / SPEED[st.name]);
-        if (st.name === 'idle') fr %= ba.n;
-        else if (fr >= ba.n) {
-          if (st.name === 'victory' || st.name === 'defeat') fr = ba.n - 1 - (st.name === 'victory' ? Math.floor(st.t * 3) % 2 : 0);
+        if (st.name === 'idle') fr %= cnt('idle');
+        else if (fr >= cnt(st.name)) {
+          const n = cnt(st.name);
+          if (st.name === 'victory') fr = Math.max(0, n - 4) + Math.floor(st.t * 5) % 3; // repete o trecho final da comemoração
+          else if (st.name === 'defeat') fr = Math.max(0, n - 2);                       // fica abatido
           else { this.setBaronAnim(owner, 'idle'); fr = 0; }
         }
         const row = Math.max(0, ba.rows.indexOf(this.baronState[owner].name));
