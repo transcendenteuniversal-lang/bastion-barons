@@ -276,6 +276,7 @@
       }
 
       for (let i = 0; i < 2; i++) this.drawCastleState(m, i);
+      this.drawFrontWall();
       this.syncViews(m, dt);
       const list = [...this.views.values(), ...this.ghosts].sort((a, b) => (a.fly - b.fly) || (a.y - b.y));
       for (const v of list) this.drawUnit(v, dt);
@@ -351,6 +352,22 @@
       if (!BB.FX || !BB.FX[key]) return null;
       const im = BB.art.image(BB.fxSrc(key));
       return im.complete && im.naturalWidth ? im : null;
+    }
+
+    // muro da frente da arena (fileira de pedras de baixo) por cima da base dos castelos, de ponta a ponta da tela:
+    // o castelo fica "atrás" do muro e a base dele nunca aparece cortada
+    drawFrontWall() {
+      if (!this.castleArt) return;
+      const img = this.arena;
+      if (!img.complete || !img.naturalWidth) return;
+      const Y0 = 752, X0 = 300, X1 = 1372, tw = X1 - X0;
+      const g = this.g, left = -this.ox / this.s - 4, right = (this.W - this.ox) / this.s + 4;
+      let start = X0; while (start > left) start -= tw;
+      for (let x = start; x < right; x += tw) g.drawImage(img, X0, Y0, tw, AH - Y0, x, Y0, tw, AH - Y0);
+      // sombra suave do muro sobre o piso
+      const gr = g.createLinearGradient(0, Y0 - 18, 0, Y0);
+      gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.28)');
+      g.fillStyle = gr; g.fillRect(left, Y0 - 18, right - left, 18);
     }
 
     // posição do castelo (lado esquerdo) para que o pé do Barão caia no ponto da sacada

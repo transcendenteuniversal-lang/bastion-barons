@@ -278,8 +278,8 @@
       if (this.doubleEnergy && !this.doubleAnnounced) { this.doubleAnnounced = true; this.emit('DoubleEnergy', -1, {}); }
       for (const p of this.players) {
         // a mana enche cada vez mais rápido (até +50% aos 2 min) e em dobro no último minuto
-        const ramp = 1 + (B.energyRamp || 0) * Math.min(1, this.time / Math.max(1, B.matchSeconds - B.doubleEnergyLastSeconds));
-        const rate = B.energyPerSecond * ramp * (this.doubleEnergy ? 2 : 1);
+        const ramp = 1 + (B.energyRamp || 0) * Math.min(1, this.time / Math.max(1, B.energyRampSeconds || (B.matchSeconds - B.doubleEnergyLastSeconds)));
+        const rate = B.energyPerSecond * ramp * (this.doubleEnergy ? (B.doubleEnergyMult || 2) : 1);
         p.energy = Math.min(this.energyCap, p.energy + rate * dt);
         if (p.deck.hand.length < this.handMax) {
           p.drawTimer += dt;
@@ -349,7 +349,7 @@
       if (u.attackCd < 0) u.attackCd = 0;
       if (d.moveSpeed <= 0) { u.state = 'Idle'; return; }
       u.state = 'Moving';
-      u.x += u.dir * Math.min(d.moveSpeed * moveMult * dt, Math.max(0, dist - d.range - this.bodyR(d)));
+      u.x += u.dir * Math.min(d.moveSpeed * (this.B.moveSpeedScale || 1) * moveMult * dt, Math.max(0, dist - d.range - this.bodyR(d)));
     }
 
     modifiers(u) {
