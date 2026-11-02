@@ -208,7 +208,11 @@
         }
         case 'CastleAttack': {
           const tv = this.views.get(e.targetId);
-          if (tv) { const c = ARENA.castle[e.player]; this.fx.push({ k: 'proj', x0: c.gx, y0: c.gy - 150, x1: tv.x, y1: tv.y - tv.lift, t: 0, d: 0.3, c: '#f2e3b3', r: 6 }); }
+          if (tv) { // a torre do castelo atira flechas (saem da sacada)
+            const b = ARENA.baron[e.player], x0 = b.x + (e.player === 0 ? 70 : -70), y0 = b.y + 20, x1 = tv.x, y1 = tv.y - tv.r * 0.4 - tv.lift;
+            const dist = Math.hypot(x1 - x0, y1 - y0);
+            this.fx.push({ k: 'proj', pk: 'arrow', x0, y0, x1, y1, t: 0, d: Math.max(0.18, Math.min(0.45, dist / 1500)), c: '#f2e3b3', r: 6, arc: Math.min(50, dist * 0.12) });
+          }
           break;
         }
       }
