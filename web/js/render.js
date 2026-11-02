@@ -276,7 +276,7 @@
       }
 
       for (let i = 0; i < 2; i++) this.drawCastleState(m, i);
-      // (muro de canto desligado: aguardando arte própria)
+      this.drawFrontWall();
       this.syncViews(m, dt);
       const list = [...this.views.values(), ...this.ghosts].sort((a, b) => (a.fly - b.fly) || (a.y - b.y));
       for (const v of list) this.drawUnit(v, dt);
@@ -358,25 +358,12 @@
     // o castelo fica "atrás" do muro e a base dele nunca aparece cortada
     drawFrontWall() {
       if (!this.castleArt) return;
-      const img = this.arena;
-      if (!img.complete || !img.naturalWidth) return;
-      // só nos cantos: o muro da frente da arena continua e sobe em curva até a borda da tela, cobrindo a base do castelo
-      const Y0 = 752, END = 170, RISE = 70, SRC0 = 300, SRCW = 400, g = this.g;
-      const left = -this.ox / this.s - 4;
-      const lift = (x) => { const t = Math.min(1, Math.max(0, (END - x) / 150)); return RISE * t * t * (3 - 2 * t); };
-      for (let side = 0; side < 2; side++) {
-        g.save(); if (side) { g.translate(AW, 0); g.scale(-1, 1); }
-        for (let x = END; x > left; x -= 3) {
-          const y = Y0 - lift(x), sx = SRC0 + (((END - x) % SRCW) + SRCW) % SRCW;
-          g.drawImage(img, sx, Y0, 3, AH - Y0, x - 3, y, 3.6, AH - Y0); g.drawImage(img, sx, Y0 + 40, 3, AH - Y0 - 40, x - 3, y + AH - Y0, 3.6, AH - Y0 - 40);
-        }
-        // sombra do muro sobre o piso, seguindo a curva
-        g.beginPath(); g.moveTo(END + 30, Y0);
-        for (let x = END; x > left; x -= 8) g.lineTo(x, Y0 - lift(x));
-        for (let x = left; x <= END + 30; x += 8) g.lineTo(x, Y0 - lift(Math.min(x, END)) - 16);
-        g.closePath(); g.fillStyle = 'rgba(0,0,0,.18)'; g.fill();
-        g.restore();
-      }
+      // peça de muro curvo nos cantos (img/corner_wall.webp): cobre a base do castelo e encontra o muro da arena
+      const im = BB.art.image('img/corner_wall.webp');
+      if (!im.complete || !im.naturalWidth) return;
+      const g = this.g, X = -330, Y = 448;
+      g.drawImage(im, X, Y);
+      g.save(); g.translate(AW, 0); g.scale(-1, 1); g.drawImage(im, X, Y); g.restore();
     }
 
     // posição do castelo (lado esquerdo) para que o pé do Barão caia no ponto da sacada
