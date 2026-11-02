@@ -100,7 +100,7 @@
         <div class="hb-x2 hidden" data-r="690,84,986,116" id="x2">${T('battle.double_energy')}</div>
 
         <div class="hb-tray" data-r="338,744,1334,941"></div>
-        <button class="hb-trash tap" data-r="346,770,420,872" id="trash">🗑</button>
+        <button class="hb-trash tap" data-r="348,756,420,874" id="trash"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4zM6 9h12l-1 12H7zm4 2v8h1.6v-8zm2.4 0v8H14v-8z" fill="currentColor"/></svg></button>
         ${[0, 1, 2, 3, 4, 5].map((i) => `<div class="hb-slot tap" data-r="${428 + i * 128},756,${544 + i * 128},902" id="slot${i}"></div>`).join('')}
         <div class="hb-pile" data-r="1200,762,1326,900" id="pile"><div class="hb-pilecards"></div><div class="hb-pilebar"><i id="drawFill"></i></div><span id="pileTxt"></span></div>
         <div class="hb-enum" data-r="352,880,418,941" id="energyNum">1</div>

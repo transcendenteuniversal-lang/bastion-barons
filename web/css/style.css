@@ -229,7 +229,8 @@ img { -webkit-user-drag: none; pointer-events: none; }
 .hb-hint { text-align: center; font-weight: 900; font-size: 1.15em; color: var(--gold1); text-shadow: 0 .1em .25em #000, 0 0 .5em #000; }
 /* mão, lixeira, monte de compra e máximo de energia */
 .hb-empty { width: 100%; height: 100%; border-radius: .6em; border: .12em dashed rgba(255,255,255,.18); background: rgba(0,0,0,.18); }
-.hb-trash { display: grid; place-items: center; font-size: 1.9em; border-radius: .5em; background: linear-gradient(#3a3f52, #1b1e2a); border: .12em solid #7c7f8c; }
+.hb-trash { display: grid; place-items: center; padding: 0; color: #e8ecf4; font-size: 1.9em; line-height: 0; border-radius: .5em; background: linear-gradient(#3a3f52, #1b1e2a); border: .12em solid #7c7f8c; }
+.hb-trash svg { width: 1.15em; height: 1.15em; display: block; filter: drop-shadow(0 .06em .08em rgba(0,0,0,.6)); }
 .hb-trash.on { background: linear-gradient(#8a2a2a, #4a0f12); border-color: #ff8a8a; animation: hbReady .8s infinite alternate; }
 .hb-pile { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: .25em; }
 .hb-pilecards { width: 62%; flex: 1; margin-top: .2em; border-radius: .4em; background: linear-gradient(135deg, #2c58c8, #13307a); border: .14em solid var(--gold1);
