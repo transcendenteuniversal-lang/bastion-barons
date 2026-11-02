@@ -46,11 +46,11 @@ for (const [g, f] of groups) {
   const L = C.cards.filter(f).sort((a, b) => (a.cost || 0) - (b.cost || 0) || nm(a.id).localeCompare(nm(b.id)));
   o += '## ' + g + ' (' + L.length + ')\n\n';
   if (g === 'Magias') {
-    o += '| # | Foto | Carta | Raridade | Custo | Efeito | Dano no castelo | Descrição |\n|---|---|---|---|---|---|---|---|\n';
-    L.forEach((c, i) => o += '| ' + (i + 1) + ' | {{img:card:' + c.id + '}} | **' + nm(c.id) + '** | ' + R[c.rarity] + ' | ' + c.cost + ' | ' + efeito(c) + ' | ' + (c.castleDamageRatio ? Math.round(c.castleDamageRatio * 100) + '% do dano' : '—') + ' | ' + ds(c) + ' |\n');
+    o += '| # | Carta | Na arena | Nome | Raridade | Custo | Efeito | Dano no castelo | Descrição |\n|---|---|---|---|---|---|---|---|---|\n';
+    L.forEach((c, i) => o += '| ' + (i + 1) + ' | {{img:card:' + c.id + '}} | {{img:arena:' + (c.type === 'Spell' ? 'fx_' + c.id : c.id) + '}} | **' + nm(c.id) + '** | ' + R[c.rarity] + ' | ' + c.cost + ' | ' + efeito(c) + ' | ' + (c.castleDamageRatio ? Math.round(c.castleDamageRatio * 100) + '% do dano' : '—') + ' | ' + ds(c) + ' |\n');
   } else {
-    o += '| # | Foto | Carta | Raridade | Voa | Custo | Vida | Dano | Intervalo | DPS | Velocidade | Alcance | Ataca | Habilidade | Descrição |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n';
-    L.forEach((c, i) => o += '| ' + (i + 1) + ' | {{img:card:' + c.id + '}} | **' + nm(c.id) + '** | ' + (R[c.rarity] || '') + ' | ' + (c.flying ? 'Sim' : 'Não') + ' | ' + (c.cost ?? '') + ' | ' + c.hp + ' | ' + c.damage +
+    o += '| # | Carta | Na arena | Nome | Raridade | Voa | Custo | Vida | Dano | Intervalo | DPS | Velocidade | Alcance | Ataca | Habilidade | Descrição |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n';
+    L.forEach((c, i) => o += '| ' + (i + 1) + ' | {{img:card:' + c.id + '}} | {{img:arena:' + (c.type === 'Spell' ? 'fx_' + c.id : c.id) + '}} | **' + nm(c.id) + '** | ' + (R[c.rarity] || '') + ' | ' + (c.flying ? 'Sim' : 'Não') + ' | ' + (c.cost ?? '') + ' | ' + c.hp + ' | ' + c.damage +
       ' | ' + n(c.attackInterval) + ' s | ' + Math.round(c.damage / c.attackInterval) + ' | ' + n(c.moveSpeed * sp) + ' | ' + n(c.range) + ' | ' + (ALVO[c.targets] || c.targets) + ' | ' + hab(c) + ' | ' + ds(c) + ' |\n');
   }
   o += '\n';
@@ -66,16 +66,17 @@ o += '\n## Regras gerais\n\n- Vida do castelo: ' + B.castleHp + '. A torre do ca
   '- Velocidade de todas as tropas multiplicada por ' + n(sp) + ' (já aplicado na tabela).\n';
 const WEB = path.join(__dirname, '..', 'web');
 const imgFile = (kind, id) => {
+  if (kind === 'arena') return fs.existsSync(path.join(__dirname, '..', 'docs', 'img', 'arena', id + '.webp')) ? '../docs/img/arena/' + id + '.webp' : null;
   const f = kind === 'card' ? 'img/cards/' + id + '.webp' : kind === 'baron' ? 'img/barons/' + id + '.webp' : 'img/castle_cards/' + id + '.webp';
   return fs.existsSync(path.join(WEB, f)) ? f : null;
 };
-fs.writeFileSync(path.join(__dirname, '..', 'docs', 'CARTAS.md'), o.replace(/\{\{img:(\w+):(\w+)\}\}/g, (_, k, id) => { const f = imgFile(k, id); return f ? '![](../web/' + f + ')' : '—'; }));
+fs.writeFileSync(path.join(__dirname, '..', 'docs', 'CARTAS.md'), o.replace(/\{\{img:(\w+):(\w+)\}\}/g, (_, k, id) => { const f = imgFile(k, id); return f ? '![](' + (k === 'arena' ? 'img/arena/' + id + '.webp' : '../web/' + f) + ')' : '—'; }));
 // imagem embutida na página (abre sozinha, sem depender de outros arquivos)
 global.window.BB.SPRITES = {}; require('../web/js/sprites.js'); require('../web/js/sheets.js');
 const SPR = window.BB.SPRITES || {};
 const imgTag = (kind, id) => {
   const f = imgFile(kind, id);
-  if (f) return '<img class="ph" src="data:image/webp;base64,' + fs.readFileSync(path.join(WEB, f)).toString('base64') + '">';
+  if (f) return '<img class="ph' + (kind === 'arena' ? ' ar' : '') + '" src="data:image/webp;base64,' + fs.readFileSync(path.join(WEB, f)).toString('base64') + '">';
   const sp = SPR[id];  // sem arte de carta (ex.: Torre Anã): primeiro quadro da animação
   if (sp && sp.src && fs.existsSync(path.join(WEB, sp.src))) {
     const k = 72 / Math.max(sp.w, sp.h);
@@ -85,7 +86,7 @@ const imgTag = (kind, id) => {
 };
 // versão em página
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;'), inl = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\{\{img:(\w+):(\w+)\}\}/g, (_, k, id) => imgTag(k, id));
-const lines = o.split('\n'), h = ['<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cartas — Bastion Barons</title><style>body{font-family:system-ui,sans-serif;background:#10162b;color:#eef;margin:12px}h1{font-size:22px}h2{font-size:18px;color:#ffd77a;margin-top:24px}.w{overflow-x:auto}table{border-collapse:collapse;font-size:13px;min-width:900px}th,td{border:1px solid #33406a;padding:5px 7px;text-align:left;vertical-align:top}th{background:#1e2b55}tr:nth-child(even) td{background:#161f3d}td:nth-child(2){white-space:nowrap}li{margin:4px 0}.ph{width:72px;height:auto;border-radius:8px;display:block}td:first-child+td{width:76px}</style></head><body>'];
+const lines = o.split('\n'), h = ['<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cartas — Bastion Barons</title><style>body{font-family:system-ui,sans-serif;background:#10162b;color:#eef;margin:12px}h1{font-size:22px}h2{font-size:18px;color:#ffd77a;margin-top:24px}.w{overflow-x:auto}table{border-collapse:collapse;font-size:13px;min-width:900px}th,td{border:1px solid #33406a;padding:5px 7px;text-align:left;vertical-align:top}th{background:#1e2b55}tr:nth-child(even) td{background:#161f3d}td:nth-child(2){white-space:nowrap}li{margin:4px 0}.ph{width:72px;height:auto;border-radius:8px;display:block}.ar{width:auto;max-width:90px;max-height:90px;border-radius:0;background:radial-gradient(#3a4a7a,#1a2244 70%);padding:4px}td:first-child+td{width:76px}</style></head><body>'];
 for (let i = 0; i < lines.length; i++) {
   const l = lines[i];
   if (l.startsWith('# ')) h.push('<h1>' + inl(l.slice(2)) + '</h1>');
