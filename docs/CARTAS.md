@@ -78,7 +78,7 @@
 
 ## Regras gerais
 
-- Vida do castelo: 3000. A torre do castelo atira 45 de dano a cada 1 s, alcance 16.
+- Vida do castelo: 6000. A torre do castelo atira 0 de dano a cada 1 s, alcance 16.
 - Partida de 180 s. Baralho de 14 cartas, mão de até 6, compra uma carta a cada 4 s.
 - Mana: começa em 1; o máximo começa em 3 e sobe +1 a cada 6,5 s até 10. Enche 0,43 por segundo, acelera até +75% em 90 s, e no último minuto fica ×1,75.
 - Cada nível da carta dá +8% de vida e dano (nível máximo 10).
