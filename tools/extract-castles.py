@@ -15,8 +15,8 @@ OUT = os.path.join(ROOT, 'web', 'img', 'castles')
 # foot: onde o Barão pisa; ground: base do castelo; rail: linha de cima do parapeito da frente (da esquerda para a direita)
 # e railBottom: base do parapeito; gate: centro do portão (impactos)
 SPOTS = {
-    'royal_fortress': {'foot': (350, 588), 'ground': 1083, 'gate': (400, 850),
-                       'rail': [(140, 592), (420, 594), (470, 566), (530, 538), (600, 522)], 'railBottom': 668},
+    'royal_fortress': {'foot': (320, 846), 'ground': 1665, 'gate': (390, 1300),
+                       'rail': [(120, 862), (480, 870), (560, 822), (640, 792), (690, 792)], 'railBottom': 990},
     'glacial_fortress': {'foot': (362, 566), 'ground': 1069, 'gate': (420, 840),
                          'rail': [(190, 570), (430, 576), (500, 546), (560, 522), (630, 526)], 'railBottom': 655},
     'draconic_castle': {'foot': (385, 573), 'ground': 1115, 'gate': (470, 860),
@@ -61,9 +61,13 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     meta = {}
     for f in sorted(os.listdir(SRC)):
-        if not f.endswith('_34.webp'):
+        # vista de lado (cortada pela borda esquerda) tem prioridade sobre a antiga vista 3/4
+        if f.endswith('_side.webp'):
+            cid = f[:-10]
+        elif f.endswith('_34.webp') and not os.path.exists(os.path.join(SRC, f[:-8] + '_side.webp')):
+            cid = f[:-8]
+        else:
             continue
-        cid = f[:-8]
         im = key(np.asarray(Image.open(os.path.join(SRC, f)).convert('RGB')))
         x0, y0, x1, y1 = im.getbbox()
         im = im.crop((x0, y0, x1, y1))
