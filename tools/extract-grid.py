@@ -13,6 +13,7 @@ OUT = os.path.join(ROOT, 'web', 'img', 'units')
 COLS, ROWS = 6, 2
 BODY = 220          # altura do corpo (px) na folha final: alta resolução
 FLYERS = {'fire_dragon', 'ice_dragon', 'phoenix', 'vampire_bat'}
+SCALE = {'fire_dragon': 1.3, 'ice_dragon': 1.3}  # tamanho na arena
 
 
 def key(a):
@@ -73,11 +74,21 @@ def main():
         # escala única pela altura mediana do corpo nos quadros de andar
         hs = [ys.max() - ys.min() for (_, _, ys, _) in cells[:COLS] if len(ys)]
         s = BODY / float(np.median(hs))
+        # altura do corpo de cada quadro (centro vertical) na posição original da célula: o andar balança pouco
+        cys = [((ys.min() + ys.max()) / 2 if len(ys) else 0) for (_, _, ys, _) in cells]
         frames = []
-        for cell, m, ys, xs in cells:
+        for idx, (cell, m, ys, xs) in enumerate(cells):
             if not len(ys):
                 continue
-            foot = ys.max() if uid not in FLYERS else (ys.min() + ys.max()) / 2
+            if uid in FLYERS:
+                foot = (ys.min() + ys.max()) / 2
+            else:
+                # pé = linha do chão da linha da folha; o sobe-e-desce do corpo é amortecido (sem 'pulos')
+                row = idx // COLS
+                rc = [cys[k] for k in range(row * COLS, row * COLS + COLS) if len(cells[k][2])]
+                ground = max(cells[k][2].max() for k in range(row * COLS, row * COLS + COLS) if len(cells[k][2]))
+                mean = sum(rc) / len(rc)
+                foot = ground + (cys[idx] - mean) * (0.25 if row == 0 else 0.4)
             # centro do corpo: média das colunas na faixa do tronco (sem a espada esticada)
             band = m[int(ys.min() + (ys.max() - ys.min()) * 0.3):int(ys.min() + (ys.max() - ys.min()) * 0.8)]
             cx = np.nonzero(band.any(axis=0))[0]
@@ -96,7 +107,7 @@ def main():
                 sheet.alpha_composite(f, (int(i * fw + L - ax), int(row * fh + T - ay)))
         sheet.save(os.path.join(OUT, uid + '_g.webp'), 'WEBP', quality=90, method=6)
         wb = [-int(max(ax for _, ax, _ in walk)), -int(max(ay for _, _, ay in walk)), int(max(f.width - ax for f, ax, _ in walk)), int(max(f.height - ay for f, _, ay in walk))]
-        sprites[uid] = {'w': fw, 'h': fh, 'ax': L, 'ay': T, 'body': BODY, 'walk': len(walk), 'attack': len(atk), 'fps': 9, 'wb': wb,
+        sprites[uid] = {'w': fw, 'h': fh, 'ax': L, 'ay': T, 'body': BODY, 'walk': len(walk), 'attack': len(atk), 'fps': 8, 'wb': wb, 'blend': 1, 'scale': SCALE.get(uid, 1),
                         'src': 'img/units/' + uid + '_g.webp'}
         print(uid, 'quadros', len(walk), len(atk), 'tamanho', fw, fh)
     with open(os.path.join(ROOT, 'web', 'js', 'grids.js'), 'w') as fh_:

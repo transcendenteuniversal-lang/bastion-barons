@@ -25,7 +25,7 @@ function hab0(c) {
     case 'BuildTurret': return 'Ao entrar, constrói ' + (c.summonCount || 1) + ' ' + nm(c.summonId);
     case 'Summon': return 'Invoca ' + (c.summonCount || 1) + ' ' + nm(c.summonId) + (c.summonCount > 1 ? 's' : '') + ' a cada ' + n(c.abilityInterval) + ' s';
     case 'SlowOnHit': return 'Cada ataque deixa o alvo ' + pct(v) + ' mais lento por ' + n(c.abilityDuration || 2) + ' s';
-    case 'Rebirth': return 'Renasce uma vez no começo da rota com ' + n(v) + '× tamanho e dano';
+    case 'Rebirth': return 'Renasce uma vez no começo da rota, 50% maior e com ' + n(v) + '× de dano';
     case 'Regen': return 'Regenera ' + v + ' de vida por segundo';
     case 'DoubleShot': return 'Ataca 2 vezes por segundo';
     case 'LaneHop': return 'Muda para a rota vizinha uma vez, quando um inimigo chega a ' + n(c.abilityRadius) + ' de distância';

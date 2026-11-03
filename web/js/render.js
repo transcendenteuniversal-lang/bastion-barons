@@ -700,7 +700,7 @@
     // Tropa animada (quadros extraídos dos vídeos: linha 0 = andar, linha 1 = ataque; desenhados virados para a direita)
     drawSprite(v, u, sp, sheet, dt, dir) {
       const g = this.g, k = ARENA.lanes[u.lane].k;
-      const bodyPx = (v.fly ? 126 : 140) * k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3) * (u.size || 1);
+      const bodyPx = (v.fly ? 126 : 140) * k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3) * (u.size || 1) * (sp.scale || 1);
       let scale = v.born < 1 ? 0.3 + 0.7 * easeOutBack(v.born) : 1, alpha = 1;
       if (v.dying >= 0) { scale *= 1 - v.dying / 0.4; alpha = 1 - v.dying / 0.4; }
       const s = (bodyPx / sp.body) * scale;
@@ -709,7 +709,11 @@
         row = 1; frame = Math.min(sp.attack - 1, Math.floor((v.atk / v.atkDur) * sp.attack)); v.atk += dt;
       } else {
         v.atk = -1;
-        if (u.state === 'Moving' || v.fly) frame = Math.floor(v.phase * Math.min(7, sp.fps || 11)) % sp.walk;
+        if (u.state === 'Moving' || v.fly) {
+          const ph = v.phase * Math.min(7, sp.fps || 11);
+          frame = Math.floor(ph) % sp.walk;
+          if (sp.blend) v.blendNext = { f: (frame + 1) % sp.walk, a: ph - Math.floor(ph) }; // passo suave: mistura com o próximo quadro
+        }
       }
       const lift = v.fly ? 46 * k : 0, bob = v.fly ? Math.sin(v.phase * 3) * 5 : 0;
       const foot = v.y;
@@ -725,7 +729,14 @@
       if (dir < 0) g.scale(-1, 1);
       if (u.state === 'Stunned') g.filter = 'saturate(.35) brightness(1.25) hue-rotate(160deg)';
       else if (u.poisonTime > 0) g.filter = 'sepia(.4) hue-rotate(50deg) saturate(1.4)';
-      g.drawImage(sheet, frame * sp.w, row * sp.h, sp.w, sp.h, -sp.ax * s, -sp.ay * s, sp.w * s, sp.h * s);
+      const bn = row === 0 && v.blendNext; v.blendNext = null;
+      if (bn && bn.a > 0.5) { // cruza os dois quadros vizinhos do andar
+        const a0 = g.globalAlpha;
+        g.drawImage(sheet, frame * sp.w, 0, sp.w, sp.h, -sp.ax * s, -sp.ay * s, sp.w * s, sp.h * s);
+        g.globalAlpha = a0 * (bn.a - 0.5) * 2 * 0.85;
+        g.drawImage(sheet, bn.f * sp.w, 0, sp.w, sp.h, -sp.ax * s, -sp.ay * s, sp.w * s, sp.h * s);
+        g.globalAlpha = a0;
+      } else g.drawImage(sheet, frame * sp.w, row * sp.h, sp.w, sp.h, -sp.ax * s, -sp.ay * s, sp.w * s, sp.h * s);
       // piscada branca ao levar dano (duas piscadas rápidas)
       if (v.flash > 0 && Math.floor(v.flash / 0.06) % 2 === 1) {
         g.filter = 'none'; g.globalAlpha = alpha * 0.85;

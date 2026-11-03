@@ -143,7 +143,7 @@ test('golem ignora tropas e vai ao castelo', () => {
 });
 test('fênix renasce uma vez no começo da rota, maior e mais forte', () => {
   const m = newMatch(); const f = m.spawnUnit(0, content.card('phoenix'), 1, 50, 1); const d0 = f.damage;
-  m.applyDamage(f, 99999, 1); assert(f.hp > 0); near(f.hp, f.maxHp, 1); near(f.x, m.spawnX(0), 0.01); eq(f.size, 2); near(f.damage, d0 * 2, 0.01);
+  m.applyDamage(f, 99999, 1); assert(f.hp > 0); near(f.hp, f.maxHp, 1); near(f.x, m.spawnX(0), 0.01); eq(f.size, 1.5); near(f.damage, d0 * 2, 0.01);
   m.applyDamage(f, 99999, 1); assert(f.hp <= 0);
 });
 test('cúpula do paladino: só leva dano de quem está dentro', () => {

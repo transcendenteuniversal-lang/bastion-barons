@@ -452,7 +452,7 @@
       if (t.def.ability === 'Rebirth' && !t.rebirthUsed) { // Fênix: renasce no começo da rota, maior e mais forte
         const k = t.def.abilityValue || 2;
         t.rebirthUsed = true; t.hp = t.maxHp; t.deploy = 1; t.poisonTime = 0; t.stun = 0; t.slow = 1; t.slowTime = 0;
-        t.x = this.spawnX(t.owner); t.size = k; t.baseDamage *= k; t.damage = t.baseDamage;
+        t.x = this.spawnX(t.owner); t.size = 1 + (k - 1) * 0.5; t.baseDamage *= k; t.damage = t.baseDamage; // corpo +50%, dano x2
         this.emit('UnitRevived', t.owner, { unitId: t.id, lane: t.lane, x: t.x });
         return;
       }
