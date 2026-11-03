@@ -35,6 +35,23 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   ],
   "src": "img/units/dwarf_warrior_g.webp"
  },
+ "elven_archer": {
+  "w": 245,
+  "h": 261,
+  "ax": 95,
+  "ay": 256,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -79,
+   -221,
+   97,
+   1
+  ],
+  "src": "img/units/elven_archer_g.webp"
+ },
  "paladin": {
   "w": 267,
   "h": 269,
