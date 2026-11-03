@@ -97,7 +97,21 @@ def main():
         if not f.endswith(('.webp', '.png', '.jpg')):
             continue
         uid = os.path.splitext(f)[0]
-        im = key(np.asarray(Image.open(os.path.join(SRC, f)).convert('RGB')).astype(np.float32))
+        raw = np.asarray(Image.open(os.path.join(SRC, f)).convert('RGB')).astype(np.float32)
+        im = key(raw)
+        if uid.startswith('fx_'):  # efeitos têm muito brilho semitransparente: tira a cor do fundo misturada (unmix)
+            bg = raw[:8, :8].reshape(-1, 3).mean(axis=0)
+            a = im[..., 3:4].astype(np.float32) / 255
+            col = (raw - (1 - a) * bg) / np.maximum(a, 0.08)
+            col = np.clip(col, 0, 255)
+            im = np.dstack([np.where(a > 0.02, col, im[..., :3]), im[..., 3:4]]).astype(np.uint8)
+            if bg[0] > 180 and bg[1] < 90:  # magenta: brilho rosado do fundo vira transparente e perde o tom rosa
+                r_, g_, b_ = [raw[..., i] for i in range(3)]
+                pink = np.clip((np.minimum(r_, b_) - g_ + 20) / 70, 0, 1)
+                im = im.astype(np.float32)
+                im[..., 3] *= 1 - pink * 0.85
+                im[..., 2] = np.minimum(im[..., 2], im[..., 1] * (1 - 0.5 * pink) + 20)
+                im = im.clip(0, 255).astype(np.uint8)
         H, W = im.shape[:2]
         cw, ch = W / COLS, H / ROWS
         cells = []

@@ -172,6 +172,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "scale": 1,
   "src": "img/units/goblin_gunner_g.webp"
  },
+ "goblin_hunter": {
+  "w": 323,
+  "h": 231,
+  "ax": 153,
+  "ay": 225,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -149,
+   -219,
+   145,
+   1
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/goblin_hunter_g.webp"
+ },
  "guardian_ent": {
   "w": 233,
   "h": 237,
@@ -609,10 +628,28 @@ Object.assign(BB.FX = BB.FX || {}, {
   "n": 12,
   "src": "img/units/fx_lightning_g.webp"
  },
+ "fx_poison": {
+  "w": 337,
+  "h": 260,
+  "n": 12,
+  "src": "img/units/fx_poison_g.webp"
+ },
  "fx_skeleton_summon": {
   "w": 334,
   "h": 274,
   "n": 12,
   "src": "img/units/fx_skeleton_summon_g.webp"
+ },
+ "fx_spark": {
+  "w": 228,
+  "h": 123,
+  "n": 12,
+  "src": "img/units/fx_spark_g.webp"
+ },
+ "fx_sylvan_blessing": {
+  "w": 226,
+  "h": 304,
+  "n": 12,
+  "src": "img/units/fx_sylvan_blessing_g.webp"
  }
 });
