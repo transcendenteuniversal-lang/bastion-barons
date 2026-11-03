@@ -209,7 +209,9 @@
             if (e.lane < 0) this.fx.push({ k: 'anim', key, x: (castle.x0 + castle.x1) / 2, y: castle.y1 - 20, h: 420, t: 0, d: 1.6 });
             else {
               const l = ARENA.lanes[e.lane], lh = l.y1 - l.y0, meta = BB.FX[key];
-              if (key === 'fx_dragon_breath') { // cabeça de dragão na borda do castelo, fogo atravessando a rota
+              if (key === 'fx_soul_drain') { // almas sobem ao longo da rota e voam para o próprio castelo
+                for (let i = 0; i < 3; i++) this.fx.push({ k: 'anim', key, x: l.xL + (l.xR - l.xL) * (0.25 + i * 0.25), y: l.y1 - lh * 0.1, h: lh * 1.3, t: -i * 0.12, d: 1.5, flip: e.player === 1 });
+              } else if (key === 'fx_dragon_breath') { // cabeça de dragão na borda do castelo, fogo atravessando a rota
                 const h = lh * 1.9, w = meta.w * (h / meta.h);
                 const x = e.player === 0 ? l.xL - 70 + w / 2 : l.xR + 70 - w / 2;
                 this.fx.push({ k: 'anim', key, x, y: l.y1 - lh * 0.05, h, t: 0, d: 1.4, flip: e.player === 1 });

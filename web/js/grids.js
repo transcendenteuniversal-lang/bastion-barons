@@ -640,6 +640,12 @@ Object.assign(BB.FX = BB.FX || {}, {
   "n": 12,
   "src": "img/units/fx_skeleton_summon_g.webp"
  },
+ "fx_soul_drain": {
+  "w": 336,
+  "h": 189,
+  "n": 12,
+  "src": "img/units/fx_soul_drain_g.webp"
+ },
  "fx_spark": {
   "w": 228,
   "h": 123,
