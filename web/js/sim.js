@@ -719,12 +719,10 @@
     }
 
     // Desempate: 1) maior % de vida no próprio castelo; 2) maior valor de tropas inimigas destruídas; 3) empate
-    // coroas: 1 por muralha derrubada (castelo destruído = 3)
-    crowns(owner) { const f = this.players[1 - owner]; return f.castleHp <= 0 ? 3 : Math.min(3, f.wallsLost); }
+    // coroas: cada terço de vida tirado do castelo inimigo (sem muralhas, wallHp = 0)
+    crowns(owner) { const f = this.players[1 - owner]; return f.wallMaxHp ? Math.min(3, f.wallsLost + (f.castleHp <= 0 ? 3 : 0)) : Math.min(3, Math.floor((1 - this.hpPct(f)) * 3 + 1e-9)); }
 
     decideByTimeout() {
-      const c0 = this.crowns(0), c1 = this.crowns(1);
-      if (c0 !== c1) return this.end(c0 > c1 ? 0 : 1, 'TimeoutCrowns');
       const a = this.hpPct(this.players[0]), b = this.hpPct(this.players[1]);
       if (Math.abs(a - b) > 1e-4) return this.end(a > b ? 0 : 1, 'TimeoutHp');
       const ka = this.players[0].stats.killValue, kb = this.players[1].stats.killValue;
