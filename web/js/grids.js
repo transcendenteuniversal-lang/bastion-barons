@@ -35,6 +35,23 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   ],
   "src": "img/units/paladin_g.webp"
  },
+ "red_orc": {
+  "w": 263,
+  "h": 268,
+  "ax": 116,
+  "ay": 263,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -86,
+   -229,
+   114,
+   1
+  ],
+  "src": "img/units/red_orc_g.webp"
+ },
  "royal_knight": {
   "w": 234,
   "h": 232,

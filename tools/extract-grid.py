@@ -19,10 +19,9 @@ def key(a):
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     corner = a[:8, :8].reshape(-1, 3).mean(axis=0)
     if corner[0] > 180 and corner[1] < 90:  # magenta
-        k = np.minimum(r, b) - g; al = np.clip((90 - k) / 60, 0, 1)
-        lim = np.maximum(g, np.minimum(r, b) * 0 + g + 8)
-        r = np.where(al < 0.99, np.minimum(r, np.maximum(g, lim) + (r - lim).clip(0) * al), r)
-        b = np.where(al < 0.99, np.minimum(b, np.maximum(g, lim) + (b - lim).clip(0) * al), b)
+        mn = np.minimum(r, b); k = mn - g; al = np.clip((90 - k) / 60, 0, 1)
+        ex = np.clip(mn - g, 0, None) * np.where(al < 0.99, 1.0, 0.25)  # tira o reflexo rosa da borda
+        r = r - ex; b = b - ex
     else:
         mx = np.maximum(r, b); k = g - mx; al = np.clip((90 - k) / 60, 0, 1)
         g = np.where((g > mx) & (al < 0.99), mx, g)
