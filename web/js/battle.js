@@ -440,6 +440,7 @@
       document.getElementById('toast').innerHTML = '';
       BB.audio.stopMusic();
       BB.audio.play(m.winner === 0 ? 'victory' : 'defeat');
+      BB.audio.jingle(m.winner === 0 ? 'victory' : 'defeat');
       $('#hud').classList.add('ending');
       const key = m.winner === 0 ? 'result.victory' : m.winner === 1 ? 'result.defeat' : 'result.draw';
       const d = document.createElement('div');
@@ -476,7 +477,7 @@
           BB.audio.play('castle'); if (e.player === 0) BB.vibrate(10);
           if (Math.random() < 0.015) this.emote(e.player, e.player === 1 ? '😠' : '😱'); // reação da IA (e do seu Barão)
           break;
-        case 'DoubleEnergy': BB.ui.toast(T('battle.double_energy')); break;
+        case 'DoubleEnergy': BB.ui.toast(T('battle.double_energy')); BB.audio.music('final'); break;
       }
     }
   }

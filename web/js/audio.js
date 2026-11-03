@@ -15,7 +15,7 @@
     musicGain = ctx.createGain(); musicGain.connect(master);
     apply();
   }
-  function apply() { if (!ctx) return; sfxGain.gain.value = vol.sfx; musicGain.gain.value = vol.music * 0.35; }
+  function apply() { if (cur) cur.volume = Math.max(0, Math.min(1, vol.music * 0.9 * duck)); if (!ctx) return; sfxGain.gain.value = vol.sfx; musicGain.gain.value = vol.music * 0.35; }
 
   function tone(freq, dur, type, gain, when, slideTo, dest) {
     const t = ctx.currentTime + (when || 0);
@@ -53,36 +53,40 @@
     error: () => tone(160, 0.15, 'square', 0.06),
   };
 
-  // Música procedural: acordes + baixo + arpejo (+ percussão na batalha)
-  const SONGS = {
-    menu: { bpm: 74, roots: [262, 220, 175, 196], drums: false },
-    battle: { bpm: 112, roots: [220, 175, 196, 165], drums: true },
-  };
-  function startMusic(id) {
-    if (!ctx || musicId === id) return;
-    stopMusic(); musicId = id;
-    const s = SONGS[id], beat = 60 / s.bpm;
-    let bar = 0, next = ctx.currentTime + 0.1;
-    const sched = () => {
-      while (next < ctx.currentTime + 1.2) {
-        const root = s.roots[bar % s.roots.length];
-        const off = next - ctx.currentTime;
-        [1, 1.26, 1.5].forEach((m) => tone(root * m, beat * 3.8, 'sine', 0.05, off, null, musicGain));
-        for (let b = 0; b < 4; b++) {
-          tone(root / 2, beat * 0.9, 'triangle', 0.09, off + b * beat, null, musicGain);
-          [2, 2.52, 3, 4].forEach((m, k) => tone(root * m, beat * 0.4, 'triangle', 0.025, off + b * beat + k * beat * 0.25, null, musicGain));
-          if (s.drums) { tone(70, 0.15, 'sine', 0.2, off + b * beat, 40, musicGain); noise(0.05, 0.05, 6000, off + b * beat + beat / 2, musicGain); }
-        }
-        next += beat * 4; bar++;
-      }
-    };
-    sched();
-    musicTimer = setInterval(sched, 400);
+  // Música: faixas em audio/*.ogg (menu, batalha, último minuto) em loop, com troca suave; vinhetas tocam uma vez
+  const TRACKS = { menu: 'audio/music_menu.ogg', battle: 'audio/music_battle.ogg', final: 'audio/music_final.ogg' };
+  const JINGLES = { victory: 'audio/jingle_victory.ogg', defeat: 'audio/jingle_defeat.ogg', reward: 'audio/jingle_reward.ogg' };
+  const els = {};
+  let cur = null, wantId = null, duck = 1;
+  const el = (src, loop) => { if (!els[src]) { const a = new Audio(src); a.loop = loop; a.preload = 'auto'; els[src] = a; } return els[src]; };
+  const level = () => Math.max(0, Math.min(1, vol.music * 0.9 * duck));
+  function fade(a, to, ms, done) {
+    const from = a.volume, t0 = performance.now();
+    const step = () => { const k = Math.min(1, (performance.now() - t0) / ms); a.volume = from + (to - from) * k; if (k < 1) requestAnimationFrame(step); else if (done) done(); };
+    step();
   }
-  function stopMusic() { if (musicTimer) clearInterval(musicTimer); musicTimer = null; musicId = null; }
+  function startMusic(id) {
+    wantId = id;
+    if (musicId === id && cur && !cur.paused) return;
+    const src = TRACKS[id]; if (!src) return;
+    const prev = cur, a = el(src, true);
+    musicId = id; cur = a;
+    if (prev && prev !== a) fade(prev, 0, 700, () => prev.pause());
+    if (prev !== a) { a.currentTime = 0; a.volume = 0; }
+    const p = a.play(); if (p && p.catch) p.catch(() => { musicId = null; }); // sem toque do usuário ainda: tenta de novo no unlock
+    fade(a, level(), 900);
+  }
+  function stopMusic() { wantId = null; musicId = null; if (cur) { const a = cur; fade(a, 0, 500, () => a.pause()); } cur = null; }
+  function jingle(id) {
+    const src = JINGLES[id]; if (!src || vol.music <= 0) return;
+    const j = el(src, false); j.currentTime = 0; j.volume = Math.min(1, vol.music * 1.1 + 0.1);
+    duck = 0.25; if (cur) fade(cur, level(), 200);
+    const p = j.play(); if (p && p.catch) p.catch(() => {});
+    j.onended = () => { duck = 1; if (cur) fade(cur, level(), 800); };
+  }
 
   BB.audio = {
-    unlock() { init(); if (ctx && ctx.state === 'suspended') ctx.resume(); },
+    unlock() { init(); if (ctx && ctx.state === 'suspended') ctx.resume(); if (wantId && musicId !== wantId) startMusic(wantId); },
     setVolumes(m, s) { vol.music = m; vol.sfx = s; apply(); },
     play(id) {
       if (!ctx || vol.sfx <= 0 || !SFX[id]) return;
@@ -91,10 +95,11 @@
       last[id] = now;
       try { SFX[id](); } catch (e) { /* áudio indisponível */ }
     },
-    music(id) { if (!ctx) return; try { startMusic(id); } catch (e) { /* nada */ } },
+    music(id) { try { startMusic(id); } catch (e) { /* nada */ } },
+    jingle(id) { try { jingle(id); } catch (e) { /* nada */ } },
     stopMusic,
-    suspend() { if (ctx) ctx.suspend(); },
-    resume() { if (ctx) ctx.resume(); },
+    suspend() { if (ctx) ctx.suspend(); if (cur) cur.pause(); },
+    resume() { if (ctx) ctx.resume(); if (cur && wantId) { const p = cur.play(); if (p && p.catch) p.catch(() => {}); } },
   };
   BB.vibrate = (ms) => { if (BB.profile && BB.profile.vibration === false) return; if (window.AndroidBridge && AndroidBridge.vibrate) AndroidBridge.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); };
 })(window.BB);

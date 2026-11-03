@@ -430,6 +430,7 @@
       $('#again').onclick = () => { BB.audio.play('click'); ui.show('battle', { difficulty: a.difficulty }); };
       back.result = () => ui.show('menu');
       BB.audio.music('menu');
+      if (r.cardId || (r.unlocked && r.unlocked.length)) setTimeout(() => BB.audio.jingle('reward'), 400); // recompensa: brilho mágico
     },
   };
 
