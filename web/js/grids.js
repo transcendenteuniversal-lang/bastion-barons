@@ -69,6 +69,74 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   ],
   "src": "img/units/elven_archer_g.webp"
  },
+ "fire_dragon": {
+  "w": 336,
+  "h": 260,
+  "ax": 174,
+  "ay": 130,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -156,
+   -126,
+   151,
+   126
+  ],
+  "src": "img/units/fire_dragon_g.webp"
+ },
+ "goblin_gunner": {
+  "w": 260,
+  "h": 250,
+  "ax": 105,
+  "ay": 245,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -87,
+   -241,
+   107,
+   1
+  ],
+  "src": "img/units/goblin_gunner_g.webp"
+ },
+ "ice_dragon": {
+  "w": 347,
+  "h": 270,
+  "ax": 177,
+  "ay": 134,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -163,
+   -130,
+   160,
+   132
+  ],
+  "src": "img/units/ice_dragon_g.webp"
+ },
+ "necromancer": {
+  "w": 235,
+  "h": 265,
+  "ax": 103,
+  "ay": 260,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -89,
+   -227,
+   101,
+   1
+  ],
+  "src": "img/units/necromancer_g.webp"
+ },
  "paladin": {
   "w": 267,
   "h": 269,
@@ -85,6 +153,23 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    1
   ],
   "src": "img/units/paladin_g.webp"
+ },
+ "phoenix": {
+  "w": 319,
+  "h": 274,
+  "ax": 153,
+  "ay": 137,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -138,
+   -133,
+   162,
+   133
+  ],
+  "src": "img/units/phoenix_g.webp"
  },
  "red_orc": {
   "w": 262,
