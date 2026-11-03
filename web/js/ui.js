@@ -64,6 +64,49 @@
         ${o.up ? '<div class="up">▲</div>' : ''}
         <div class="name">${esc(BB.cardName(def.id))}</div></div>`;
     },
+
+    // menu pequeno sobre a carta tocada
+    cardMenu(el, id, extra) {
+      ui.closeCardMenu(); BB.audio.play('click');
+      const r = el.getBoundingClientRect(), m = document.createElement('div');
+      m.className = 'card-menu'; m.id = 'cardMenu';
+      const items = [{ label: T('ui.info'), cls: 'blue', fn: () => ui.cardInfo(id) }, ...extra];
+      items.forEach((it) => { const b = document.createElement('button'); b.className = 'btn small ' + (it.cls || 'green'); b.textContent = it.label; b.onclick = (e) => { e.stopPropagation(); ui.closeCardMenu(); it.fn(); }; m.appendChild(b); });
+      document.body.appendChild(m);
+      const mw = m.offsetWidth, mh = m.offsetHeight;
+      m.style.left = Math.max(6, Math.min(innerWidth - mw - 6, r.left + r.width / 2 - mw / 2)) + 'px';
+      m.style.top = (r.top - mh - 6 > 6 ? r.top - mh - 6 : r.bottom + 6) + 'px';
+      setTimeout(() => document.addEventListener('pointerdown', ui._menuAway = (e) => { if (!m.contains(e.target)) ui.closeCardMenu(); }), 0);
+    },
+    closeCardMenu() { const m = document.getElementById('cardMenu'); if (m) m.remove(); if (ui._menuAway) document.removeEventListener('pointerdown', ui._menuAway); ui._menuAway = null; },
+
+    // janela de informações da carta (estatísticas no nível atual)
+    cardInfo(id) {
+      const C = BB.content, p = BB.profile, c = C.card(id), o = BB.Progress.owned(p, id), lvl = o ? o.level : 1, mult = C.levelMult(lvl);
+      const sp = C.balance.moveSpeedScale || 1, rows = [];
+      if (c.isSpell) {
+        if (c.spellValue) rows.push(['✨', T('stat.effect'), Math.round(c.spellValue * mult)]);
+        if (c.spellRadius) rows.push(['🎯', T('stat.radius'), c.spellRadius]);
+        if (c.spellDuration) rows.push(['⏱', T('stat.duration'), c.spellDuration + ' s']);
+      } else {
+        rows.push(['⚔️', T('stat.damage'), Math.round(c.damage * mult) + (c.attackInterval !== 1 ? ' / ' + c.attackInterval + ' s' : '')], ['❤️', T('stat.hp'), Math.round(c.hp * mult)],
+          ['🏹', T('stat.range'), c.range], ['🪶', T('stat.move_speed'), +(c.moveSpeed * sp).toFixed(1)], ['🎯', T('stat.targets'), T('targets.' + c.targets)]);
+        if (c.count > 1) rows.push(['👥', T('stat.count'), c.count]);
+        if (c.flying) rows.push(['🕊', T('ui.flying'), '✔']);
+      }
+      const ov = document.getElementById('overlay'), m = document.createElement('div');
+      m.className = 'modal';
+      m.innerHTML = `<div class="panel card-info"><button class="ci-x">✕</button>
+        <h2 class="title">${esc(BB.cardName(id))} ${T('ui.level', lvl)}</h2><div class="ci-rar" style="color:var(--${c.rarity.toLowerCase()})">${T('rarity.' + c.rarity)}${c.role ? ' • ' + esc(c.role) : ''}</div>
+        <div class="ci-body"><div class="ci-card">${ui.cardHtml(c, o, { level: false })}</div>
+          <div class="ci-stats">${rows.map(([i, k, v]) => `<div class="ci-row"><span class="ci-i">${i}</span><div><small>${esc(k)}</small><b>${esc(String(v))}</b></div></div>`).join('')}</div></div>
+        <div class="ci-desc">${esc(T('card.' + id + '.desc'))}</div></div>`;
+      const close = () => m.remove();
+      m.onclick = (e) => { if (e.target === m) close(); };
+      m.querySelector('.ci-x').onclick = () => { BB.audio.play('click'); close(); };
+      ov.appendChild(m);
+    },
+
   };
 
   function topbar(title, backTo) {
@@ -236,28 +279,73 @@
     deck(state) {
       const p = BB.profile, C = BB.content, size = C.balance.deckSize;
       const s = state || { idx: p.activeDeck, work: p.decks[p.activeDeck].slice() };
+      const byCost = (a, b) => C.card(a).cost - C.card(b).cost || a.localeCompare(b);
+      s.work.sort(byCost); // sempre em ordem de mana
       const valid = BB.DeckRules.validate(s.work, C, p) === 'Ok';
       // baralho: cada criatura aparece já invocada, andando sobre um pedestal (feitiços mostram o efeito)
       const slots = s.work.map((id) => {
         const def = C.card(id), o = BB.Progress.owned(p, id);
-        return `<div class="ped ${def.rarity}" data-rm="${id}"><canvas width="180" height="150" data-unit="${id}"></canvas><div class="ped-base"></div>
+        return `<div class="ped ${def.rarity}" data-deck="${id}"><canvas width="180" height="150" data-unit="${id}"></canvas><div class="ped-base"></div>
           <div class="cost">${def.cost}</div><div class="ped-lv">${T('ui.level', o ? o.level : 1)}</div><div class="ped-name">${esc(BB.cardName(id))}</div></div>`;
-      }).join('') + '<div class="ped empty"></div>'.repeat(Math.max(0, size - s.work.length));
+      }).join('') + '<div class="ped empty" data-empty="1"></div>'.repeat(Math.max(0, size - s.work.length));
       const avail = C.collectible.filter((c) => BB.Progress.owned(p, c.id) && !s.work.includes(c.id)).sort((a, b) => a.cost - b.cost || a.id.localeCompare(b.id));
       screen('deck', topbar(T('ui.deck_title', s.idx + 1), true) + `
         <div class="deckinfo"><div class="tabs">${[0, 1, 2].map((i) => `<button class="btn small ${i === s.idx ? 'on' : ''}" data-tab="${i}">${i + 1}</button>`).join('')}</div>
           <b style="flex:1">${T('ui.deck_count', s.work.length, size, BB.DeckRules.averageCost(s.work, C).toFixed(1))}</b>
           <button class="btn green small" id="saveDeck" ${valid ? '' : 'disabled'}>${T('ui.save')}</button></div>
         <div class="deckzone">${slots}</div>
-        <div class="content deckcoll"><p class="muted center" style="margin:0 0 .6rem">${T('ui.deck_tap_remove')}</p><div class="grid row1">${avail.map((c) => ui.cardHtml(c, BB.Progress.owned(p, c.id), { level: true, attrs: 'data-add="' + c.id + '"' })).join('')}</div></div>`);
-      bindBack('deck', () => ui.show('menu'));
+        <div class="content deckcoll"><p class="muted center" style="margin:0 0 .6rem">${T('ui.deck_drag_swap')}</p><div class="grid row1" id="collRow">${avail.map((c) => ui.cardHtml(c, BB.Progress.owned(p, c.id), { level: true, attrs: 'data-coll="' + c.id + '"' })).join('')}</div></div>`);
+      bindBack('deck', () => { ui.closeCardMenu(); ui.show('menu'); });
       BB.art.animatePreviews(app());
-      app().querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { BB.audio.play('click'); const i = +b.dataset.tab; ui.show('deck', { idx: i, work: p.decks[i].slice() }); });
-      app().querySelectorAll('[data-rm]').forEach((el) => el.onclick = () => { BB.audio.play('click'); s.work = s.work.filter((x) => x !== el.dataset.rm); ui.show('deck', s); });
-      app().querySelectorAll('[data-add]').forEach((el) => el.onclick = () => {
-        if (s.work.length >= size) { BB.audio.play('error'); ui.toast(T('ui.deck_invalid', size)); return; }
-        BB.audio.play('card'); s.work.push(el.dataset.add); ui.show('deck', s);
-      });
+      const row = $('#collRow');
+      if (s.scroll) row.scrollLeft = s.scroll; // a coleção continua no mesmo lugar depois da troca
+      const redraw = () => { s.scroll = row.scrollLeft; ui.closeCardMenu(); ui.show('deck', s); };
+      const swap = (inId, outId) => {
+        if (outId) s.work = s.work.filter((x) => x !== outId);
+        if (inId && !s.work.includes(inId)) { if (s.work.length >= size) { BB.audio.play('error'); ui.toast(T('ui.deck_invalid', size)); return; } s.work.push(inId); }
+        BB.audio.play('card'); redraw();
+      };
+      app().querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { BB.audio.play('click'); const i = +b.dataset.tab; ui.closeCardMenu(); ui.show('deck', { idx: i, work: p.decks[i].slice() }); });
+      // tocar = menu (Informações / Remover / Adicionar); arrastar a carta da coleção para um pedestal = trocar
+      const bindDrag = (el, id, fromDeck) => {
+        let st = null, ghost = null;
+        el.addEventListener('pointerdown', (e) => { st = { x: e.clientX, y: e.clientY, id: e.pointerId }; });
+        el.addEventListener('pointermove', (e) => {
+          if (!st || ghost) return;
+          const dx = e.clientX - st.x, dy = e.clientY - st.y;
+          if (Math.hypot(dx, dy) < 14) return;
+          if (!fromDeck && Math.abs(dx) > Math.abs(dy)) { st = null; return; } // deslizou para o lado: rola a coleção
+          ui.closeCardMenu();
+          const r = el.getBoundingClientRect();
+          ghost = el.cloneNode(true); ghost.classList.add('deck-ghost'); ghost.style.width = r.width + 'px'; ghost.style.height = r.height + 'px';
+          document.body.appendChild(ghost); el.classList.add('lifted');
+          try { el.setPointerCapture(e.pointerId); } catch (_) {}
+        });
+        document.addEventListener('pointermove', (e) => {
+          if (!ghost) return;
+          ghost.style.left = e.clientX - ghost.offsetWidth / 2 + 'px'; ghost.style.top = e.clientY - ghost.offsetHeight * 0.6 + 'px';
+          const t = document.elementFromPoint(e.clientX, e.clientY), ped = t && t.closest && t.closest('.ped');
+          app().querySelectorAll('.ped.target').forEach((x) => x.classList.remove('target'));
+          if (ped && !fromDeck) ped.classList.add('target');
+        });
+        el.addEventListener('pointerup', (e) => {
+          if (ghost) {
+            ghost.remove(); ghost = null; el.classList.remove('lifted');
+            app().querySelectorAll('.ped.target').forEach((x) => x.classList.remove('target'));
+            const t = document.elementFromPoint(e.clientX, e.clientY);
+            const ped = t && t.closest && t.closest('.ped'), coll = t && t.closest && t.closest('.deckcoll');
+            if (!fromDeck && ped) swap(id, ped.dataset.deck || null);
+            else if (fromDeck && coll) swap(null, id);
+            st = null; return;
+          }
+          if (st) ui.cardMenu(el, id, fromDeck ? [{ label: T('ui.remove'), fn: () => swap(null, id) }]
+            : s.work.length < size ? [{ label: T('ui.add'), fn: () => swap(id, null) }] : []);
+          st = null;
+        });
+        el.addEventListener('pointercancel', () => { st = null; if (ghost) { ghost.remove(); ghost = null; el.classList.remove('lifted'); } });
+      };
+      app().querySelectorAll('[data-deck]').forEach((el) => bindDrag(el, el.dataset.deck, true));
+      app().querySelectorAll('[data-coll]').forEach((el) => bindDrag(el, el.dataset.coll, false));
       $('#saveDeck').onclick = () => {
         if (BB.DeckRules.validate(s.work, C, p) !== 'Ok') { ui.toast(T('ui.deck_invalid', size)); return; }
         p.decks[s.idx] = s.work.slice(); p.activeDeck = s.idx; BB.save(); BB.audio.play('click'); ui.toast(T('ui.deck_saved'));

@@ -283,3 +283,24 @@ img { -webkit-user-drag: none; pointer-events: none; }
 .deckcoll { display: flex; flex-direction: column; overflow: hidden; }
 .grid.row1 { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; overflow-y: hidden; padding: .4rem .6rem 1rem; touch-action: pan-x; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
 .grid.row1 > * { flex: 0 0 auto; scroll-snap-align: start; }
+
+/* tela do baralho: arrastar para trocar, menu e informações */
+.ped { touch-action: none; }
+.grid.row1 .card { touch-action: pan-x; }
+.ped.target { outline: .25rem solid var(--gold); outline-offset: .2rem; border-radius: 1rem; background: rgba(247,197,72,.15); }
+.deck-ghost { position: fixed; z-index: 60; pointer-events: none; transform: scale(1.08) rotate(-3deg); filter: drop-shadow(0 .8em 1em rgba(0,0,0,.6)); opacity: .95; }
+.lifted { opacity: .35; }
+.card-menu { position: fixed; z-index: 70; display: flex; gap: .4rem; padding: .4rem; background: rgba(10,16,40,.95); border: .12rem solid var(--gold); border-radius: .8rem; box-shadow: 0 .4rem 1rem rgba(0,0,0,.6); }
+.btn.blue { background: linear-gradient(#3f7dd8, #1f4a9a); }
+.card-info { position: relative; text-align: left; width: min(52rem, 94%); background: linear-gradient(#4a3f86, #362c6c); border: .2rem solid #c9a64a; }
+.card-info .title { text-align: center; margin: 0; }
+.ci-x { position: absolute; right: .8rem; top: .5rem; background: none; border: 0; color: var(--gold); font-size: 2rem; font-weight: 900; }
+.ci-rar { text-align: center; font-weight: 900; font-size: 1.3rem; margin: .2rem 0 .8rem; }
+.ci-body { display: flex; gap: 1.2rem; align-items: flex-start; }
+.ci-card .card { width: 11rem; font-size: .9rem; }
+.ci-stats { flex: 1; display: grid; gap: .5rem; }
+.ci-row { display: flex; align-items: center; gap: .7rem; background: rgba(255,255,255,.08); border: .1rem solid rgba(255,255,255,.18); border-radius: .6rem; padding: .35rem .7rem; }
+.ci-row .ci-i { font-size: 1.6rem; width: 2rem; text-align: center; }
+.ci-row small { display: block; color: #e9e3ff; font-weight: 800; font-size: .9rem; }
+.ci-row b { font-size: 1.3rem; }
+.ci-desc { margin-top: 1rem; background: rgba(0,0,0,.2); border-radius: .6rem; padding: .8rem; text-align: center; font-weight: 800; }
