@@ -492,7 +492,7 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    0
   ],
   "blend": 1,
-  "scale": 1,
+  "scale": 0.8,
   "src": "img/units/skeleton_g.webp"
  },
  "skeleton_summoner": {
@@ -587,7 +587,7 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    1
   ],
   "blend": 1,
-  "scale": 1,
+  "scale": 0.85,
   "src": "img/units/war_wolf_g.webp"
  }
 });

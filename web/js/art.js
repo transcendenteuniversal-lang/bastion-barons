@@ -66,13 +66,14 @@
       g.clearRect(0, 0, W, H);
       const sp = BB.SPRITES && BB.SPRITES[def.sprite || def.id], fx = BB.FX && BB.FX['fx_' + def.id];
       if (sp) {
-        const im = BB.art.image(BB.unitSrc(def.id));
+        const im = BB.art.image(BB.unitSrc(def.sprite || def.id));
         if (!im.complete || !im.naturalWidth) return;
         const body = (def.flying ? 108 : 122) * (0.86 + Math.min(1, def.hp / 1800) * 0.3);
-        const lift = def.flying ? 14 + Math.sin(t * 2) * 3 : 0, foot = H - 8 - lift;
-        // cabe no quadro: nada cortado em cima nem dos lados
+        const lift = def.flying ? 6 + Math.sin(t * 2) * 3 : 0;
+        // cabe no quadro: a caixa inteira do andar/voo (em cima, embaixo e dos lados) fica dentro do canvas
         const wb = sp.wb || [-sp.ax, -sp.ay, sp.w - sp.ax, sp.h - sp.ay];
-        const s = Math.min(body / sp.body, (foot - 4) / -wb[1], (W / 2 - 2) / Math.max(-wb[0], wb[2], 1));
+        const s = Math.min(body / sp.body, (H - 10 - lift) / Math.max(1, wb[3] - wb[1]), (W / 2 - 2) / Math.max(-wb[0], wb[2], 1));
+        const foot = H - 6 - lift - Math.max(0, wb[3]) * s; // âncora sobe o quanto a figura passa abaixo dela (voadores)
         const fr = Math.floor(t * 5) % sp.walk; // passo calmo na vitrine
         g.drawImage(im, fr * sp.w, 0, sp.w, sp.h, W / 2 - sp.ax * s, foot - sp.ay * s, sp.w * s, sp.h * s);
       } else if (fx) {

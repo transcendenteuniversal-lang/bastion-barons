@@ -279,7 +279,7 @@
     deck(state) {
       const p = BB.profile, C = BB.content, size = C.balance.deckSize;
       const s = state || { idx: p.activeDeck, work: p.decks[p.activeDeck].slice() };
-      const byCost = (a, b) => C.card(a).cost - C.card(b).cost || a.localeCompare(b);
+      const byCost = (a, b) => C.card(a).cost - C.card(b).cost || BB.cardName(a).localeCompare(BB.cardName(b));
       s.work.sort(byCost); // sempre em ordem de mana
       const valid = BB.DeckRules.validate(s.work, C, p) === 'Ok';
       // baralho: cada criatura aparece já invocada, andando sobre um pedestal (feitiços mostram o efeito)
@@ -288,7 +288,7 @@
         return `<div class="ped ${def.rarity}" data-deck="${id}"><canvas width="180" height="150" data-unit="${id}"></canvas><div class="ped-base"></div>
           <div class="cost">${def.cost}</div><div class="ped-lv">${T('ui.level', o ? o.level : 1)}</div><div class="ped-name">${esc(BB.cardName(id))}</div></div>`;
       }).join('') + '<div class="ped empty" data-empty="1"></div>'.repeat(Math.max(0, size - s.work.length));
-      const avail = C.collectible.filter((c) => BB.Progress.owned(p, c.id) && !s.work.includes(c.id)).sort((a, b) => a.cost - b.cost || a.id.localeCompare(b.id));
+      const avail = C.collectible.filter((c) => BB.Progress.owned(p, c.id) && !s.work.includes(c.id)).sort((a, b) => byCost(a.id, b.id));
       screen('deck', topbar(T('ui.deck_title', s.idx + 1), true) + `
         <div class="deckinfo"><div class="tabs">${[0, 1, 2].map((i) => `<button class="btn small ${i === s.idx ? 'on' : ''}" data-tab="${i}">${i + 1}</button>`).join('')}</div>
           <b style="flex:1">${T('ui.deck_count', s.work.length, size, BB.DeckRules.averageCost(s.work, C).toFixed(1))}</b>
