@@ -280,7 +280,8 @@
       const p = BB.profile, C = BB.content, size = C.balance.deckSize;
       const s = state || { idx: p.activeDeck, work: p.decks[p.activeDeck].slice() };
       const byCost = (a, b) => C.card(a).cost - C.card(b).cost || BB.cardName(a).localeCompare(BB.cardName(b));
-      s.work.sort(byCost); // sempre em ordem de mana
+      if (!s.keep) s.work.sort(byCost); // ao entrar na tela: em ordem de mana; nas trocas a carta fica no lugar
+      s.keep = false;
       const valid = BB.DeckRules.validate(s.work, C, p) === 'Ok';
       // baralho: cada criatura aparece já invocada, andando sobre um pedestal (feitiços mostram o efeito)
       const slots = s.work.map((id) => {
@@ -299,10 +300,12 @@
       BB.art.animatePreviews(app());
       const row = $('#collRow');
       if (s.scroll) row.scrollLeft = s.scroll; // a coleção continua no mesmo lugar depois da troca
-      const redraw = () => { s.scroll = row.scrollLeft; ui.closeCardMenu(); ui.show('deck', s); };
+      const redraw = () => { s.scroll = row.scrollLeft; s.keep = true; ui.closeCardMenu(); ui.show('deck', s); };
       const swap = (inId, outId) => {
-        if (outId) s.work = s.work.filter((x) => x !== outId);
-        if (inId && !s.work.includes(inId)) { if (s.work.length >= size) { BB.audio.play('error'); ui.toast(T('ui.deck_invalid', size)); return; } s.work.push(inId); }
+        const i = outId ? s.work.indexOf(outId) : -1;
+        if (inId && i >= 0) s.work[i] = inId;                          // troca no mesmo lugar
+        else if (outId) s.work = s.work.filter((x) => x !== outId);     // só remover
+        else if (inId && !s.work.includes(inId)) { if (s.work.length >= size) { BB.audio.play('error'); ui.toast(T('ui.deck_invalid', size)); return; } s.work.push(inId); }
         BB.audio.play('card'); redraw();
       };
       app().querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { BB.audio.play('click'); const i = +b.dataset.tab; ui.closeCardMenu(); ui.show('deck', { idx: i, work: p.decks[i].slice() }); });
