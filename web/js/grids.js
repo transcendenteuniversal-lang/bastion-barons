@@ -1,6 +1,23 @@
 // Animações em alta resolução das folhas 6x2 (gerado por tools/extract-grid.py).
 window.BB = window.BB || {};
 Object.assign(BB.SPRITES = BB.SPRITES || {}, {
+ "arcane_mage": {
+  "w": 262,
+  "h": 259,
+  "ax": 108,
+  "ay": 254,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -83,
+   -223,
+   97,
+   1
+  ],
+  "src": "img/units/arcane_mage_g.webp"
+ },
  "barbarian": {
   "w": 270,
   "h": 270,
@@ -153,6 +170,23 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    1
   ],
   "src": "img/units/shadow_assassin_g.webp"
+ },
+ "shadow_sorceress": {
+  "w": 233,
+  "h": 238,
+  "ax": 95,
+  "ay": 233,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -84,
+   -222,
+   85,
+   1
+  ],
+  "src": "img/units/shadow_sorceress_g.webp"
  },
  "stone_guardian": {
   "w": 256,
