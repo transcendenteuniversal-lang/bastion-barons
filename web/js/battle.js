@@ -279,29 +279,44 @@
 
     disarm() { this.armed = null; this.sel = -1; this.dragging = false; this.hoverLane = -1; this.dropDrag(false); }
 
-    // Círculo de poder: toque rápido usa; segurar mostra a descrição (soltar depois de segurar não usa)
+    // Círculo de poder: segurar e arrastar até a rota (como as cartas); segurar parado mostra a descrição
     bindOrb(btn, kind) {
-      let timer = null, held = false;
+      let timer = null, held = false, start = null;
       const me = () => this.match.players[0];
       const info = () => kind === 'baron'
         ? { t: T('baron.' + me().baron.id + '.ability'), h: BB.baronName(me().baron.id), d: T('baron.' + me().baron.id + '.desc') }
         : { t: T('castle.' + me().castle.id + '.ability'), h: T('battle.castle_power'), d: T('castle.' + me().castle.id + '.desc') };
       btn.addEventListener('pointerdown', (e) => {
-        e.preventDefault(); held = false;
+        e.preventDefault(); held = false; start = { x: e.clientX, y: e.clientY };
+        try { btn.releasePointerCapture(e.pointerId); } catch (_) {}
         timer = setTimeout(() => {
+          if (this.dragging) return;
           held = true; const i = info();
           this.el.tip.innerHTML = `<small>${esc(i.h)}</small><b>${esc(i.t)}</b><p>${esc(i.d)}</p>`;
           this.el.tip.classList.remove('hidden');
         }, 420);
+        const onMove = (ev) => {
+          if (this.dragging || !start || Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 14) return;
+          clearTimeout(timer); this.el.tip.classList.add('hidden'); held = false;
+          this.startPowerDrag(kind, btn, ev);
+        };
+        const onUp = () => { clearTimeout(timer); start = null; if (held) { this.el.tip.classList.add('hidden'); held = false; } document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+        document.addEventListener('pointermove', onMove); document.addEventListener('pointerup', onUp);
       });
-      const end = (use) => {
-        clearTimeout(timer);
-        if (held) { this.el.tip.classList.add('hidden'); held = false; return; }
-        if (use) this.powerPressed(kind);
-      };
-      btn.addEventListener('pointerup', () => end(true));
-      btn.addEventListener('pointerleave', () => end(false));
-      btn.addEventListener('pointercancel', () => end(false));
+    }
+
+    startPowerDrag(kind, btn, e) {
+      const m = this.match, me = m.players[0];
+      if (m.over || this.paused) return;
+      const ready = kind === 'baron' ? m.baronReady(me) : m.castleReady(me);
+      if (!ready) { BB.audio.play('error'); return; }
+      BB.audio.unlock(); BB.audio.play('click');
+      this.armed = kind; this.sel = -1; this.dragging = true;
+      const r = btn.getBoundingClientRect(), d = btn.cloneNode(true);
+      d.removeAttribute('id'); d.classList.add('drag-card', 'drag-orb'); d.classList.remove('tap', 'ready', 'fire');
+      d.style.width = r.width + 'px'; d.style.height = r.height + 'px'; d.style.fontSize = getComputedStyle(btn).fontSize;
+      document.body.appendChild(d); this.dragEl = d; this.dragOff = { x: r.width / 2, y: r.height / 2 };
+      this.moveDrag(e.clientX, e.clientY);
     }
 
     discardSelected() {
@@ -333,10 +348,12 @@
         this.dropDrag(ok, e.clientX, e.clientY); if (!ok) this.disarm();
         return;
       }
-      if (e.target.closest && e.target.closest('.tap')) return; // soltou sobre a interface
+      // poder do Barão ou do castelo: só vale arrastando e soltando na arena
+      if (!wasDrag) return;
       const lane = BB.renderer.laneAt(e.clientX, e.clientY);
-      if (lane < 0) { this.disarm(); return; }
-      this.exec({ type: this.armed, player: 0, lane });
+      if (lane < 0 || (over && over.closest && over.closest('.tap'))) { this.disarm(); return; }
+      const ok = this.exec({ type: this.armed, player: 0, lane });
+      this.dropDrag(ok, e.clientX, e.clientY); if (!ok) this.disarm();
     }
 
     exec(c) {
@@ -344,7 +361,7 @@
       if (r === 'Ok') {
         const btn = c.type === 'baron' ? this.el.baronBtn : c.type === 'castle' ? this.el.castleBtn : null;
         if (btn) { btn.classList.remove('fire'); void btn.offsetWidth; btn.classList.add('fire'); }
-        if (this.dragEl && c.type === 'play') { this.armed = null; this.sel = -1; this.dragging = false; this.hoverLane = -1; } else this.disarm();
+        if (this.dragEl) { this.armed = null; this.sel = -1; this.dragging = false; this.hoverLane = -1; } else this.disarm();
         BB.vibrate(15); return true;
       }
       BB.audio.play('error');

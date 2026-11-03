@@ -61,10 +61,11 @@ fs.mkdirSync(out, { recursive: true });
   await wait(5000); await shot('11-batalha');
   // poder do Barão e do castelo (forçando carga)
   await page.evaluate(() => { const p = BB.battle.match.players[0]; p.baronCharge = 999; p.castleCooldown = 0; p.energy = 10; });
+  const dragEl = async (sel, to) => { const b = await (await page.$(sel)).boundingBox(); await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down(); await page.mouse.move(to.x, to.y, { steps: 8 }); await page.mouse.up(); await wait(100); };
   await page.tap('#baronBtn'); await wait(100);
-  if (await page.evaluate(() => BB.battle.armed === 'baron')) await page.tap('canvas#field', { position: lanes[1] });
-  await page.tap('#castleBtn'); await wait(100);
-  if (await page.evaluate(() => BB.battle.armed === 'castle')) await page.tap('canvas#field', { position: lanes[1] });
+  if ((await page.evaluate(() => BB.battle.match.players[0].stats.baronUses)) !== 0) errors.push('tocar no poder não deveria usar');
+  await dragEl('#baronBtn', lanes[1]);
+  await dragEl('#castleBtn', lanes[1]);
   for (let i = 0; i < 3; i++) { await page.evaluate(() => { BB.battle.match.players[0].energy = 10; }); await drag(i, lanes[i]); await wait(150); }
   await wait(250); await shot('12-poderes');
   await wait(6000); await shot('13-combate');

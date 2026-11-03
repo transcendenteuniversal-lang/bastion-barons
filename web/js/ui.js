@@ -249,7 +249,7 @@
           <b style="flex:1">${T('ui.deck_count', s.work.length, size, BB.DeckRules.averageCost(s.work, C).toFixed(1))}</b>
           <button class="btn green small" id="saveDeck" ${valid ? '' : 'disabled'}>${T('ui.save')}</button></div>
         <div class="deckzone">${slots}</div>
-        <div class="content"><p class="muted center" style="margin:0 0 .6rem">${T('ui.deck_tap_remove')}</p><div class="grid">${avail.map((c) => ui.cardHtml(c, BB.Progress.owned(p, c.id), { level: true, attrs: 'data-add="' + c.id + '"' })).join('')}</div></div>`);
+        <div class="content deckcoll"><p class="muted center" style="margin:0 0 .6rem">${T('ui.deck_tap_remove')}</p><div class="grid row1">${avail.map((c) => ui.cardHtml(c, BB.Progress.owned(p, c.id), { level: true, attrs: 'data-add="' + c.id + '"' })).join('')}</div></div>`);
       bindBack('deck', () => ui.show('menu'));
       BB.art.animatePreviews(app());
       app().querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { BB.audio.play('click'); const i = +b.dataset.tab; ui.show('deck', { idx: i, work: p.decks[i].slice() }); });

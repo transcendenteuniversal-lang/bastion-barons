@@ -278,3 +278,8 @@ img { -webkit-user-drag: none; pointer-events: none; }
 .drag-card.over { transform: scale(.8) rotate(0); opacity: .85; }
 .drag-card.drop { transition: all .2s ease-in; transform: scale(.15); opacity: 0; }
 .hb-slot .card.lifted { opacity: .35; }
+
+/* tela do baralho: coleção numa única linha que desliza para o lado */
+.deckcoll { display: flex; flex-direction: column; overflow: hidden; }
+.grid.row1 { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; overflow-y: hidden; padding: .4rem .6rem 1rem; touch-action: pan-x; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.grid.row1 > * { flex: 0 0 auto; scroll-snap-align: start; }
