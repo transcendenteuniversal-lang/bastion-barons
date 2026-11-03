@@ -104,14 +104,40 @@ def img(cid):
         return ''
     return '<img src="data:image/webp;base64,' + base64.b64encode(open(p, 'rb').read()).decode() + '">'
 
+CHAR = ('Character design reference sheet for a 2D mobile battle game: ONE single full-body character, {desc}. ' + STYLE + ' '
+        'Show only this one character, standing in a neutral ready pose, full body from head to feet, seen from the side (3/4 side view) facing RIGHT, '
+        'holding its weapon (if it has one) in its normal position. Show every detail clearly: face, hair, armor, clothes, colors, patterns, weapon and accessories (whatever it has), '
+        'so this exact design can be reused later for the animations. {bg}, no gradients, no vignette, no shadow on the background, no floor, no text, '
+        'no numbers, no labels, no border. Square image (1:1). The character is centered and takes about 60% of the image height, '
+        'with wide empty background space on all four sides so no part (weapon, wings, tail, hat, cape, effects) is cut or touches the edge. '
+        'Sharp, clean, high definition, even lighting.')
+CHAR_FLY = CHAR.replace('standing in a neutral ready pose, full body from head to feet', 'flying in a neutral hovering pose with wings fully open, the whole body and both wings visible')
+FX = ('Visual effect design reference for a 2D mobile battle game: the spell "{name}" at its full strength, one single image of the effect: {desc}. '
+      + STYLE.replace(' Use the attached card art as the exact character design reference (same face, colors, outfit and weapon).', ' Use the attached card art as color and style reference.') +
+      ' Seen from the side at ground level. Show every detail clearly (shapes, colors, glow, particles) so this exact design can be reused later for the animation. '
+      '{bg}, no gradients, no vignette, no shadow on the background, no floor, no text, no labels, no border. Square image (1:1). '
+      'The effect is centered and takes about 60% of the image, with wide empty background space on all four sides so nothing is cut or touches the edge.')
+FLYERS = {'fire_dragon', 'ice_dragon', 'phoenix', 'vampire_bat'}
 blocks = []
 for cid, nm, bg, desc, walk, atk in T:
-    pr = f'2D game sprite sheet of {desc}. {STYLE} ' + RULES.format(bg=bg, walk=walk, attack=atk)
+    if cid == 'dwarf_turret':
+        desc = 'a small finished wooden and brass dwarf cannon tower with a blue flag, cannon pointing RIGHT'
+    pr = (CHAR_FLY if cid in FLYERS else CHAR).format(desc=desc, bg=bg[0].upper() + bg[1:])
+    if cid == 'dwarf_turret':
+        pr = pr.replace('ONE single full-body character', 'ONE single object').replace('Show only this one character', 'Show only this one object').replace(', standing in a neutral ready pose, full body from head to feet, seen from the side (3/4 side view) facing RIGHT, holding the weapon in its normal position', ', complete, seen from the side (3/4 side view)')
     blocks.append((cid, nm, 'Tropa' if 'invocad' not in nm else 'Invocada', bg == M, pr))
+EN = {'fireball':'Fireball','freeze':'Freeze','divine_heal':'Divine Heal','lightning':'Lightning','arcane_shield':'Arcane Shield','poison':'Poison','arrow_rain':'Arrow Rain','skeleton_summon':'Skeleton Summon'}
+FULL = {'fireball':'a big round fire explosion on the ground with flames, smoke and embers, a fireball still visible at the top',
+        'freeze':'a cluster of sharp blue ice crystals bursting out of the ground with frost mist',
+        'divine_heal':'a column of soft golden holy light from above with sparkles and a glowing golden circle on the ground',
+        'lightning':'a bright blue-white lightning bolt striking the ground with an electric burst and sparks',
+        'arcane_shield':'a translucent blue arcane dome shield with glowing runes around its base',
+        'poison':'a bubbling toxic green cloud with small skull-shaped bubbles over a green puddle',
+        'arrow_rain':'many arrows falling diagonally from above and several stuck in the ground with dust puffs',
+        'skeleton_summon':'a purple magic circle on the ground with purple flames and skeleton hands and bones rising from it'}
 for cid, nm, desc in S:
-    en = {'fireball':'Fireball','freeze':'Freeze','divine_heal':'Divine Heal','lightning':'Lightning','arcane_shield':'Arcane Shield','poison':'Poison','arrow_rain':'Arrow Rain','skeleton_summon':'Skeleton Summon'}[cid]
     bg = M if cid == 'poison' else G
-    blocks.append((cid, nm, 'Magia', bg == M, SPELL.format(bg=bg, name=en, desc=desc)))
+    blocks.append((cid, nm, 'Magia', bg == M, FX.format(name=EN[cid], desc=FULL[cid], bg=bg[0].upper() + bg[1:])))
 
 out = ['<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
        '<title>Prompts de arte</title><style>body{font-family:system-ui,sans-serif;background:#10162b;color:#eef;margin:12px;max-width:900px}'
@@ -119,9 +145,9 @@ out = ['<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="v
        '.h{display:flex;gap:10px;align-items:center}.h img{width:64px;height:64px;border-radius:8px}.h b{font-size:17px}.t{color:#ffd77a;font-size:13px}'
        '.m{color:#ff8ad8;font-size:13px}pre{white-space:pre-wrap;background:#0b1024;padding:10px;border-radius:8px;font-size:13px;line-height:1.4}'
        'button{background:#2f5bd3;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:14px}li{margin:4px 0}</style></head><body>'
-       '<h1>Prompts de arte — Bastion Barons</h1>'
+       '<h1>Prompts de personagens — Bastion Barons</h1>'
        '<ul><li><b>Anexe a imagem da carta</b> (a que aparece em cada bloco) como referência junto com o prompt.</li>'
-       '<li>Tropas: 2 linhas de 6 quadros (andar / atacar). Magias: 1 linha de 8 quadros.</li>'
+       '<li>Uma imagem por carta: só o personagem (ou o efeito da magia), com todos os detalhes. A animação vem depois.</li>'
        '<li>Fundo verde; personagens verdes (goblin, orc, ent, druida, elfa) e o veneno vão em <b>magenta</b> para o recorte não apagar o personagem.</li>'
        '<li>Mande cada folha como <b>anexo de arquivo</b> e diga de qual carta é.</li></ul>']
 for i, (cid, nm, kind, mag, pr) in enumerate(blocks, 1):
