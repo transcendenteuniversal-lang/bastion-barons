@@ -133,7 +133,7 @@ test('tropas lutam apenas na mesma rota', () => {
 });
 test('corpo a corpo terrestre não atinge voadores', () => {
   const m = newMatch();
-  const k = m.spawnUnit(0, content.card('royal_knight'), 1, 50, 1), g = m.spawnUnit(1, content.card('royal_griffin'), 1, 50.5, 1);
+  const k = m.spawnUnit(0, content.card('royal_knight'), 1, 50, 1), g = m.spawnUnit(1, content.card('vampire_bat'), 1, 50.5, 1);
   g.stun = 100; run(m, 4); near(g.hp, g.maxHp, 0.01); assert(k.x > 50);
 });
 test('golem ignora tropas e vai ao castelo', () => {
@@ -141,14 +141,28 @@ test('golem ignora tropas e vai ao castelo', () => {
   const g = m.spawnUnit(0, content.card('stone_golem'), 1, 50, 1), e = m.spawnUnit(1, content.card('royal_knight'), 1, 51, 1);
   e.stun = 100; run(m, 3); near(e.hp, e.maxHp, 0.01); assert(g.x > 50);
 });
-test('fênix renasce uma vez', () => {
-  const m = newMatch(); const f = m.spawnUnit(0, content.card('phoenix'), 1, 50, 1);
-  m.applyDamage(f, 99999, 1); assert(f.hp > 0); near(f.hp, f.maxHp * 0.5, 1); m.applyDamage(f, 99999, 1); assert(f.hp <= 0);
+test('fênix renasce uma vez no começo da rota, maior e mais forte', () => {
+  const m = newMatch(); const f = m.spawnUnit(0, content.card('phoenix'), 1, 50, 1); const d0 = f.damage;
+  m.applyDamage(f, 99999, 1); assert(f.hp > 0); near(f.hp, f.maxHp, 1); near(f.x, m.spawnX(0), 0.01); eq(f.size, 2); near(f.damage, d0 * 2, 0.01);
+  m.applyDamage(f, 99999, 1); assert(f.hp <= 0);
 });
-test('aura do paladino reduz dano', () => {
+test('cúpula do paladino: só leva dano de quem está dentro', () => {
   const m = newMatch();
-  const a = m.spawnUnit(0, content.card('royal_knight'), 0, 30, 1), b = m.spawnUnit(0, content.card('royal_knight'), 2, 30, 1);
-  m.spawnUnit(0, content.card('paladin'), 0, 31, 1); m.applyDamage(a, 100, 1); m.applyDamage(b, 100, 1); assert(a.hp > b.hp);
+  const a = m.spawnUnit(0, content.card('royal_knight'), 0, 30, 1); m.spawnUnit(0, content.card('paladin'), 0, 31, 1);
+  const far = m.spawnUnit(1, content.card('royal_archer'), 0, 60, 1), near_ = m.spawnUnit(1, content.card('barbarian'), 0, 33, 1);
+  m.applyDamage(a, 100, 1, far); near(a.hp, a.maxHp, 0.01); m.applyDamage(a, 100, 1, near_); assert(a.hp < a.maxHp);
+});
+test('habilidades: empurrão, congelar, lobos nas 3 rotas, troca de rota, necromante, demônio', () => {
+  let m = newMatch(); const k = m.spawnUnit(0, content.card('royal_knight'), 1, 40, 1), t = m.spawnUnit(1, content.card('stone_guardian'), 1, 44, 1);
+  k.deploy = t.deploy = 0; k.attackCd = 0; t.stun = 99; m.step(); near(t.x, 47, 0.01);
+  m = newMatch(); const d = m.spawnUnit(0, content.card('ice_dragon'), 1, 40, 1), v = m.spawnUnit(1, content.card('barbarian'), 1, 45, 1);
+  d.deploy = v.deploy = 0; d.attackCd = 0; m.step(); assert(v.stun > 1);
+  m = newMatch(); m.players[0].energy = 10; eq(play(m, 0, 'war_wolf', 1), 'Ok'); eq(new Set(m.units.map((u) => u.lane)).size, 3);
+  m = newMatch(); const e = m.spawnUnit(0, content.card('elven_archer'), 1, 40, 1); e.deploy = 0; m.spawnUnit(1, content.card('barbarian'), 1, 48, 1).deploy = 9; m.step(); assert(e.lane !== 1 && e.hopped);
+  m = newMatch(); const n = m.spawnUnit(0, content.card('necromancer'), 1, 20, 1), b = m.spawnUnit(1, content.card('barbarian'), 1, 60, 1);
+  m.applyDamage(b, 99999, 0); m.units = m.units.filter((u) => u.hp > 0); assert(m.units.some((u) => u.owner === 0 && u.def.id === 'skeleton'));
+  m = newMatch(); const o = m.spawnUnit(1, content.card('red_orc'), 1, 60, 1); const dm = m.spawnUnit(0, content.card('infernal_demon'), 1, 20, 1);
+  eq(o.def.id, 'skeleton'); m.applyDamage(dm, 99999, 1); eq(o.def.id, 'red_orc');
 });
 test('bola de fogo causa dano e congelamento paralisa', () => {
   const m = newMatch(); const t = m.spawnUnit(1, content.card('red_orc'), 1, 60, 1);

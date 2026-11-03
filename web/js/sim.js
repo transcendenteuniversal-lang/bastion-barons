@@ -50,7 +50,7 @@
         if (!c.token) this.collectible.push(c);
       }
       for (const c of this.allCards) {
-        const needs = c.ability === 'Summon' || c.ability === 'BuildTurret' || c.spell === 'Summon';
+        const needs = c.ability === 'Summon' || c.ability === 'BuildTurret' || c.ability === 'Hex' || c.spell === 'Summon';
         if (needs && !this.cards[c.summonId]) errors.push(c.id + ': summonId');
       }
       for (const b of file.barons || []) { this.barons.push(b); this.baronById[b.id] = b; }
@@ -153,7 +153,12 @@
       return dir * Math.min(adv, (this.L / 2) * dir);
     }
     deployX(owner, lane, wantX, def) {
-      const base = this.spawnX(owner), dir = dirOf(owner), limit = this.deployLimit(owner);
+      const base = this.spawnX(owner), dir = dirOf(owner);
+      if (def && def.deployAnywhere) { // pode entrar em qualquer ponto da rota
+        const x = typeof wantX === 'number' && isFinite(wantX) ? wantX : this.L / 2;
+        return Math.min(this.L - this.B.castleFront - 2, Math.max(this.B.castleFront + 2, x));
+      }
+      const limit = this.deployLimit(owner);
       let x = typeof wantX === 'number' && isFinite(wantX) ? wantX : limit;
       x = dir > 0 ? Math.max(base, Math.min(x, limit)) : Math.min(base, Math.max(x, limit));
       const enemy = this.frontUnit(1 - owner, lane); // inimigo mais avançado (mais perto do seu castelo)
@@ -194,7 +199,7 @@
         if (c.cardId && c.cardId !== id) return 'CardMismatch';
         const def = this.content.card(id);
         if (p.energy + 1e-4 < def.cost) return 'NotEnoughEnergy';
-        if (!def.isSpell && this.aliveCount(c.player) + def.count > this.B.maxUnitsPerPlayer) return 'UnitCap';
+        if (!def.isSpell && this.aliveCount(c.player) + def.count * (def.allLanes ? 3 : 1) > this.B.maxUnitsPerPlayer) return 'UnitCap';
         return 'Ok';
       }
       if (c.type === 'discard') {
@@ -238,10 +243,13 @@
       const level = this.level(p, id);
       if (def.isSpell) { p.stats.spellsCast++; this.castSpell(p, def, lane, this.content.levelMult(level), level); }
       else {
-        const x = this.deployX(p.index, lane, wantX, def);
-        for (let i = 0; i < def.count; i++) {
-          this.spawnUnit(p.index, def, lane, x - dirOf(p.index) * 1.4 * i, level);
-          p.stats.unitsDeployed++;
+        const lanes = def.allLanes ? [0, 1, 2] : [lane]; // ex.: Lobo de Guerra entra um em cada rota
+        for (const l of lanes) {
+          const x = this.deployX(p.index, l, l === lane ? wantX : undefined, def);
+          for (let i = 0; i < def.count; i++) {
+            this.spawnUnit(p.index, def, l, x - dirOf(p.index) * 1.4 * i, level);
+            p.stats.unitsDeployed++;
+          }
         }
       }
     }
@@ -260,8 +268,10 @@
         rebirthUsed: false, expired: false, state: 'Deploying', targetId: 0,
         get alive() { return this.hp > 0; }, get flying() { return !!this.def.flying; }, get dir() { return dirOf(this.owner); },
       };
+      u.baseDamage = u.damage; u.size = 1;
       this.units.push(u);
       this.emit('UnitSpawned', owner, { unitId: u.id, lane, x: u.x, id: def.id });
+      if (def.ability === 'Hex') this.hexLane(u);
       if (def.ability === 'BuildTurret' && this.content.cards[def.summonId]) {
         const t = this.content.cards[def.summonId];
         for (let i = 0; i < Math.max(1, def.summonCount || 1); i++)
@@ -322,7 +332,9 @@
       if (u.stun > 0) { u.stun -= dt; u.state = 'Stunned'; return; }
 
       const m = this.modifiers(u);
-      const moveMult = m.move * u.slow, atkMult = m.atk * u.slow;
+      let moveMult = m.move * u.slow, atkMult = m.atk * u.slow;
+      if (d.ability === 'Enrage' && u.hp <= u.maxHp * (d.abilityValue || 0.5)) { moveMult *= 2; atkMult *= 2; u.enraged = true; }
+      if (d.ability === 'LaneHop' && !u.hopped) this.tryLaneHop(u);
       if ((d.ability === 'HealAura' || d.ability === 'Summon') && d.abilityInterval > 0) {
         u.abilityTimer += dt;
         if (u.abilityTimer >= d.abilityInterval) { u.abilityTimer -= d.abilityInterval; this.abilityPulse(u); }
@@ -386,13 +398,16 @@
         const cx = target.x;
         for (const e of this.units) {
           if (e.hp <= 0 || e.owner === u.owner || e.lane !== u.lane || !Match.canTarget(d, e)) continue;
-          if (Math.abs(e.x - cx) <= d.abilityRadius) this.applyDamage(e, dmg, u.owner);
+          if (Math.abs(e.x - cx) <= d.abilityRadius) this.applyDamage(e, dmg, u.owner, u);
         }
       } else {
         let hit = dmg;
         if (d.ability === 'BonusVs' && d.bonusTag && target.def.id.includes(d.bonusTag)) hit *= 1 + d.abilityValue;
         const before = target.hp;
-        this.applyDamage(target, hit, u.owner);
+        this.applyDamage(target, hit, u.owner, u);
+        if (target.hp > 0 && d.ability === 'Knockback') this.knock(target, d.abilityValue);
+        if (target.hp > 0 && d.ability === 'FirstHitKnockback' && !u.firstHit) { u.firstHit = true; this.knock(target, d.abilityValue); }
+        if (target.hp > 0 && d.ability === 'FreezeOnHit') { target.stun = Math.max(target.stun, d.abilityDuration || 1.5); this.emit('Frozen', target.owner, { unitId: target.id, lane: target.lane, x: target.x }); }
         if (d.ability === 'Lifesteal') u.hp = Math.min(u.maxHp, u.hp + Math.max(0, before - Math.max(0, target.hp)) * d.abilityValue);
         if (d.ability === 'SlowOnHit' && target.hp > 0) {
           target.slowTime = Math.max(target.slowTime, d.abilityDuration);
@@ -424,8 +439,9 @@
       return Math.min(0.9, best);
     }
 
-    applyDamage(t, amount, source) {
+    applyDamage(t, amount, source, attacker) {
       if (t.hp <= 0 || amount <= 0) return;
+      if (attacker && this.domeBlocks(t, attacker)) { this.emit('Blocked', t.owner, { unitId: t.id, lane: t.lane, x: t.x }); return; }
       amount *= 1 - this.auraReduction(t);
       if (t.shield > 0) { const a = Math.min(t.shield, amount); t.shield -= a; amount -= a; }
       t.hp -= amount;
@@ -433,8 +449,10 @@
     }
 
     onKilled(t, source) {
-      if (t.def.ability === 'Rebirth' && !t.rebirthUsed) {
-        t.rebirthUsed = true; t.hp = t.maxHp * Math.max(0.1, t.def.abilityValue); t.deploy = 1; t.poisonTime = 0; t.stun = 0;
+      if (t.def.ability === 'Rebirth' && !t.rebirthUsed) { // Fênix: renasce no começo da rota, maior e mais forte
+        const k = t.def.abilityValue || 2;
+        t.rebirthUsed = true; t.hp = t.maxHp; t.deploy = 1; t.poisonTime = 0; t.stun = 0; t.slow = 1; t.slowTime = 0;
+        t.x = this.spawnX(t.owner); t.size = k; t.baseDamage *= k; t.damage = t.baseDamage;
         this.emit('UnitRevived', t.owner, { unitId: t.id, lane: t.lane, x: t.x });
         return;
       }
@@ -446,6 +464,79 @@
       }
       this.players[t.owner].stats.unitsLost++;
       this.emit('UnitDied', t.owner, { unitId: t.id, lane: t.lane, x: t.x });
+      this.afterDeath(t);
+    }
+
+    // ---------------------------------------------------------- habilidades especiais
+    afterDeath(t) {
+      const d = t.def;
+      // explosão ao morrer (Caçador de Goblins)
+      if (d.deathDamage > 0) {
+        this.emit('DeathBlast', t.owner, { lane: t.lane, x: t.x, radius: d.deathRadius || 5 });
+        this.damageLane(t.owner, t.lane, d.deathDamage * this.content.levelMult(t.level), t.x, d.deathRadius || 5);
+      }
+      // o Demônio cai: quem ele transformou volta à forma original
+      if (d.ability === 'Hex') {
+        for (const u of this.units) if (u.hp > 0 && u.hexBy === t.id && u.orig) {
+          Object.assign(u, u.orig); u.orig = null; u.hexBy = 0;
+          this.emit('UnitRestored', u.owner, { unitId: u.id, lane: u.lane, x: u.x });
+        }
+      }
+      // Guardião de Pedra cresce a cada inimigo abatido na rota
+      for (const g of this.units) if (g.hp > 0 && g.owner !== t.owner && g.lane === t.lane && g.def.ability === 'Grow') {
+        g.kills = (g.kills || 0) + 1; g.size = 1 + g.def.abilityValue * g.kills; g.damage = g.baseDamage * g.size;
+        this.emit('UnitGrew', g.owner, { unitId: g.id, lane: g.lane, x: g.x });
+      }
+      // Necromante: quem morre na rota volta como esqueleto do lado dele
+      if (!d.token && d.ability !== 'RaiseDead') {
+        const nec = this.units.find((u) => u.hp > 0 && u !== t && u.lane === t.lane && u.def.ability === 'RaiseDead');
+        const sk = this.content.cards.skeleton;
+        if (nec && sk) {
+          const s = this.spawnUnit(nec.owner, sk, t.lane, t.x, nec.level);
+          if (s) { s.deploy = 0.4; this.emit('Raised', nec.owner, { unitId: s.id, lane: t.lane, x: t.x }); }
+        }
+      }
+    }
+
+    knock(t, dist) { // empurra o alvo para trás (na direção do castelo dele)
+      const B = this.B;
+      t.x = Math.min(this.L - B.castleFront, Math.max(B.castleFront, t.x - t.dir * dist));
+      this.emit('Knocked', t.owner, { unitId: t.id, lane: t.lane, x: t.x });
+    }
+
+    // Arqueira Élfica: na primeira vez que um inimigo chega perto, muda para a rota vizinha mais vazia
+    tryLaneHop(u) {
+      const r = u.def.abilityRadius || 10;
+      const near = this.units.some((e) => e.hp > 0 && e.owner !== u.owner && e.lane === u.lane && Math.abs(e.x - u.x) <= r);
+      if (!near) return;
+      const opts = u.lane === 1 ? [0, 2] : [1];
+      const foes = (l) => this.units.filter((e) => e.hp > 0 && e.owner !== u.owner && e.lane === l).length;
+      opts.sort((a, b) => foes(a) - foes(b) || a - b);
+      u.hopped = true; u.lane = opts[0];
+      this.emit('UnitLaneChange', u.owner, { unitId: u.id, lane: u.lane, x: u.x });
+    }
+
+    // Paladino: aliados dentro da cúpula só levam dano de quem também está dentro dela
+    domeBlocks(t, attacker) {
+      for (const a of this.units) {
+        if (a.hp <= 0 || a.owner !== t.owner || a.lane !== t.lane || a.def.ability !== 'ShieldDome') continue;
+        const r = a.def.abilityRadius || 6;
+        if (Math.abs(t.x - a.x) <= r && Math.abs(attacker.x - a.x) > r) return true;
+      }
+      return false;
+    }
+
+    // Demônio Infernal: ao entrar, os inimigos da rota viram esqueletos enquanto ele viver
+    hexLane(demon) {
+      const sk = this.content.cards[demon.def.summonId || 'skeleton'];
+      if (!sk) return;
+      const mult = this.content.levelMult(demon.level);
+      for (const u of this.units) {
+        if (u.hp <= 0 || u.owner === demon.owner || u.lane !== demon.lane || u.def === sk || u.orig) continue;
+        u.orig = { def: u.def, maxHp: u.maxHp, hp: u.hp, damage: u.damage, baseDamage: u.baseDamage, size: u.size };
+        u.def = sk; u.maxHp = sk.hp * mult; u.hp = u.maxHp; u.damage = u.baseDamage = sk.damage * mult; u.size = 1; u.hexBy = demon.id;
+        this.emit('Hexed', u.owner, { unitId: u.id, lane: u.lane, x: u.x });
+      }
     }
 
     damageCastle(victim, amount, source) {

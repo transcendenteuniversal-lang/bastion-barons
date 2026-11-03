@@ -123,7 +123,9 @@ BB.CONTENT = {
    "attackInterval": 1,
    "moveSpeed": 5,
    "range": 1.5,
-   "targets": "Ground"
+   "targets": "Ground",
+   "ability": "Knockback",
+   "abilityValue": 3
   },
   {
    "id": "paladin",
@@ -138,8 +140,7 @@ BB.CONTENT = {
    "moveSpeed": 4.5,
    "range": 1.5,
    "targets": "Ground",
-   "ability": "ProtectAura",
-   "abilityValue": 0.25,
+   "ability": "ShieldDome",
    "abilityRadius": 6
   },
   {
@@ -168,7 +169,9 @@ BB.CONTENT = {
    "attackInterval": 1,
    "moveSpeed": 4.5,
    "range": 1.5,
-   "targets": "Ground"
+   "targets": "Ground",
+   "ability": "Enrage",
+   "abilityValue": 0.5
   },
   {
    "id": "shadow_assassin",
@@ -180,7 +183,7 @@ BB.CONTENT = {
    "hp": 320,
    "damage": 175,
    "attackInterval": 1,
-   "moveSpeed": 8.5,
+   "moveSpeed": 11.43,
    "range": 1.5,
    "targets": "Ground"
   },
@@ -196,7 +199,9 @@ BB.CONTENT = {
    "attackInterval": 1,
    "moveSpeed": 3,
    "range": 1.5,
-   "targets": "Ground"
+   "targets": "Ground",
+   "ability": "Grow",
+   "abilityValue": 0.1
   },
   {
    "id": "dwarf_warrior",
@@ -210,7 +215,9 @@ BB.CONTENT = {
    "attackInterval": 1,
    "moveSpeed": 4,
    "range": 1.5,
-   "targets": "Ground"
+   "targets": "Ground",
+   "ability": "Splash",
+   "abilityRadius": 3
   },
   {
    "id": "royal_lancer",
@@ -237,8 +244,10 @@ BB.CONTENT = {
    "damage": 70,
    "attackInterval": 1,
    "moveSpeed": 5,
-   "range": 14,
-   "targets": "Both"
+   "range": 20,
+   "targets": "Both",
+   "ability": "LaneHop",
+   "abilityRadius": 10
   },
   {
    "id": "royal_archer",
@@ -251,7 +260,7 @@ BB.CONTENT = {
    "damage": 50,
    "attackInterval": 1,
    "moveSpeed": 5,
-   "range": 40,
+   "range": 30,
    "targets": "Both"
   },
   {
@@ -299,10 +308,8 @@ BB.CONTENT = {
    "moveSpeed": 4,
    "range": 10,
    "targets": "Both",
-   "ability": "Summon",
-   "abilityInterval": 6,
-   "summonId": "skeleton",
-   "summonCount": 2
+   "ability": "RaiseDead",
+   "summonId": "skeleton"
   },
   {
    "id": "goblin_gunner",
@@ -316,7 +323,8 @@ BB.CONTENT = {
    "attackInterval": 0.5,
    "moveSpeed": 6,
    "range": 10,
-   "targets": "Both"
+   "targets": "Both",
+   "ability": "DoubleShot"
   },
   {
    "id": "fire_dragon",
@@ -329,7 +337,7 @@ BB.CONTENT = {
    "damage": 73,
    "attackInterval": 1,
    "moveSpeed": 4,
-   "range": 6,
+   "range": 20,
    "targets": "Both",
    "flying": true,
    "ability": "Splash",
@@ -346,12 +354,11 @@ BB.CONTENT = {
    "damage": 50,
    "attackInterval": 1,
    "moveSpeed": 4,
-   "range": 6,
+   "range": 3,
    "targets": "Both",
    "flying": true,
-   "ability": "SlowOnHit",
-   "abilityValue": 0.4,
-   "abilityDuration": 2
+   "ability": "FreezeOnHit",
+   "abilityDuration": 1.5
   },
   {
    "id": "phoenix",
@@ -368,7 +375,7 @@ BB.CONTENT = {
    "targets": "Both",
    "flying": true,
    "ability": "Rebirth",
-   "abilityValue": 0.5
+   "abilityValue": 2
   },
   {
    "id": "stone_golem",
@@ -396,7 +403,9 @@ BB.CONTENT = {
    "attackInterval": 1,
    "moveSpeed": 3.5,
    "range": 1.5,
-   "targets": "Ground"
+   "targets": "Ground",
+   "ability": "FirstHitKnockback",
+   "abilityValue": 20
   },
   {
    "id": "royal_griffin",
@@ -411,7 +420,7 @@ BB.CONTENT = {
    "moveSpeed": 7,
    "range": 1.5,
    "targets": "Both",
-   "flying": true
+   "deployAnywhere": true
   },
   {
    "id": "guardian_ent",
@@ -442,8 +451,8 @@ BB.CONTENT = {
    "moveSpeed": 4,
    "range": 1.5,
    "targets": "Ground",
-   "ability": "Splash",
-   "abilityRadius": 2
+   "ability": "Hex",
+   "summonId": "skeleton"
   },
   {
    "id": "royal_cleric",
@@ -492,7 +501,8 @@ BB.CONTENT = {
    "attackInterval": 1,
    "moveSpeed": 7.5,
    "range": 1.5,
-   "targets": "Ground"
+   "targets": "Ground",
+   "allLanes": true
   },
   {
    "id": "goblin_hunter",
@@ -509,7 +519,9 @@ BB.CONTENT = {
    "targets": "Ground",
    "ability": "BonusVs",
    "abilityValue": 1,
-   "bonusTag": "goblin"
+   "bonusTag": "goblin",
+   "deathDamage": 131,
+   "deathRadius": 5
   },
   {
    "id": "forest_druid",

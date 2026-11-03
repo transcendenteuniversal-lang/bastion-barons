@@ -119,6 +119,12 @@
           this.playFx('fx_deploy', this.laneX(m, e.x, e.lane), l.y + (l.y1 - l.y0) * 0.35, 95 * l.k, 0.55);
           break;
         }
+        case 'DeathBlast': { const l = ARENA.lanes[e.lane]; const x = this.laneX(m, e.x, e.lane);
+          if (!this.playFx('fx_fireball', x, l.y1 - (l.y1 - l.y0) * 0.1, (l.y1 - l.y0) * 1.3, 0.6)) this.fx.push({ k: 'burst', x, y: l.y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.5, c: '#ff8a2a' }); break; }
+        case 'Hexed': case 'UnitRestored': case 'Raised': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.6, t: 0, d: 0.5, c: e.type === 'UnitRestored' ? '#ffffff' : '#a64dff' }); break;
+        case 'UnitGrew': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.4, t: 0, d: 0.45, c: '#ffd34d' }); break;
+        case 'Frozen': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.1, t: 0, d: 0.35, c: '#bfefff' }); break;
+        case 'Blocked': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y - v.r, r: v.r * 0.9, t: 0, d: 0.3, c: '#ffe68a' }); break;
         case 'UnitDied':
           if (Math.random() < 0.25) this.baronReact(1 - e.player, 'cheer'); // o Barão comemora a tropa inimiga derrotada
           if (v) this.playFx('fx_death', v.x, v.y + v.r * 0.5 - v.lift, 90 * ARENA.lanes[v.u.lane].k, 0.6); break;
@@ -130,7 +136,7 @@
           }
           break;
         }
-        case 'UnitRevived': if (v) { v.born = 0; this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 2.5, t: 0, d: 0.5, c: '#ffb23a' }); } break;
+        case 'UnitRevived': if (v) { v.x = this.laneX(m, e.x, e.lane); v.born = 0; this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 2.5, t: 0, d: 0.5, c: '#ffb23a' }); } break;
         case 'Heal': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y - v.lift, r: v.r * 1.4, t: 0, d: 0.35, c: '#7cff8a' }); break;
         case 'SpellCast': {
           const c = SPELL_COLOR[e.id] || '#f7c548';
@@ -659,7 +665,7 @@
     // Tropa animada (quadros extraídos dos vídeos: linha 0 = andar, linha 1 = ataque; desenhados virados para a direita)
     drawSprite(v, u, sp, sheet, dt, dir) {
       const g = this.g, k = ARENA.lanes[u.lane].k;
-      const bodyPx = (v.fly ? 126 : 140) * k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3);
+      const bodyPx = (v.fly ? 126 : 140) * k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3) * (u.size || 1);
       let scale = v.born < 1 ? 0.3 + 0.7 * easeOutBack(v.born) : 1, alpha = 1;
       if (v.dying >= 0) { scale *= 1 - v.dying / 0.4; alpha = 1 - v.dying / 0.4; }
       const s = (bodyPx / sp.body) * scale;
@@ -673,6 +679,11 @@
       const lift = v.fly ? 46 * k : 0, bob = v.fly ? Math.sin(v.phase * 3) * 5 : 0;
       const foot = v.y;
       g.save(); g.globalAlpha = alpha;
+      if (u.def.ability === 'ShieldDome' && v.dying < 0) { // cúpula do Paladino no chão
+        const l = ARENA.lanes[u.lane], rr = ((u.def.abilityRadius || 6) / 100) * (l.xR - l.xL);
+        g.fillStyle = 'rgba(255,230,138,.12)'; g.strokeStyle = 'rgba(255,230,138,.55)'; g.lineWidth = 2;
+        g.beginPath(); g.ellipse(v.x, v.y, rr, rr * 0.28, 0, 0, TAU); g.fill(); g.stroke();
+      }
       // sombra e marca do time no chão
       g.save();
       g.translate(v.x, foot - lift + bob);

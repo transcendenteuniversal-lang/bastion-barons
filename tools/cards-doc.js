@@ -10,6 +10,11 @@ const ALVO = { Ground: 'Terra', Air: 'Ar', Both: 'Terra e ar', CastleOnly: 'Só 
 const nm = (id) => P['card.' + id + '.name'] || id;
 const ds = (c) => (P['card.' + c.id + '.desc'] || '').replace(/\|/g, '/');
 function hab(c) {
+  const extra = [c.allLanes && 'Entram 3, um em cada rota', c.deployAnywhere && 'Pode entrar em qualquer ponto da rota', c.deathDamage && 'Ao morrer explode: ' + c.deathDamage + ' de dano num raio de ' + n(c.deathRadius)].filter(Boolean);
+  const main = hab0(c);
+  return [main === '—' && extra.length ? null : main, ...extra].filter(Boolean).join('. ');
+}
+function hab0(c) {
   const v = c.abilityValue, pct = (x) => Math.round(x * 100) + '%';
   switch (c.ability) {
     case 'Lifesteal': return 'Roubo de vida: recupera ' + pct(v) + ' do dano causado';
@@ -20,8 +25,18 @@ function hab(c) {
     case 'BuildTurret': return 'Ao entrar, constrói ' + (c.summonCount || 1) + ' ' + nm(c.summonId);
     case 'Summon': return 'Invoca ' + (c.summonCount || 1) + ' ' + nm(c.summonId) + (c.summonCount > 1 ? 's' : '') + ' a cada ' + n(c.abilityInterval) + ' s';
     case 'SlowOnHit': return 'Cada ataque deixa o alvo ' + pct(v) + ' mais lento por ' + n(c.abilityDuration || 2) + ' s';
-    case 'Rebirth': return 'Renasce uma vez com ' + pct(v) + ' da vida';
+    case 'Rebirth': return 'Renasce uma vez no começo da rota com ' + n(v) + '× tamanho e dano';
     case 'Regen': return 'Regenera ' + v + ' de vida por segundo';
+    case 'DoubleShot': return 'Ataca 2 vezes por segundo';
+    case 'LaneHop': return 'Muda para a rota vizinha uma vez, quando um inimigo chega a ' + n(c.abilityRadius) + ' de distância';
+    case 'Knockback': return 'Cada golpe empurra o inimigo ' + n(v) + ' casas para trás';
+    case 'FirstHitKnockback': return 'O primeiro golpe arremessa o inimigo ' + n(v) + ' casas para trás';
+    case 'Enrage': return 'Com ' + pct(v) + ' da vida ou menos, ataca e anda 2× mais rápido';
+    case 'ShieldDome': return 'Cúpula: aliados num raio de ' + n(c.abilityRadius) + ' só levam dano de inimigos dentro dela';
+    case 'FreezeOnHit': return 'Cada ataque congela o alvo por ' + n(c.abilityDuration) + ' s';
+    case 'RaiseDead': return 'Toda unidade que morre na rota vira esqueleto do seu lado';
+    case 'Grow': return 'Cresce e ganha +' + pct(v) + ' de dano a cada inimigo abatido na rota';
+    case 'Hex': return 'Ao entrar, os inimigos da rota viram esqueletos; se ele morrer, voltam ao normal';
     case 'None': case undefined: return '—';
     default: return c.ability;
   }
