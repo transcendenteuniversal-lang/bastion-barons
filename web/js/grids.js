@@ -39,6 +39,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "scale": 1,
   "src": "img/units/barbarian_g.webp"
  },
+ "dwarf_engineer": {
+  "w": 260,
+  "h": 263,
+  "ax": 122,
+  "ay": 258,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -75,
+   -220,
+   111,
+   1
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/dwarf_engineer_g.webp"
+ },
  "dwarf_warrior": {
   "w": 263,
   "h": 276,
@@ -95,6 +114,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "blend": 1,
   "scale": 1.3,
   "src": "img/units/fire_dragon_g.webp"
+ },
+ "forest_druid": {
+  "w": 265,
+  "h": 284,
+  "ax": 105,
+  "ay": 280,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -86,
+   -222,
+   115,
+   0
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/forest_druid_g.webp"
  },
  "goblin_gunner": {
   "w": 260,
@@ -286,6 +324,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "scale": 1,
   "src": "img/units/royal_archer_g.webp"
  },
+ "royal_cleric": {
+  "w": 301,
+  "h": 278,
+  "ax": 120,
+  "ay": 273,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -78,
+   -221,
+   118,
+   1
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/royal_cleric_g.webp"
+ },
  "royal_griffin": {
   "w": 340,
   "h": 270,
@@ -381,6 +438,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "scale": 1,
   "src": "img/units/shadow_sorceress_g.webp"
  },
+ "skeleton_summoner": {
+  "w": 228,
+  "h": 254,
+  "ax": 106,
+  "ay": 250,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -90,
+   -221,
+   116,
+   0
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/skeleton_summoner_g.webp"
+ },
  "stone_golem": {
   "w": 252,
   "h": 267,
@@ -418,5 +494,24 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "blend": 1,
   "scale": 1,
   "src": "img/units/stone_guardian_g.webp"
+ },
+ "war_wolf": {
+  "w": 335,
+  "h": 263,
+  "ax": 158,
+  "ay": 258,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -144,
+   -221,
+   150,
+   1
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/war_wolf_g.webp"
  }
 });
