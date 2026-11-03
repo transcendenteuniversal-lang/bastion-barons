@@ -22,7 +22,7 @@ BB.CONTENT = {
   "drawInterval": 4,
   "deckSize": 14,
   "laneLength": 100,
-  "spawnOffset": 9,
+  "spawnOffset": 1,
   "castleFront": 6,
   "castleHp": 6000,
   "castleAttackDamage": 0,

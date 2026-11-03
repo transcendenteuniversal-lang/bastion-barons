@@ -260,7 +260,7 @@
       const B = this.B;
       const u = {
         id: this.nextId++, owner, lane, def, level,
-        x: Math.min(this.L - B.castleFront, Math.max(B.castleFront, x)),
+        x: Math.min(this.L - Math.min(B.spawnOffset, B.castleFront), Math.max(Math.min(B.spawnOffset, B.castleFront), x)), // nasce atrás da linha de ataque
         maxHp: def.hp * mult, hp: def.hp * mult, damage: def.damage * mult,
         abilityPower: (def.abilityValue || 0) * (def.ability === 'HealAura' || def.ability === 'Regen' ? mult : 1),
         attackCd: def.attackInterval * 0.5, abilityTimer: 0, deploy: B.deployDelay, life: def.lifetime || 0,

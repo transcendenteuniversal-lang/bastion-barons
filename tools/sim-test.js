@@ -274,7 +274,7 @@ for (const d of ['easy', 'normal', 'hard']) {
 }
 test('IA difícil vence a fácil na maioria das partidas', () => {
   let hardWins = 0, easyWins = 0;
-  for (let s = 1; s <= 20; s++) {
+  for (let s = 1; s <= 40; s++) {
     const m = newMatch({ seed: s * 13 });
     const h = new BB.AI(m, s % 2, 'hard', s), e = new BB.AI(m, 1 - (s % 2), 'easy', s + 5);
     while (!m.over) { h.tick(); e.tick(); m.step(); }
