@@ -152,7 +152,7 @@ BB.STRINGS = {
 "card.dwarf_warrior.desc": "Golpes pesados que atingem uma área.",
 "card.royal_lancer.name": "Lanceiro Real",
 "card.royal_lancer.desc": "Alcance intermediário; atinge alvos aéreos.",
-"card.elven_archer.name": "Arqueira Élfica",
+"card.elven_archer.name": "Arqueiro Élfico",
 "card.elven_archer.desc": "Longo alcance; muda de rota uma vez quando um inimigo chega perto.",
 "card.royal_archer.name": "Arqueiro Real",
 "card.royal_archer.desc": "Arqueiro de longuíssimo alcance.",
