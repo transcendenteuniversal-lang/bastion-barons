@@ -191,21 +191,22 @@ console.log('Barões e castelos');
 test('poder do Barão só ativa quando carregado', () => {
   const m = newMatch({ baron0: 'eldrin' });
   eq(m.execute({ type: 'baron', player: 0, lane: 1 }), 'NotReady');
-  const e = m.spawnUnit(1, content.card('royal_knight'), 1, 60, 1); e.stun = 1000;
+  const e = m.spawnUnit(1, content.card('royal_knight'), 1, 60, 1); 
   m.players[0].baronCharge = 999; eq(m.execute({ type: 'baron', player: 0, lane: 1 }), 'Ok');
-  assert(e.hp < e.maxHp); assert(!m.baronReady(m.players[0]));
+  assert(e.stun >= 4 - 1e-6); assert(!m.baronReady(m.players[0]));
 });
 test('os 5 poderes dos Barões funcionam', () => {
   for (const b of content.barons) {
     const m = newMatch({ baron0: b.id });
     m.spawnUnit(0, content.card('royal_knight'), 1, 40, 1); m.spawnUnit(0, content.card('royal_knight'), 1, 41, 1);
-    const e = m.spawnUnit(1, content.card('red_orc'), 1, 70, 1); e.stun = 1000;
+    const e = m.spawnUnit(1, content.card('red_orc'), 1, 70, 1); if (b.ability !== 'ArcaneStorm') e.stun = 1000;
     m.players[0].baronCharge = b.chargeSeconds;
     eq(m.execute({ type: 'baron', player: 0, lane: 1 }), 'Ok', b.id);
+    if (b.ability === 'ArcaneStorm') near(e.stun, b.duration, 0.01);
     if (b.ability === 'OrcFury' || b.ability === 'RoyalCommand') assert(m.players[0].mods.length > 0, b.id);
     run(m, 4);
     if (b.ability === 'ArmyOfDead') assert(m.units.some((u) => u.def.id === 'skeleton'), b.id);
-    if (b.ability === 'ArcaneStorm' || b.ability === 'ElvenRain') assert(e.hp < e.maxHp, b.id);
+    if (b.ability === 'ElvenRain') assert(e.hp < e.maxHp, b.id);
   }
 });
 test('Escudo Imperial absorve dano do castelo', () => {

@@ -157,6 +157,7 @@
         case 'BaronUsed': {
           this.baronCast[e.player] = 1; this.baronAnim[e.player] = 0; this.setBaronAnim(e.player, 'power');
           const bab = m.players[e.player].baron.ability;
+          if (bab === 'OrcFury' && e.lane >= 0) (this.rage = this.rage || []).push({ lane: e.lane, t: 0, d: m.players[e.player].baron.duration || 8 });
           const bkey = { RoyalCommand: 'fx_royal_command', ElvenRain: 'fx_elven_rain', ArmyOfDead: 'fx_army_of_dead', OrcFury: 'fx_orc_fury', ArcaneStorm: 'fx_arcane_storm' }[bab];
           if (bkey && this.fxSheet(bkey)) {
             if (e.lane < 0) { // Comando Real: todas as rotas
@@ -264,6 +265,33 @@
       g.restore();
     }
 
+    // Fúria Orc: a rota fica vermelha e as linhas douradas das bordas pegam fogo
+    drawRage(dt) {
+      if (!this.rage || !this.rage.length) return;
+      const g = this.g;
+      this.rage = this.rage.filter((r) => (r.t += dt) < r.d);
+      for (const r of this.rage) {
+        const l = ARENA.lanes[r.lane], fade = Math.min(1, r.t / 0.3, (r.d - r.t) / 0.6);
+        const pulse = 0.3 + 0.07 * Math.sin(this.t * 6);
+        g.save(); g.globalAlpha = fade;
+        const gr = g.createLinearGradient(0, l.y0, 0, l.y1);
+        gr.addColorStop(0, 'rgba(255,40,20,' + (pulse + 0.1) + ')'); gr.addColorStop(0.5, 'rgba(200,20,10,' + pulse + ')'); gr.addColorStop(1, 'rgba(255,40,20,' + (pulse + 0.1) + ')');
+        g.fillStyle = gr; g.fillRect(l.xL - 40, l.y0, l.xR - l.xL + 80, l.y1 - l.y0);
+        g.globalCompositeOperation = 'lighter';
+        for (const ey of [l.y0, l.y1]) { // chamas ao longo das duas linhas da rota
+          for (let x = l.xL - 30; x < l.xR + 30; x += 18) {
+            const seed = x * 0.37 + ey, f = 0.5 + 0.5 * Math.sin(this.t * 11 + seed) * Math.sin(this.t * 7.3 + seed * 1.7);
+            const h = 16 + 22 * f, w = 9 + 3 * f;
+            g.fillStyle = 'rgba(255,' + Math.round(90 + 90 * f) + ',20,.75)';
+            g.beginPath(); g.moveTo(x - w, ey); g.quadraticCurveTo(x - w * 0.6, ey - h * 0.6, x, ey - h); g.quadraticCurveTo(x + w * 0.6, ey - h * 0.6, x + w, ey); g.closePath(); g.fill();
+            g.fillStyle = 'rgba(255,240,150,.7)';
+            g.beginPath(); g.ellipse(x, ey - h * 0.25, w * 0.35, h * 0.25, 0, 0, TAU); g.fill();
+          }
+        }
+        g.restore();
+      }
+    }
+
     // silhueta branca do quadro atual (piscada de dano)
     whiteFrame(sheet, sx, sy, w, h) {
       if (!this.tint) { this.tint = document.createElement('canvas'); }
@@ -346,6 +374,7 @@
 
       for (let i = 0; i < 2; i++) this.drawCastleState(m, i);
       this.drawFrontWall();
+      this.drawRage(dt);
       this.syncViews(m, dt);
       const list = [...this.views.values(), ...this.ghosts].sort((a, b) => (a.fly - b.fly) || (a.y - b.y));
       for (const v of list) this.drawUnit(v, dt);
@@ -772,7 +801,7 @@
       g.globalAlpha = 1;
     }
 
-    reset() { this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; this.endZoom = 0; }
+    reset() { this.rage = []; this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; this.endZoom = 0; }
   }
 
   function medallion(g, img, x, y, r, ring, lw, flip) {

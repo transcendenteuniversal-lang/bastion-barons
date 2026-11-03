@@ -61,10 +61,10 @@
 | Foto | Barão | Poder | Recarga | Efeito |
 |---|---|---|---|---|
 | ![](../web/img/barons/rei_bastion.webp) | **Rei Bastion** | Comando Real | 35 s | Todas as tropas aliadas ganham +30% de dano e +20% de velocidade por 8s. |
-| ![](../web/img/barons/elara.webp) | **Elara** | Chuva Élfica | 30 s | 8 rajadas de flechas atingem todos os inimigos da rota escolhida. |
-| ![](../web/img/barons/thorg.webp) | **Thorg** | Fúria Orc | 30 s | Tropas aliadas na rota ganham +60% de dano e +25% de velocidade de ataque por 8s. |
+| ![](../web/img/barons/elara.webp) | **Elara** | Chuva Élfica | 30 s | 8 rajadas de flechas, 55 de dano cada (440 no total), em todos os inimigos da rota escolhida. |
+| ![](../web/img/barons/thorg.webp) | **Thorg** | Fúria Orc | 30 s | A rota fica em chamas: tropas aliadas nela ganham +60% de dano e +25% de velocidade de ataque por 8s. |
 | ![](../web/img/barons/malachar.webp) | **Malachar** | Exército dos Mortos | 35 s | Invoca 5 esqueletos na rota escolhida. |
-| ![](../web/img/barons/eldrin.webp) | **Eldrin** | Tempestade Arcana | 40 s | Explosão de 380 de dano em todos os inimigos da rota. |
+| ![](../web/img/barons/eldrin.webp) | **Eldrin** | Tempestade Arcana | 40 s | Congela todos os inimigos da rota escolhida por 4 segundos. |
 
 ## Castelos
 

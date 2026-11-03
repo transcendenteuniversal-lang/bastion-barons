@@ -757,7 +757,7 @@ BB.CONTENT = {
    "cls": "Mage",
    "ability": "ArcaneStorm",
    "chargeSeconds": 40,
-   "value": 380,
+   "duration": 4,
    "requiresLane": true,
    "unlockLevel": 4,
    "color": "#2E6FE0"

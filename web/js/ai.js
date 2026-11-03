@@ -119,7 +119,7 @@
     tryBaron(p, lanes, threatLane) {
       if (!this.m.baronReady(p)) return;
       switch (p.baron.ability) {
-        case 'ElvenRain': case 'ArcaneStorm': {
+        case 'ElvenRain': case 'ArcaneStorm': { // chuva de dano / congelar a rota com mais inimigos
           const l = argMax(lanes, (x) => x.enemyCount);
           if (lanes[l].enemyCount >= 2) this.issue({ type: 'baron', lane: l });
           break;

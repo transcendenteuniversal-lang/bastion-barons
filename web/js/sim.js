@@ -655,7 +655,9 @@
           if (s) for (let i = 0; i < Math.max(1, b.count); i++) this.spawnUnit(p.index, s, l, this.spawnX(p.index) - dirOf(p.index) * 1.2 * i, 1);
           break;
         }
-        case 'ArcaneStorm': this.damageLane(p.index, l, b.value, -1, 0); break;
+        case 'ArcaneStorm': // Tempestade: congela todos os inimigos da rota
+          for (const u of this.units) if (u.hp > 0 && u.owner !== p.index && u.lane === l) { u.stun = Math.max(u.stun, b.duration || 4); this.emit('Frozen', u.owner, { unitId: u.id, lane: l, x: u.x }); }
+          break;
       }
       p.baronCharge = 0;
       p.stats.baronUses++;
