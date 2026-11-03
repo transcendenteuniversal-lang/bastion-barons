@@ -348,7 +348,7 @@
       }
       const front = this.castleFront(1 - u.owner);
       const dist = (front - u.x) * u.dir;
-      if (dist <= d.range + this.bodyR(d) + 0.01) {
+      if (dist <= d.range + 0.01) {
         u.state = 'AttackingCastle'; u.targetId = 0;
         if (u.attackCd <= 0) {
           u.attackCd = Math.max(0, u.attackCd + d.attackInterval);
@@ -361,7 +361,7 @@
       if (u.attackCd < 0) u.attackCd = 0;
       if (d.moveSpeed <= 0) { u.state = 'Idle'; return; }
       u.state = 'Moving';
-      u.x += u.dir * Math.min(d.moveSpeed * (this.B.moveSpeedScale || 1) * moveMult * dt, Math.max(0, dist - d.range - this.bodyR(d)));
+      u.x += u.dir * Math.min(d.moveSpeed * (this.B.moveSpeedScale || 1) * moveMult * dt, Math.max(0, dist - d.range));
     }
 
     modifiers(u) {
