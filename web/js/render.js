@@ -22,6 +22,8 @@
       [340, 334], [300, 348], [272, 372], [252, 376], [230, 352], [200, 352], [38, 352]],
     unitR: 46,
   };
+  // primeira junta do piso ao lado do castelo esquerdo (a direita é espelhada): é onde as tropas nascem e batem
+  ARENA.seam = (y) => 400 - (y - 260) * 0.41;
   ARENA.laneEnds = ARENA.lanes.map((l) => [l.xL, l.xR]); // padrão (castelo antigo da arena)
   BB.ARENA = ARENA;
 
@@ -311,8 +313,7 @@
       if (this.frontKey === key) return;
       this.frontKey = key;
       // as 3 rotas começam numa mesma linha reta diagonal (igual para todos os castelos), na frente da sacada e do portão
-      const FRONT_LINE = { x: 370, y: ARENA.lanes[0].y, k: 0.38 };
-      const edge = (id, i) => (this.castleArtFor(id) ? FRONT_LINE.x - (ARENA.lanes[i].y - FRONT_LINE.y) * FRONT_LINE.k : null);
+      const edge = (id, i) => (this.castleArtFor(id) ? ARENA.seam(ARENA.lanes[i].y) : null);
       // Barão em pé na sacada do castelo escolhido
       for (let o = 0; o < 2; o++) {
         const a = this.castleArtFor(m.players[o].castle.id);
@@ -628,7 +629,10 @@
       for (const u of alive) {
         seen.add(u.id);
         const l = ARENA.lanes[u.lane];
-        const x = tx.get(u.id), y = l.y + rowOf.get(u.id) * (l.y1 - l.y0) * 0.24;
+        let x = tx.get(u.id); const y = l.y + rowOf.get(u.id) * (l.y1 - l.y0) * 0.24;
+        if (this.castleArt) { // segue a junta do piso também nas fileiras de cima e de baixo
+          const f = (x - l.xL) / (l.xR - l.xL), a = ARENA.seam(y); x = a + f * (AW - 2 * a);
+        }
         let v = this.views.get(u.id);
         if (!v) {
           const size = 0.8 + Math.min(1, u.def.hp / 1800) * 0.5;
