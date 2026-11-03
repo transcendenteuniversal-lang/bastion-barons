@@ -115,6 +115,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "scale": 1,
   "src": "img/units/goblin_gunner_g.webp"
  },
+ "guardian_ent": {
+  "w": 233,
+  "h": 237,
+  "ax": 110,
+  "ay": 232,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -94,
+   -220,
+   101,
+   1
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/guardian_ent_g.webp"
+ },
  "ice_dragon": {
   "w": 347,
   "h": 270,
@@ -133,6 +152,44 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "blend": 1,
   "scale": 1.3,
   "src": "img/units/ice_dragon_g.webp"
+ },
+ "infernal_demon": {
+  "w": 296,
+  "h": 279,
+  "ax": 144,
+  "ay": 274,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -118,
+   -219,
+   131,
+   1
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/infernal_demon_g.webp"
+ },
+ "mountain_troll": {
+  "w": 281,
+  "h": 318,
+  "ax": 125,
+  "ay": 314,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -100,
+   -221,
+   145,
+   0
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/mountain_troll_g.webp"
  },
  "necromancer": {
   "w": 235,
@@ -229,6 +286,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "scale": 1,
   "src": "img/units/royal_archer_g.webp"
  },
+ "royal_griffin": {
+  "w": 340,
+  "h": 270,
+  "ax": 161,
+  "ay": 263,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -157,
+   -221,
+   137,
+   1
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/royal_griffin_g.webp"
+ },
  "royal_knight": {
   "w": 234,
   "h": 234,
@@ -304,6 +380,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "blend": 1,
   "scale": 1,
   "src": "img/units/shadow_sorceress_g.webp"
+ },
+ "stone_golem": {
+  "w": 252,
+  "h": 267,
+  "ax": 118,
+  "ay": 263,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -96,
+   -222,
+   117,
+   0
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/stone_golem_g.webp"
  },
  "stone_guardian": {
   "w": 256,
