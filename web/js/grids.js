@@ -573,6 +573,24 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
  }
 });
 Object.assign(BB.FX = BB.FX || {}, {
+ "fx_arcane_shield": {
+  "w": 336,
+  "h": 226,
+  "n": 12,
+  "src": "img/units/fx_arcane_shield_g.webp"
+ },
+ "fx_arrow_rain": {
+  "w": 341,
+  "h": 273,
+  "n": 12,
+  "src": "img/units/fx_arrow_rain_g.webp"
+ },
+ "fx_divine_heal": {
+  "w": 232,
+  "h": 284,
+  "n": 12,
+  "src": "img/units/fx_divine_heal_g.webp"
+ },
  "fx_fireball": {
   "w": 339,
   "h": 263,
@@ -584,5 +602,17 @@ Object.assign(BB.FX = BB.FX || {}, {
   "h": 232,
   "n": 12,
   "src": "img/units/fx_freeze_g.webp"
+ },
+ "fx_lightning": {
+  "w": 314,
+  "h": 275,
+  "n": 12,
+  "src": "img/units/fx_lightning_g.webp"
+ },
+ "fx_skeleton_summon": {
+  "w": 334,
+  "h": 274,
+  "n": 12,
+  "src": "img/units/fx_skeleton_summon_g.webp"
  }
 });

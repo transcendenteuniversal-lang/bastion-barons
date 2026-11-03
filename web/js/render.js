@@ -161,9 +161,9 @@
           const l = ARENA.lanes[e.lane], lh = l.y1 - l.y0, sx = this.laneX(m, e.x, e.lane);
           const SPELL_FX = { // posição e tamanho de cada efeito animado (altura em relação à rota)
             fireball: { x: sx, h: lh * 1.6, d: 1.2 }, freeze: { x: sx, h: lh * 1.4, d: 1.3 }, poison: { x: sx, h: lh * 1.05, d: 1.4 },
-            divine_heal: { x: sx, h: lh * 1.0, d: 1.1 }, arcane_shield: { x: sx, h: lh * 1.4, d: 1.2 },
-            lightning: { x: sx, h: lh * 1.5, d: 1.0 }, arrow_rain: { x: (l.xL + l.xR) / 2, h: lh * 1.2, d: 1.2 },
-            skeleton_summon: { x: sx, h: lh * 1.0, d: 1.0 },
+            divine_heal: { x: sx, h: lh * 1.6, d: 1.3 }, arcane_shield: { x: sx, h: lh * 1.3, d: 1.4 },
+            lightning: { x: sx, h: lh * 1.9, d: 1.1 }, arrow_rain: { x: (l.xL + l.xR) / 2, h: lh * 1.6, d: 1.4 },
+            skeleton_summon: { x: sx, h: lh * 1.4, d: 1.3 },
             spark: { x: sx, h: lh * 0.9, d: 0.6, key: 'fx_lightning' },
           };
           const anim = SPELL_FX[e.id];
