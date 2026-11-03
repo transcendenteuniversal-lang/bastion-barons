@@ -310,7 +310,9 @@
       const key = m.players[0].castle.id + '|' + m.players[1].castle.id;
       if (this.frontKey === key) return;
       this.frontKey = key;
-      const edge = (id, i) => { const a = this.castleArtFor(id); const f = a && a.front && a.front[i]; return f == null ? null : f + [16, -4, -20][i]; };
+      // as 3 rotas começam numa mesma linha reta diagonal (igual para todos os castelos), na frente da sacada e do portão
+      const FRONT_LINE = { x: 370, y: ARENA.lanes[0].y, k: 0.38 };
+      const edge = (id, i) => (this.castleArtFor(id) ? FRONT_LINE.x - (ARENA.lanes[i].y - FRONT_LINE.y) * FRONT_LINE.k : null);
       // Barão em pé na sacada do castelo escolhido
       for (let o = 0; o < 2; o++) {
         const a = this.castleArtFor(m.players[o].castle.id);
