@@ -5,7 +5,11 @@ import base64, html, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 G, M = 'perfectly flat solid chroma GREEN background (#00FF00)', 'perfectly flat solid MAGENTA background (#FF00FF)'
 STYLE = ('Stylized 3D cartoon, Castle Crush / Castle Clash style: clean shapes, few colors, bold readable silhouette, '
-         'crisp edges, high definition. Use the attached card art as the exact character design reference (same face, colors, outfit and weapon).')
+         'crisp edges, high definition. FAITHFUL COPY OF THE ATTACHED CARD ART: this is the same character as in the attached card image, '
+         'do NOT redesign it. Keep exactly the same face and expression, skin color, hair or helmet, body proportions, armor shapes, '
+         'outfit, colors and color placement, patterns and emblems, weapon shape and size, and accessories. Do not add or remove any item, '
+         'do not change the age, style or color palette, do not make it cuter or more realistic; only show the full body that the card does not show, '
+         'continuing the same design consistently.')
 RULES = ('{bg}, no gradients, no shadow on the background, no ground, no text, no numbers, no labels, no frame borders or grid lines. '
          'Exactly 2 horizontal rows of 6 frames each, all 12 frames the same size on an invisible even grid. '
          'Side view, the character always faces RIGHT. ROW 1: {walk}. ROW 2: {attack}. '
@@ -108,15 +112,17 @@ CHAR = ('Character design reference sheet for a 2D mobile battle game: ONE singl
         'Show only this one character, standing in a neutral ready pose, full body from head to feet, seen from the side (3/4 side view) facing RIGHT, '
         'holding its weapon (if it has one) in its normal position. Show every detail clearly: face, hair, armor, clothes, colors, patterns, weapon and accessories (whatever it has), '
         'so this exact design can be reused later for the animations. {bg}, no gradients, no vignette, no shadow on the background, no floor, no text, '
-        'no numbers, no labels, no border. Square image (1:1). The character is centered and takes about 60% of the image height, '
-        'with wide empty background space on all four sides so no part (weapon, wings, tail, hat, cape, effects) is cut or touches the edge. '
+        'no numbers, no labels, no border. Wide landscape image 16:9. The character stands in the exact center of the image and takes only about 45% of the image height, '
+        'with very wide empty background space on all four sides (much more on the left and right) so later the walking and attack animations, '
+        'swinging weapons, open wings, tails, capes and effects will never be cut or touch the edge. '
         'Sharp, clean, high definition, even lighting.')
 CHAR_FLY = CHAR.replace('standing in a neutral ready pose, full body from head to feet', 'flying in a neutral hovering pose with wings fully open, the whole body and both wings visible')
 FX = ('Visual effect design reference for a 2D mobile battle game: the spell "{name}" at its full strength, one single image of the effect: {desc}. '
-      + STYLE.replace(' Use the attached card art as the exact character design reference (same face, colors, outfit and weapon).', ' Use the attached card art as color and style reference.') +
+      + 'Stylized 3D cartoon, Castle Crush / Castle Clash style: clean shapes, few colors, crisp edges, high definition. '
+      'FAITHFUL TO THE ATTACHED CARD ART: keep exactly the same colors, shapes, glow and style of the effect shown on the attached card image, do not redesign it.' +
       ' Seen from the side at ground level. Show every detail clearly (shapes, colors, glow, particles) so this exact design can be reused later for the animation. '
-      '{bg}, no gradients, no vignette, no shadow on the background, no floor, no text, no labels, no border. Square image (1:1). '
-      'The effect is centered and takes about 60% of the image, with wide empty background space on all four sides so nothing is cut or touches the edge.')
+      '{bg}, no gradients, no vignette, no shadow on the background, no floor, no text, no labels, no border. Wide landscape image 16:9. '
+      'The effect is in the exact center and takes only about 50% of the image height, with very wide empty background space on all four sides so the animation will never be cut or touch the edge.')
 FLYERS = {'fire_dragon', 'ice_dragon', 'phoenix', 'vampire_bat'}
 blocks = []
 for cid, nm, bg, desc, walk, atk in T:
