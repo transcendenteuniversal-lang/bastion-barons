@@ -272,3 +272,9 @@ img { -webkit-user-drag: none; pointer-events: none; }
 #rotate { display: none; position: fixed; inset: 0; z-index: 99; background: var(--night); align-items: center; justify-content: center; flex-direction: column; font-size: 2rem; }
 #rotate div { font-size: 6rem; }
 @media (orientation: portrait) and (max-width: 900px) { #rotate { display: flex; } }
+
+/* carta sendo arrastada */
+.drag-card { position: fixed; z-index: 50; pointer-events: none; transform: scale(1.12) rotate(-4deg); filter: drop-shadow(0 .8em 1em rgba(0,0,0,.55)); transition: transform .12s; }
+.drag-card.over { transform: scale(.8) rotate(0); opacity: .85; }
+.drag-card.drop { transition: all .2s ease-in; transform: scale(.15); opacity: 0; }
+.hb-slot .card.lifted { opacity: .35; }

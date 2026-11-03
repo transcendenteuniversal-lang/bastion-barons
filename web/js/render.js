@@ -37,6 +37,8 @@
     fire_dragon: 'fire', phoenix: 'fire', ice_dragon: 'ice' };
   const PROJ_TINT = { arcane_mage: '#6fd8ff', shadow_sorceress: '#c04dff', necromancer: '#9dff6a', skeleton_summoner: '#c04dff', royal_cleric: '#ffe68a',
     forest_druid: '#7dff6a', fire_dragon: '#ff8a2a', phoenix: '#ffb02a', ice_dragon: '#bfefff' };
+  const HEAVY = new Set(['mountain_troll', 'stone_golem', 'infernal_demon', 'stone_guardian', 'guardian_ent', 'barbarian', 'shadow_assassin']);
+  const RARITY_COLOR = { Common: '#9fd0ff', Rare: '#3f8fff', Epic: '#b05cff', Legendary: '#ffb422', Mythic: '#ff3d6e' };
   const PROJ_COLOR = { Necromancer: '#c04dff', Mage: '#6fd8ff', Beast: '#ff8a3a', Archer: '#f2e3b3', Cleric: '#ffe68a', Engineer: '#ffd27a' };
 
   class Renderer {
@@ -98,11 +100,18 @@
           const def = m.content.cards[e.id];
           if (v) { v.lunge = 0.22; v.atk = 0; v.atkDur = def ? Math.max(0.45, Math.min(1.1, def.attackInterval * 0.85)) : 0.6; }
           if (!def || !v) break;
+          const heavy = HEAVY.has(def.id) || e.value >= 140;
           if (def.range <= 4) {
             const tv = e.targetId ? this.views.get(e.targetId) : null;
-            if (tv) this.playFx('fx_hit', tv.x, tv.y - tv.r * 0.2, 70, 0.3);
-            else if (!e.targetId) { const c = this.castlePoint(1 - e.player); this.playFx('fx_hit', c.x, c.y + 40, 90, 0.3); }
+            if (tv) {
+              this.playFx('fx_hit', tv.x, tv.y - tv.r * 0.2, heavy ? 95 : 70, 0.3);
+              tv.kick = heavy ? 0.22 : 0.14; tv.kickDir = e.player === 0 ? 1 : -1; // tranco para trás
+              this.dust(tv.x, tv.y, heavy ? 7 : 4);
+              this.sparks(tv.x - tv.kickDir * tv.r * 0.4, tv.y - tv.r * 0.5, heavy ? 8 : 5);
+            } else if (!e.targetId) { const c = this.castlePoint(1 - e.player); this.playFx('fx_hit', c.x, c.y + 40, 90, 0.3); this.sparks(c.x, c.y, 6); }
+            this.hitstop = Math.max(this.hitstop || 0, heavy ? 0.085 : 0.035);
           }
+          if (heavy) this.shake = Math.max(this.shake, 0.18);
           if (def.range > 4) {
             const tv = e.targetId ? this.views.get(e.targetId) : null;
             const to = tv ? { x: tv.x, y: tv.y - tv.r * 0.4 - tv.lift } : this.castlePoint(1 - e.player);
@@ -117,8 +126,14 @@
           break;
         }
         case 'UnitSpawned': {
-          const l = ARENA.lanes[e.lane];
-          this.playFx('fx_deploy', this.laneX(m, e.x, e.lane), l.y + (l.y1 - l.y0) * 0.35, 95 * l.k, 0.55);
+          const l = ARENA.lanes[e.lane], def = m.content.cards[e.id], x = this.laneX(m, e.x, e.lane);
+          const col = RARITY_COLOR[def && def.rarity] || '#9fd0ff', big = def && (def.rarity === 'Legendary' || def.rarity === 'Mythic');
+          if (def && def.token) { this.fx.push({ k: 'flash', x, y: l.y - 30, r: 50, c: '#b98cff', t: 0, d: 0.3 }); break; }
+          this.playFx('fx_deploy', x, l.y + (l.y1 - l.y0) * 0.35, 95 * l.k, 0.55);
+          this.fx.push({ k: 'ring', x, y: l.y + 4, r: big ? 95 : 70, c: col, t: 0, d: big ? 1.3 : 0.9 });
+          this.fx.push({ k: 'flash', x, y: l.y - 40, r: big ? 170 : 110, c: col, t: 0, d: big ? 0.6 : 0.35, beam: big });
+          this.dust(x, l.y, big ? 10 : 5);
+          if (big) { this.slowmo = 0.45; this.shake = Math.max(this.shake, 0.3); }
           break;
         }
         case 'DeathBlast': { const l = ARENA.lanes[e.lane]; const x = this.laneX(m, e.x, e.lane);
@@ -128,7 +143,8 @@
         case 'Frozen': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.1, t: 0, d: 0.35, c: '#bfefff' }); break;
         case 'Blocked': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y - v.r, r: v.r * 0.9, t: 0, d: 0.3, c: '#ffe68a' }); break;
         case 'UnitDied':
-          if (Math.random() < 0.25) this.baronReact(1 - e.player, 'cheer'); // o Barão comemora a tropa inimiga derrotada
+          if (!this.lastCheer) this.lastCheer = [0, 0];
+          if (this.t - this.lastCheer[1 - e.player] > 3) { this.lastCheer[1 - e.player] = this.t; this.baronReact(1 - e.player, 'cheer'); this.bubble(1 - e.player, ['💪', '😄', '🔥', '👊'][Math.floor(Math.random() * 4)]); }
           if (v) this.playFx('fx_death', v.x, v.y + v.r * 0.5 - v.lift, 90 * ARENA.lanes[v.u.lane].k, 0.6); break;
         case 'MatchEnded': {
           if (e.player === 0 || e.player === 1) {
@@ -154,7 +170,7 @@
           if (anim && this.fxSheet(anim.key || 'fx_' + e.id)) this.fx.push(Object.assign({ k: 'anim', key: 'fx_' + e.id, y: l.y1 - lh * 0.15, t: 0 }, anim));
           else if (!e.radius) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.6, c });
           else this.fx.push({ k: 'burst', x: sx, y: l.y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.55, c });
-          if (e.id === 'fireball') this.shake = 0.25;
+          this.shake = Math.max(this.shake, e.id === 'fireball' || e.id === 'lightning' ? 0.3 : 0.15);
           break;
         }
         case 'BaronUsed': {
@@ -219,7 +235,17 @@
         case 'CastleDamaged': {
           this.castleHit[e.player] = 0.18;
           if (!this.lastHurt) this.lastHurt = [0, 0];
-          if (this.t - this.lastHurt[e.player] > 2.5) { this.lastHurt[e.player] = this.t; this.baronReact(e.player, 'hurt'); }
+          if (this.t - this.lastHurt[e.player] > 2.5) { this.lastHurt[e.player] = this.t; this.baronReact(e.player, 'hurt'); this.bubble(e.player, ['😱', '😠', '❗'][Math.floor(Math.random() * 3)]); }
+          { // rachaduras em etapas (75%, 50%, 25%): pedras caem ao passar de cada uma
+            const p = m.players[e.player], st = p.castleHp <= p.castleMaxHp * 0.25 ? 3 : p.castleHp <= p.castleMaxHp * 0.5 ? 2 : p.castleHp <= p.castleMaxHp * 0.75 ? 1 : 0;
+            if (!this.crack) this.crack = [0, 0];
+            if (st > this.crack[e.player]) {
+              this.crack[e.player] = st; this.shake = Math.max(this.shake, 0.35);
+              const cp = this.castlePoint(e.player);
+              for (let i = 0; i < 16; i++) this.fx.push({ k: 'rock', x: cp.x + (Math.random() - 0.5) * 160, y: cp.y - 160 - Math.random() * 200, vx: (Math.random() - 0.5) * 300, vy: -120 - Math.random() * 200, r: 5 + Math.random() * 9, c: ['#7d7385', '#6a6070', '#958aa0'][i % 3], t: 0, d: 1.1 });
+              this.dust(cp.x, cp.y + 60, 12, 2);
+            }
+          }
           if (!this.lastCastleFx) this.lastCastleFx = [0, 0];
           if (this.t - this.lastCastleFx[e.player] > 0.6) {
             this.lastCastleFx[e.player] = this.t;
@@ -227,7 +253,7 @@
             this.playFx('fx_castle_hit', cp.x + (Math.random() - 0.5) * 80, cp.y + 20 - Math.random() * 120, 190, 0.7);
           }
           const pt = this.castlePoint(e.player);
-          if (e.value >= 1) this.texts.push({ x: pt.x + (Math.random() - 0.5) * 60, y: pt.y - 40, s: '-' + Math.round(e.value), t: 0, d: 0.9, c: e.player === 0 ? '#ff8080' : '#ffe08a' });
+          if (e.value >= 1) this.texts.push({ x: pt.x + (Math.random() - 0.5) * 60, y: pt.y - 40, s: '-' + Math.round(e.value), t: 0, d: 0.9, c: '#ff4a3a', size: 40, pop: true });
           break;
         }
         case 'CastleAttack': {
@@ -307,6 +333,13 @@
         }
         g.restore();
       }
+    }
+
+    dust(x, y, n, s = 1) {
+      for (let i = 0; i < n; i++) this.fx.push({ k: 'dust', x: x + (Math.random() - 0.5) * 30 * s, y: y - Math.random() * 6, vx: (Math.random() - 0.5) * 70, vy: -20 - Math.random() * 40, r: (8 + Math.random() * 10) * s, t: 0, d: 0.45 + Math.random() * 0.25 });
+    }
+    sparks(x, y, n) {
+      for (let i = 0; i < n; i++) { const a = Math.random() * TAU, sp = 160 + Math.random() * 260; this.fx.push({ k: 'spark', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, t: 0, d: 0.25 + Math.random() * 0.15 }); }
     }
 
     // silhueta branca do quadro atual (piscada de dano)
@@ -471,6 +504,15 @@
         c.gx = owner === 1 ? AW - gx : gx; c.gy = gy;
       }
       const w = c.x1 - c.x0, h = c.y1 - c.y0, cx = (c.x0 + c.x1) / 2;
+      const crack = (this.crack && this.crack[owner]) || 0;
+      if (crack > 0) { // rachaduras na parede do castelo
+        g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
+        g.strokeStyle = 'rgba(25,15,20,.85)'; g.lineWidth = 4; g.lineCap = 'round';
+        const C = [[[170, 420], [195, 470], [180, 520], [210, 575]], [[90, 560], [130, 600], [115, 650], [150, 700]], [[250, 300], [230, 350], [262, 395], [240, 440]],
+          [[60, 380], [95, 420], [80, 470]], [[300, 520], [280, 570], [305, 610]], [[140, 250], [165, 290], [150, 330]]];
+        for (let i = 0; i < Math.min(C.length, crack * 2); i++) { g.beginPath(); C[i].forEach(([x, y], j) => (j ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke(); }
+        g.restore();
+      }
       if (this.castleHit[owner] > 0) {
         g.fillStyle = 'rgba(255,90,60,' + this.castleHit[owner] * 1.2 + ')';
         g.beginPath(); g.ellipse(c.gx, c.gy - 40, 110, 150, 0, 0, TAU); g.fill();
@@ -577,6 +619,9 @@
       }
       this.g.drawImage(this.railing[owner], 0, 0);
     }
+
+    // balão com emoji sobre o Barão
+    bubble(owner, s) { const b = ARENA.baron[owner]; this.texts.push({ x: b.x + (owner === 0 ? 60 : -60), y: b.y - 110, s, t: 0, d: 1.2, big: true }); }
 
     setBaronAnim(owner, name) { this.baronState[owner] = { name, t: 0 }; }
     // reações do Barão (só interrompem a espera ou outra reação, nunca o poder)
@@ -703,7 +748,13 @@
         v.u = u;
         v.x += (x - v.x) * Math.min(1, dt * 10);
         v.y += (y - v.y) * Math.min(1, dt * 8);
-        if (u.hp < v.lastHp - 0.5) v.flash = 0.24;
+        if (u.hp < v.lastHp - 0.5) {
+          v.flash = 0.24;
+          const dmg = v.lastHp - u.hp;
+          if (dmg >= 8) this.texts.push({ x: v.x + (Math.random() - 0.5) * 30, y: v.y - v.r * 2.2 - v.lift, s: String(Math.round(dmg)), t: 0, d: 0.75,
+            c: dmg >= 120 ? '#ffd34d' : '#ffffff', size: dmg >= 120 ? 46 : 30, pop: true });
+        }
+        if (u.state === 'Moving' && !u.flying && (v.dustT = (v.dustT || 0) - dt) <= 0) { v.dustT = 0.22 + Math.random() * 0.1; this.dust(v.x - (u.owner === 0 ? 1 : -1) * v.r * 0.5, v.y, 1, 0.5); }
         v.lastHp = u.hp;
       }
       for (const [id, v] of this.views) if (!seen.has(id)) { this.views.delete(id); v.dying = 0; this.ghosts.push(v); }
@@ -776,6 +827,8 @@
         }
       }
       const lift = v.fly ? 46 * k : 0, bob = v.fly ? Math.sin(v.phase * 3) * 5 : 0;
+      if (v.kick > 0) { v.kick -= dt; }
+      const kx = v.kick > 0 ? v.kickDir * Math.sin((v.kick / 0.22) * Math.PI) * 14 : 0;
       const foot = v.y;
       g.save(); g.globalAlpha = alpha;
       if (u.def.ability === 'ShieldDome' && v.dying < 0) { // cúpula do Paladino no chão
@@ -785,7 +838,7 @@
       }
       // sombra e marca do time no chão
       g.save();
-      g.translate(v.x, foot - lift + bob);
+      g.translate(v.x + kx, foot - lift + bob);
       if (dir < 0) g.scale(-1, 1);
       if (u.state === 'Stunned') g.filter = 'saturate(.35) brightness(1.25) hue-rotate(160deg)';
       else if (u.poisonTime > 0) g.filter = 'sepia(.4) hue-rotate(50deg) saturate(1.4)';
@@ -850,6 +903,28 @@
         } else if (f.k === 'shard') { // pedaços da muralha voando
           const tt = f.t; g.globalAlpha = 1 - k; g.fillStyle = f.c;
           g.save(); g.translate(f.x + f.vx * tt, f.y + f.vy * tt + 600 * tt * tt); g.rotate(tt * 8); g.fillRect(-6, -6, 12, 12); g.restore(); g.globalAlpha = 1;
+        } else if (f.k === 'dust') {
+          g.globalAlpha = 0.45 * (1 - k); g.fillStyle = '#cfc6b8';
+          g.beginPath(); g.arc(f.x + f.vx * f.t, f.y + f.vy * f.t, f.r * (0.6 + k), 0, TAU); g.fill(); g.globalAlpha = 1;
+        } else if (f.k === 'spark') {
+          const x = f.x + f.vx * f.t, y = f.y + f.vy * f.t + 500 * f.t * f.t;
+          g.globalAlpha = 1 - k; g.strokeStyle = '#fff4b0'; g.lineWidth = 3; g.beginPath(); g.moveTo(x, y); g.lineTo(x - f.vx * 0.03, y - f.vy * 0.03); g.stroke(); g.globalAlpha = 1;
+        } else if (f.k === 'ring') { // círculo mágico da invocação
+          const a = k < 0.2 ? k / 0.2 : 1 - (k - 0.2) / 0.8;
+          g.save(); g.globalAlpha = a; g.translate(f.x, f.y); g.scale(1, 0.32); g.rotate(f.t * 2);
+          g.strokeStyle = f.c; g.lineWidth = 5; g.shadowColor = f.c; g.shadowBlur = 18;
+          g.beginPath(); g.arc(0, 0, f.r, 0, TAU); g.stroke();
+          g.lineWidth = 2.5; g.beginPath(); g.arc(0, 0, f.r * 0.72, 0, TAU); g.stroke();
+          for (let i = 0; i < 6; i++) { const q = i * TAU / 6; g.beginPath(); g.moveTo(Math.cos(q) * f.r * 0.72, Math.sin(q) * f.r * 0.72); g.lineTo(Math.cos(q + TAU / 3) * f.r * 0.72, Math.sin(q + TAU / 3) * f.r * 0.72); g.stroke(); }
+          g.restore();
+        } else if (f.k === 'flash') {
+          const a = 1 - k; const gr = g.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+          gr.addColorStop(0, `rgba(255,255,255,${0.9 * a})`); gr.addColorStop(0.4, f.c + Math.round(160 * a).toString(16).padStart(2, '0')); gr.addColorStop(1, 'rgba(255,255,255,0)');
+          g.fillStyle = gr; g.beginPath(); g.arc(f.x, f.y, f.r, 0, TAU); g.fill();
+          if (f.beam) { g.fillStyle = `rgba(255,240,200,${0.35 * a})`; g.fillRect(f.x - f.r * 0.25, f.y - 700, f.r * 0.5, 700); }
+        } else if (f.k === 'rock') {
+          const x = f.x + f.vx * f.t, y = f.y + f.vy * f.t + 900 * f.t * f.t;
+          g.globalAlpha = 1 - k * k; g.fillStyle = f.c; g.save(); g.translate(x, y); g.rotate(f.t * 6); g.fillRect(-f.r, -f.r, f.r * 2, f.r * 1.6); g.restore(); g.globalAlpha = 1;
         } else if (f.k === 'puff') {
           g.globalAlpha = 0.6 * (1 - k); g.fillStyle = '#d8d4cc';
           for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(f.x + (i - 1) * 8 * (1 + k), f.y - k * 18 - i * 4, 6 + k * 10, 0, TAU); g.fill(); }
@@ -876,13 +951,18 @@
       for (const t of this.texts) {
         g.globalAlpha = 1 - t.t / t.d;
         if (t.big) { g.save(); g.font = 'bold 64px sans-serif'; g.fillText(t.s, t.x, t.y - t.t * 50); g.restore(); continue; }
+        if (t.pop) {
+          const sc = t.t < 0.12 ? 0.6 + (t.t / 0.12) * 0.7 : 1.3 - Math.min(0.3, (t.t - 0.12) * 1.5);
+          g.save(); g.font = '900 ' + Math.round(t.size * sc) + 'px sans-serif'; g.lineWidth = 6; g.strokeStyle = '#000';
+          g.strokeText(t.s, t.x, t.y - t.t * 55); g.fillStyle = t.c; g.fillText(t.s, t.x, t.y - t.t * 55); g.restore(); continue;
+        }
         g.lineWidth = 7; g.strokeStyle = '#000'; g.strokeText(t.s, t.x, t.y - t.t * 70);
         g.fillStyle = t.c; g.fillText(t.s, t.x, t.y - t.t * 70);
       }
       g.globalAlpha = 1;
     }
 
-    reset() { this.rage = []; this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; this.endZoom = 0; }
+    reset() { this.crack = [0, 0]; this.lastCheer = [0, 0]; this.hitstop = 0; this.slowmo = 0; this.rage = []; this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; this.endZoom = 0; }
   }
 
   function medallion(g, img, x, y, r, ring, lw, flip) {

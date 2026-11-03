@@ -190,7 +190,7 @@
         const id = me.deck.hand[i];
         if (!id) { slot.innerHTML = '<div class="hb-empty"></div>'; return; }
         slot.innerHTML = BB.ui.cardHtml(BB.content.card(id), BB.Progress.owned(BB.profile, id), { level: true, attrs: 'data-i="' + i + '"' });
-        slot.firstElementChild.addEventListener('pointerdown', (e) => { e.preventDefault(); this.selectCard(i); });
+        slot.firstElementChild.addEventListener('pointerdown', (e) => { e.preventDefault(); this.selectCard(i, e); });
       });
     }
 
@@ -241,12 +241,30 @@
     }
 
     // ---------------------------------------------------------- entrada
-    selectCard(i) {
+    // segurar a carta e arrastar até a rota; uma cópia da carta segue o dedo
+    selectCard(i, e) {
       if (this.match.over || this.paused) return;
       BB.audio.unlock();
-      if (this.armed === 'card' && this.sel === i) { this.disarm(); return; }
       this.armed = 'card'; this.sel = i; this.dragging = true;
+      const src = this.el.slots[i] && this.el.slots[i].firstElementChild;
+      if (src && e) {
+        const r = src.getBoundingClientRect();
+        const d = document.createElement('div'); d.className = 'hb-slot drag-card';
+        const cl = src.cloneNode(true); cl.classList.remove('sel', 'lifted'); d.appendChild(cl);
+        d.style.width = r.width + 'px'; d.style.height = r.height + 'px'; d.style.fontSize = getComputedStyle(src.parentElement).fontSize;
+        document.body.appendChild(d); this.dragEl = d; this.dragOff = { x: r.width / 2, y: r.height * 0.7 };
+        this.moveDrag(e.clientX, e.clientY);
+        src.classList.add('lifted');
+      }
       BB.audio.play('card');
+    }
+    moveDrag(x, y) { if (this.dragEl) { this.dragEl.style.left = x - this.dragOff.x + 'px'; this.dragEl.style.top = y - this.dragOff.y + 'px'; this.dragEl.classList.toggle('over', this.hoverLane >= 0); } }
+    dropDrag(play, x, y) {
+      const d = this.dragEl; this.dragEl = null;
+      document.querySelectorAll('.hb-slot .card.lifted').forEach((c) => c.classList.remove('lifted'));
+      if (!d) return;
+      if (play) { d.classList.add('drop'); d.style.left = x - 20 + 'px'; d.style.top = y - 20 + 'px'; setTimeout(() => d.remove(), 220); }
+      else d.remove();
     }
 
     powerPressed(kind) {
@@ -259,7 +277,7 @@
       this.exec({ type: kind, player: 0, lane: 0 });
     }
 
-    disarm() { this.armed = null; this.sel = -1; this.dragging = false; this.hoverLane = -1; }
+    disarm() { this.armed = null; this.sel = -1; this.dragging = false; this.hoverLane = -1; this.dropDrag(false); }
 
     // Círculo de poder: toque rápido usa; segurar mostra a descrição (soltar depois de segurar não usa)
     bindOrb(btn, kind) {
@@ -296,6 +314,7 @@
 
     pointerMove(e) {
       if (!this.armed) return;
+      if (this.dragging) this.moveDrag(e.clientX, e.clientY);
       this.hoverLane = BB.renderer.laneAt(e.clientX, e.clientY);
       this.hoverX = this.hoverLane >= 0 ? BB.renderer.simX(this.match, e.clientX, this.hoverLane) : null;
     }
@@ -304,12 +323,20 @@
       const wasDrag = this.dragging;
       this.dragging = false;
       if (!this.armed || this.paused || this.match.over) return;
-      if (wasDrag && this.armed === 'card' && e.target.closest && e.target.closest('#trash')) { this.discardSelected(); return; }
+      const over = document.elementFromPoint(e.clientX, e.clientY);
+      if (this.armed === 'card') {
+        if (!wasDrag) return;
+        if (over && over.closest && over.closest('#trash')) { this.discardSelected(); return; }
+        const lane = BB.renderer.laneAt(e.clientX, e.clientY);
+        if (lane < 0 || (over && over.closest && over.closest('.tap'))) { this.disarm(); return; } // soltou fora da arena: cancela
+        const ok = this.exec({ type: 'play', player: 0, hand: this.sel, cardId: this.match.players[0].deck.hand[this.sel], lane, x: BB.renderer.simX(this.match, e.clientX, lane) });
+        this.dropDrag(ok, e.clientX, e.clientY); if (!ok) this.disarm();
+        return;
+      }
       if (e.target.closest && e.target.closest('.tap')) return; // soltou sobre a interface
       const lane = BB.renderer.laneAt(e.clientX, e.clientY);
-      if (lane < 0) { if (!wasDrag) this.disarm(); return; }
-      if (this.armed === 'card') this.exec({ type: 'play', player: 0, hand: this.sel, cardId: this.match.players[0].deck.hand[this.sel], lane, x: BB.renderer.simX(this.match, e.clientX, lane) });
-      else this.exec({ type: this.armed, player: 0, lane });
+      if (lane < 0) { this.disarm(); return; }
+      this.exec({ type: this.armed, player: 0, lane });
     }
 
     exec(c) {
@@ -317,7 +344,8 @@
       if (r === 'Ok') {
         const btn = c.type === 'baron' ? this.el.baronBtn : c.type === 'castle' ? this.el.castleBtn : null;
         if (btn) { btn.classList.remove('fire'); void btn.offsetWidth; btn.classList.add('fire'); }
-        this.disarm(); BB.vibrate(15); return;
+        if (this.dragEl && c.type === 'play') { this.armed = null; this.sel = -1; this.dragging = false; this.hoverLane = -1; } else this.disarm();
+        BB.vibrate(15); return true;
       }
       BB.audio.play('error');
       if (r === 'NotEnoughEnergy') {
@@ -327,6 +355,7 @@
       }
       else if (r === 'UnitCap') BB.ui.toast(T('battle.unit_cap'));
       else this.disarm();
+      return false;
     }
 
     // ---------------------------------------------------------- pausa / fim
@@ -363,8 +392,12 @@
       const dt = Math.min(0.1, this.last ? (ts - this.last) / 1000 : 0.016);
       this.last = ts;
       const m = this.match;
+      const R = BB.renderer;
+      let simDt = dt;
+      if (R.hitstop > 0) { R.hitstop -= dt; simDt = 0; }            // pancada: congela uma fração de segundo
+      else if (R.slowmo > 0) { R.slowmo -= dt; simDt = dt * 0.35; } // entrada de lendária/mítica em câmera lenta
       if (!this.paused && !m.over) {
-        this.acc += dt;
+        this.acc += simDt;
         let steps = 0;
         while (this.acc >= m.dt && steps < 8) { this.ai.tick(); if (this.auto) this.auto.tick(); m.step(); this.acc -= m.dt; steps++; }
         if (steps >= 8) this.acc = 0;
