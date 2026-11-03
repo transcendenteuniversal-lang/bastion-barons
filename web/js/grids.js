@@ -85,5 +85,22 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    1
   ],
   "src": "img/units/shadow_assassin_g.webp"
+ },
+ "stone_guardian": {
+  "w": 256,
+  "h": 248,
+  "ax": 126,
+  "ay": 243,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -83,
+   -227,
+   92,
+   1
+  ],
+  "src": "img/units/stone_guardian_g.webp"
  }
 });
