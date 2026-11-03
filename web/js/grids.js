@@ -1,6 +1,23 @@
 // Animações em alta resolução das folhas 6x2 (gerado por tools/extract-grid.py).
 window.BB = window.BB || {};
 Object.assign(BB.SPRITES = BB.SPRITES || {}, {
+ "barbarian": {
+  "w": 269,
+  "h": 270,
+  "ax": 117,
+  "ay": 265,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -85,
+   -226,
+   120,
+   1
+  ],
+  "src": "img/units/barbarian_g.webp"
+ },
  "paladin": {
   "w": 265,
   "h": 269,
