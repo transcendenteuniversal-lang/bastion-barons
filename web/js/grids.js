@@ -2,7 +2,7 @@
 window.BB = window.BB || {};
 Object.assign(BB.SPRITES = BB.SPRITES || {}, {
  "barbarian": {
-  "w": 269,
+  "w": 270,
   "h": 270,
   "ax": 117,
   "ay": 265,
@@ -18,8 +18,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   ],
   "src": "img/units/barbarian_g.webp"
  },
+ "dwarf_warrior": {
+  "w": 263,
+  "h": 277,
+  "ax": 121,
+  "ay": 272,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 9,
+  "wb": [
+   -94,
+   -222,
+   116,
+   1
+  ],
+  "src": "img/units/dwarf_warrior_g.webp"
+ },
  "paladin": {
-  "w": 265,
+  "w": 267,
   "h": 269,
   "ax": 106,
   "ay": 264,
@@ -36,7 +53,7 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "src": "img/units/paladin_g.webp"
  },
  "red_orc": {
-  "w": 263,
+  "w": 262,
   "h": 268,
   "ax": 116,
   "ay": 263,
@@ -70,7 +87,7 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "src": "img/units/royal_knight_g.webp"
  },
  "shadow_assassin": {
-  "w": 259,
+  "w": 258,
   "h": 232,
   "ax": 106,
   "ay": 227,

@@ -38,10 +38,14 @@ def cell_mask(c):
     if n == 0:
         return m
     sz = ndimage.sum(m, lab, range(1, n + 1)); big = int(np.argmax(sz)) + 1
+    objs = ndimage.find_objects(lab)
+    W_ = m.shape[1]
+    # pedaço que encosta na borda da célula estendida vem do quadro vizinho
+    cut = {i + 1 for i, sl in enumerate(objs) if sl is not None and (sl[1].start <= 1 or sl[1].stop >= W_ - 1) and i + 1 != big}
     keep = lab == big
-    near = ndimage.binary_dilation(keep, iterations=30)
+    near = ndimage.binary_dilation(keep, iterations=18)
     for i in range(1, n + 1):  # pedaços soltos perto do corpo (faísca do golpe, arma) ficam
-        if i != big and sz[i - 1] > 40 and (near & (lab == i)).any():
+        if i != big and i not in cut and sz[i - 1] > 40 and (near & (lab == i)).any():
             keep |= lab == i
     return m & keep
 
@@ -58,8 +62,10 @@ def main():
         cells = []
         for r in range(ROWS):
             for c in range(COLS):
-                x0, y0 = int(c * cw), int(r * ch)
-                cell = im[y0:int((r + 1) * ch), x0:int((c + 1) * cw)].copy()
+                # a célula se estende um pouco para os lados (arma que passa da divisão); o vizinho fica longe e é descartado
+                ov = int(cw * 0.12)
+                x0, y0 = max(0, int(c * cw) - ov), int(r * ch)
+                cell = im[y0:int((r + 1) * ch), x0:min(W, int((c + 1) * cw) + ov)].copy()
                 m = cell_mask(cell)
                 cell[..., 3] = np.where(m, cell[..., 3], 0)
                 ys, xs = np.nonzero(m)
