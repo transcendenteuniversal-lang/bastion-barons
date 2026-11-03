@@ -58,6 +58,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "scale": 1,
   "src": "img/units/dwarf_engineer_g.webp"
  },
+ "dwarf_turret": {
+  "w": 180,
+  "h": 239,
+  "ax": 80,
+  "ay": 224,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -76,
+   -210,
+   76,
+   11
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/dwarf_turret_g.webp"
+ },
  "dwarf_warrior": {
   "w": 263,
   "h": 276,
@@ -438,6 +457,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "scale": 1,
   "src": "img/units/shadow_sorceress_g.webp"
  },
+ "skeleton": {
+  "w": 243,
+  "h": 260,
+  "ax": 85,
+  "ay": 255,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -81,
+   -222,
+   110,
+   0
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/skeleton_g.webp"
+ },
  "skeleton_summoner": {
   "w": 228,
   "h": 254,
@@ -495,6 +533,25 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "scale": 1,
   "src": "img/units/stone_guardian_g.webp"
  },
+ "vampire_bat": {
+  "w": 373,
+  "h": 241,
+  "ax": 202,
+  "ay": 120,
+  "body": 220,
+  "walk": 6,
+  "attack": 6,
+  "fps": 8,
+  "wb": [
+   -160,
+   -115,
+   167,
+   115
+  ],
+  "blend": 1,
+  "scale": 1,
+  "src": "img/units/vampire_bat_g.webp"
+ },
  "war_wolf": {
   "w": 335,
   "h": 263,
@@ -513,5 +570,19 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   "blend": 1,
   "scale": 1,
   "src": "img/units/war_wolf_g.webp"
+ }
+});
+Object.assign(BB.FX = BB.FX || {}, {
+ "fx_fireball": {
+  "w": 339,
+  "h": 263,
+  "n": 12,
+  "src": "img/units/fx_fireball_g.webp"
+ },
+ "fx_freeze": {
+  "w": 338,
+  "h": 232,
+  "n": 12,
+  "src": "img/units/fx_freeze_g.webp"
  }
 });

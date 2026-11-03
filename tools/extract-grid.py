@@ -33,6 +33,16 @@ def key(a):
     return np.dstack([r, g, b, al * 255]).clip(0, 255).astype(np.uint8)
 
 
+def fx_mask(c):
+    m = c[..., 3] > 40
+    lab, n = ndimage.label(ndimage.binary_dilation(m, iterations=2))
+    W_ = m.shape[1]
+    for i, sl in enumerate(ndimage.find_objects(lab)):
+        if sl is not None and (sl[1].start <= 1 or sl[1].stop >= W_ - 1):
+            m &= lab != i + 1
+    return m
+
+
 def cell_mask(c):
     m = c[..., 3] > 90
     lab, n = ndimage.label(ndimage.binary_dilation(m, iterations=3))
@@ -51,8 +61,38 @@ def cell_mask(c):
     return m & keep
 
 
+def fx_out(uid, cells, cw, fxs):
+    ov = int(cw * 0.12)
+    rows = []
+    for r in range(ROWS):
+        rc = cells[r * COLS:(r + 1) * COLS]
+        ground = max((c[2].max() for c in rc if len(c[2])), default=0)
+        rows.append(ground)
+    frames = []
+    for i, (cell, m, ys, xs) in enumerate(cells):
+        cx = cw / 2 if i % COLS == 0 else ov + cw / 2  # centro da célula original dentro da célula estendida
+        frames.append((Image.fromarray(cell), cx, rows[i // COLS]))
+    # caixa comum a todos os quadros (relativa ao centro e ao chão)
+    boxes = []
+    for (im, cx, gy), (_, m, ys, xs) in zip(frames, cells):
+        if len(xs): boxes.append((xs.min() - cx, ys.min() - gy, xs.max() + 1 - cx, ys.max() + 1 - gy))
+    L = -min(b[0] for b in boxes); R = max(b[2] for b in boxes); T = -min(b[1] for b in boxes); B = max(0, max(b[3] for b in boxes))
+    s = min(1.0, 300 / (T + B))
+    fw, fh = int((max(L, R) * 2) * s) + 4, int((T + B) * s) + 4
+    sheet = Image.new('RGBA', (fw * len(frames), fh))
+    for i, (im, cx, gy) in enumerate(frames):
+        x0, y0 = int(cx - max(L, R)), int(gy - T)
+        crop = Image.new('RGBA', (int(max(L, R) * 2), int(T + B)))
+        crop.paste(im.crop((max(0, x0), max(0, y0), x0 + crop.width, y0 + crop.height)), (max(0, -x0), max(0, -y0)))
+        crop = crop.resize((fw - 4, fh - 4), Image.LANCZOS)
+        sheet.paste(crop, (i * fw + 2, 2))
+    sheet.save(os.path.join(OUT, uid + '_g.webp'), 'WEBP', quality=88, method=6)
+    fxs[uid] = {'w': fw, 'h': fh, 'n': len(frames), 'src': 'img/units/' + uid + '_g.webp'}
+    print(uid, 'efeito', len(frames), 'quadros', fw, fh)
+
+
 def main():
-    sprites = {}
+    sprites, fxs = {}, {}
     for f in sorted(os.listdir(SRC)):
         if not f.endswith(('.webp', '.png', '.jpg')):
             continue
@@ -67,12 +107,16 @@ def main():
                 ov = int(cw * 0.12)
                 x0, y0 = max(0, int(c * cw) - ov), int(r * ch)
                 cell = im[y0:int((r + 1) * ch), x0:min(W, int((c + 1) * cw) + ov)].copy()
-                m = cell_mask(cell)
+                m = fx_mask(cell) if uid.startswith('fx_') else cell_mask(cell)
                 cell[..., 3] = np.where(m, cell[..., 3], 0)
                 ys, xs = np.nonzero(m)
                 cells.append((cell, m, ys, xs))
         # escala única pela altura mediana do corpo nos quadros de andar
-        hs = [ys.max() - ys.min() for (_, _, ys, _) in cells[:COLS] if len(ys)]
+        if uid.startswith('fx_'):  # magia: 12 quadros em sequência, alinhados pelo chão e pelo centro da célula
+            fx_out(uid, cells, cw, fxs)
+            continue
+        ref = cells[COLS:] if uid == 'dwarf_turret' else cells[:COLS]  # torre: a linha de cima é a construção (alturas variam)
+        hs = [ys.max() - ys.min() for (_, _, ys, _) in ref if len(ys)]
         s = BODY / float(np.median(hs))
         # altura do corpo de cada quadro (centro vertical) na posição original da célula: o andar balança pouco
         cys = [((ys.min() + ys.max()) / 2 if len(ys) else 0) for (_, _, ys, _) in cells]
@@ -98,6 +142,8 @@ def main():
             crop = crop.resize((max(1, round(crop.width * s)), max(1, round(crop.height * s))), Image.LANCZOS)
             frames.append((crop, (cx - x0) * s, (foot - y0) * s))
         walk, atk = frames[:COLS], frames[COLS:]
+        if uid == 'dwarf_turret':  # torre parada: primeiro quadro = torre pronta (a construção roda ao contrário só na vitrine)
+            walk = walk[::-1]
         L = int(max(ax for _, ax, _ in frames)) + 4; R = int(max(f.width - ax for f, ax, _ in frames)) + 4
         T = int(max(ay for _, _, ay in frames)) + 4; B = int(max(f.height - ay for f, _, ay in frames)) + 4
         fw, fh = L + R, T + B
@@ -112,7 +158,8 @@ def main():
         print(uid, 'quadros', len(walk), len(atk), 'tamanho', fw, fh)
     with open(os.path.join(ROOT, 'web', 'js', 'grids.js'), 'w') as fh_:
         fh_.write('// Animações em alta resolução das folhas 6x2 (gerado por tools/extract-grid.py).\nwindow.BB = window.BB || {};\n'
-                  'Object.assign(BB.SPRITES = BB.SPRITES || {}, ' + json.dumps(sprites, indent=1) + ');\n')
+                  'Object.assign(BB.SPRITES = BB.SPRITES || {}, ' + json.dumps(sprites, indent=1) + ');\n'
+                  'Object.assign(BB.FX = BB.FX || {}, ' + json.dumps(fxs, indent=1) + ');\n')
 
 
 if __name__ == '__main__':
