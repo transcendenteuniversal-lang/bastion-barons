@@ -124,6 +124,8 @@
           energy: B.startEnergy, castleHp: hp, castleMaxHp: hp, castleShield: 0, castleShieldTime: 0,
           baronCharge: (baron.initialCharge || 0) * baron.chargeSeconds, castleCooldown: castle.initialCooldown || 0,
           castleAttackCd: 0, mods: [],
+          // muralha mágica na entrada de cada rota: precisa cair antes do castelo levar dano por aquela rota
+          walls: [0, 1, 2].map(() => B.wallHp || 0), wallMaxHp: B.wallHp || 0, wallsLost: 0,
           stats: { cardsPlayed: 0, spellsCast: 0, unitsDeployed: 0, unitsLost: 0, unitsDestroyed: 0, baronUses: 0, castleUses: 0, damageToCastle: 0, killValue: 0 },
         };
       });
@@ -354,7 +356,7 @@
           u.attackCd = Math.max(0, u.attackCd + d.attackInterval);
           const dmg = u.damage * m.dmg;
           this.emit('UnitAttack', u.owner, { unitId: u.id, targetId: 0, lane: u.lane, x: front, value: dmg, id: d.id });
-          this.damageCastle(1 - u.owner, dmg, u.owner);
+          this.damageCastle(1 - u.owner, dmg, u.owner, u.lane);
         }
         return;
       }
@@ -539,11 +541,19 @@
       }
     }
 
-    damageCastle(victim, amount, source) {
+    // dano no castelo pela rota `lane`: se a muralha daquela rota estiver de pé, ela recebe o dano
+    damageCastle(victim, amount, source, lane) {
       const p = this.players[victim];
       if (amount <= 0 || p.castleHp <= 0) return;
       if (p.castleShield > 0) { const a = Math.min(p.castleShield, amount); p.castleShield -= a; amount -= a; }
       if (amount <= 0) return;
+      if (lane >= 0 && lane < 3 && p.walls[lane] > 0) {
+        p.walls[lane] -= amount;
+        if (source === 0 || source === 1) this.players[source].stats.damageToCastle += amount;
+        this.emit('WallDamaged', victim, { lane, value: amount });
+        if (p.walls[lane] <= 0) { p.walls[lane] = 0; p.wallsLost++; this.emit('WallDestroyed', victim, { lane }); }
+        return;
+      }
       p.castleHp -= amount;
       if (source === 0 || source === 1) this.players[source].stats.damageToCastle += amount;
       this.emit('CastleDamaged', victim, { value: amount });
@@ -598,7 +608,17 @@
           center = f === null ? this.castleFront(enemy) : f;
           this.damageLane(p.index, lane, value, center, r);
           if (def.castleDamageRatio > 0 && (r <= 0 || Math.abs(this.castleFront(enemy) - center) <= r + 2))
-            this.damageCastle(enemy, value * def.castleDamageRatio, p.index);
+            this.damageCastle(enemy, value * def.castleDamageRatio, p.index, lane);
+          break;
+        }
+        case 'Zap': { // Faísca: dano pequeno em área + atordoa por um instante
+          const f = this.frontUnit(enemy, lane);
+          center = f === null ? this.castleFront(enemy) : f;
+          for (const e of this.units) {
+            if (e.hp <= 0 || e.owner === p.index || e.lane !== lane || Math.abs(e.x - center) > r) continue;
+            this.applyDamage(e, value, p.index); if (e.hp > 0) e.stun = Math.max(e.stun, def.spellDuration || 0.5);
+          }
+          if (def.castleDamageRatio > 0 && Math.abs(this.castleFront(enemy) - center) <= r + 2) this.damageCastle(enemy, value * def.castleDamageRatio, p.index, lane);
           break;
         }
         case 'Stun':
@@ -630,7 +650,7 @@
           const hits = Math.max(1, def.spellHits || 1);
           for (let i = 0; i < list.length && i < hits; i++) this.applyDamage(list[i], value, p.index);
           center = list.length ? list[0].x : this.castleFront(enemy);
-          if (list.length < hits && def.castleDamageRatio > 0) this.damageCastle(enemy, value * def.castleDamageRatio, p.index);
+          if (list.length < hits && def.castleDamageRatio > 0) this.damageCastle(enemy, value * def.castleDamageRatio, p.index, lane);
           break;
         }
         case 'Summon': {
@@ -699,7 +719,12 @@
     }
 
     // Desempate: 1) maior % de vida no próprio castelo; 2) maior valor de tropas inimigas destruídas; 3) empate
+    // coroas: 1 por muralha derrubada (castelo destruído = 3)
+    crowns(owner) { const f = this.players[1 - owner]; return f.castleHp <= 0 ? 3 : Math.min(3, f.wallsLost); }
+
     decideByTimeout() {
+      const c0 = this.crowns(0), c1 = this.crowns(1);
+      if (c0 !== c1) return this.end(c0 > c1 ? 0 : 1, 'TimeoutCrowns');
       const a = this.hpPct(this.players[0]), b = this.hpPct(this.players[1]);
       if (Math.abs(a - b) > 1e-4) return this.end(a > b ? 0 : 1, 'TimeoutHp');
       const ka = this.players[0].stats.killValue, kb = this.players[1].stats.killValue;

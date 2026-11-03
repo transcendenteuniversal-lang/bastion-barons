@@ -86,7 +86,7 @@
     playSpell(p, lane) {
       for (let i = 0; i < p.deck.hand.length; i++) {
         const def = this.m.content.card(p.deck.hand[i]);
-        if (def.isSpell && def.cost <= p.energy && ['Damage', 'Stun', 'Poison', 'StrongestTargets'].includes(def.spell))
+        if (def.isSpell && def.cost <= p.energy && ['Damage', 'Stun', 'Poison', 'StrongestTargets', 'Zap'].includes(def.spell))
           return this.issue({ type: 'play', hand: i, cardId: def.id, lane });
       }
       return false;
@@ -96,7 +96,7 @@
       const hard = this.diff === 'hard';
       if (def.isSpell) {
         switch (def.spell) {
-          case 'Damage': case 'StrongestTargets': case 'Poison':
+          case 'Damage': case 'StrongestTargets': case 'Poison': case 'Zap':
             return info.enemyCount === 0 ? 0 : (def.spellValue * Math.min(info.enemyCount, def.spellRadius <= 0 ? 6 : 3)) / (def.cost * 60);
           case 'Stun': return info.enemyCount >= 2 && defending ? 3 : 0;
           case 'Heal': case 'Shield': return info.myCount >= 3 ? 2 : 0;

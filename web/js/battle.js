@@ -201,8 +201,8 @@
       el.timer.classList.toggle('low', secs <= 30);
       el.x2.classList.toggle('hidden', !m.doubleEnergy || m.over);
       // coroas: 1 a cada terço de vida destruído do castelo adversário
-      el.crownMe.textContent = Math.min(3, Math.floor((1 - m.hpPct(foe)) * 3 + 1e-9));
-      el.crownFoe.textContent = Math.min(3, Math.floor((1 - m.hpPct(me)) * 3 + 1e-9));
+      el.crownMe.textContent = m.crowns(0);
+      el.crownFoe.textContent = m.crowns(1);
       el.hpMe.style.width = m.hpPct(me) * 100 + '%';
       el.hpFoe.style.width = m.hpPct(foe) * 100 + '%';
       el.hpMeT.textContent = Math.ceil(Math.max(0, me.castleHp)) + (me.castleShield > 0 ? '  +' + Math.ceil(me.castleShield) : '');
@@ -420,6 +420,8 @@
           BB.audio.play(e.id === 'draconic_castle' ? 'dragon' : e.id === 'sylvan_sanctuary' ? 'heal' : 'magic');
           if (e.player === 1 && !m.over) BB.ui.toast(BB.castleName(e.id) + ': ' + T('castle.' + e.id + '.ability'));
           break;
+        case 'WallDamaged': BB.audio.play('castle'); break;
+        case 'WallDestroyed': BB.audio.play('explosion'); BB.vibrate(40); BB.ui.toast(e.player === 1 ? T('battle.wall_down_foe') : T('battle.wall_down_me')); break;
         case 'CastleDamaged':
           BB.audio.play('castle'); if (e.player === 0) BB.vibrate(10);
           if (Math.random() < 0.015) this.emote(e.player, e.player === 1 ? '😠' : '😱'); // reação da IA (e do seu Barão)

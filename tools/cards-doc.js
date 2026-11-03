@@ -49,6 +49,7 @@ function efeito(c) {
     case 'Poison': return v + ' de dano por segundo' + r + ' por ' + n(c.spellDuration) + ' s';
     case 'Damage': return v + ' de dano nos inimigos' + r;
     case 'Summon': return 'Invoca ' + (c.summonCount || 1) + ' ' + nm(c.summonId) + 's';
+    case 'Zap': return v + ' de dano' + r + ' e atordoa por ' + n(c.spellDuration) + ' s';
     case 'Stun': return 'Paralisa os inimigos' + r + ' por ' + n(c.spellDuration) + ' s';
     case 'StrongestTargets': return v + ' de dano em cada um dos ' + c.spellHits + ' inimigos mais fortes da rota';
     default: return c.spell;
@@ -61,11 +62,11 @@ for (const [g, f] of groups) {
   const L = C.cards.filter(f).sort((a, b) => (a.cost || 0) - (b.cost || 0) || nm(a.id).localeCompare(nm(b.id)));
   o += '## ' + g + ' (' + L.length + ')\n\n';
   if (g === 'Magias') {
-    o += '| # | Carta | Na arena | Nome | Raridade | Custo | Efeito | Dano no castelo | Descrição |\n|---|---|---|---|---|---|---|---|---|\n';
-    L.forEach((c, i) => o += '| ' + (i + 1) + ' | {{img:card:' + c.id + '}} | {{img:arena:' + (c.type === 'Spell' ? 'fx_' + c.id : c.id) + '}} | **' + nm(c.id) + '** | ' + R[c.rarity] + ' | ' + c.cost + ' | ' + efeito(c) + ' | ' + (c.castleDamageRatio ? Math.round(c.castleDamageRatio * 100) + '% do dano' : '—') + ' | ' + ds(c) + ' |\n');
+    o += '| # | Carta | Na arena | Nome | Papel | Raridade | Custo | Efeito | Dano no castelo | Descrição |\n|---|---|---|---|---|---|---|---|---|---|\n';
+    L.forEach((c, i) => o += '| ' + (i + 1) + ' | {{img:card:' + c.id + '}} | {{img:arena:' + (c.type === 'Spell' ? 'fx_' + c.id : c.id) + '}} | **' + nm(c.id) + '** | ' + (c.role || '') + ' | ' + R[c.rarity] + ' | ' + c.cost + ' | ' + efeito(c) + ' | ' + (c.castleDamageRatio ? Math.round(c.castleDamageRatio * 100) + '% do dano' : '—') + ' | ' + ds(c) + ' |\n');
   } else {
-    o += '| # | Carta | Na arena | Nome | Raridade | Voa | Custo | Vida | Dano | Intervalo | DPS | Velocidade | Alcance | Ataca | Habilidade | Descrição |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n';
-    L.forEach((c, i) => o += '| ' + (i + 1) + ' | {{img:card:' + c.id + '}} | {{img:arena:' + (c.type === 'Spell' ? 'fx_' + c.id : c.id) + '}} | **' + nm(c.id) + '** | ' + (R[c.rarity] || '') + ' | ' + (c.flying ? 'Sim' : 'Não') + ' | ' + (c.cost ?? '') + ' | ' + c.hp + ' | ' + c.damage +
+    o += '| # | Carta | Na arena | Nome | Papel | Raridade | Voa | Custo | Vida | Dano | Intervalo | DPS | Velocidade | Alcance | Ataca | Habilidade | Descrição |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n';
+    L.forEach((c, i) => o += '| ' + (i + 1) + ' | {{img:card:' + c.id + '}} | {{img:arena:' + (c.type === 'Spell' ? 'fx_' + c.id : c.id) + '}} | **' + nm(c.id) + '** | ' + (c.role || '') + ' | ' + (R[c.rarity] || '') + ' | ' + (c.flying ? 'Sim' : 'Não') + ' | ' + (c.cost ?? '') + ' | ' + c.hp + ' | ' + c.damage +
       ' | ' + n(c.attackInterval) + ' s | ' + Math.round(c.damage / c.attackInterval) + ' | ' + n(c.moveSpeed * sp) + ' | ' + n(c.range) + ' | ' + (ALVO[c.targets] || c.targets) + ' | ' + hab(c) + ' | ' + ds(c) + ' |\n');
   }
   o += '\n';
@@ -74,7 +75,7 @@ o += '## Barões\n\n| Foto | Barão | Poder | Recarga | Efeito |\n|---|---|---|-
 for (const b of C.barons) o += '| {{img:baron:' + b.id + '}} | **' + P['baron.' + b.id + '.name'] + '** | ' + P['baron.' + b.id + '.ability'] + ' | ' + b.chargeSeconds + ' s | ' + P['baron.' + b.id + '.desc'] + ' |\n';
 o += '\n## Castelos\n\n| Foto | Castelo | Poder | Recarga (1ª vez) | Efeito |\n|---|---|---|---|---|\n';
 for (const k of C.castles) o += '| {{img:castle:' + k.id + '}} | **' + P['castle.' + k.id + '.name'] + '** | ' + P['castle.' + k.id + '.ability'] + ' | ' + k.cooldown + ' s (' + k.initialCooldown + ' s) | ' + P['castle.' + k.id + '.desc'] + ' |\n';
-o += '\n## Regras gerais\n\n- Vida do castelo: ' + B.castleHp + '. A torre do castelo atira ' + B.castleAttackDamage + ' de dano a cada ' + n(B.castleAttackInterval) + ' s, alcance ' + B.castleAttackRange + '.\n' +
+o += '\n## Regras gerais\n\n- Vida do castelo: ' + B.castleHp + '. Cada rota tem uma muralha de ' + B.wallHp + ' de vida na entrada: ela precisa cair antes de o castelo levar dano por aquela rota, e cada muralha derrubada vale 1 coroa (castelo destruído = 3). No fim do tempo vence quem tiver mais coroas. A torre do castelo atira ' + B.castleAttackDamage + ' de dano a cada ' + n(B.castleAttackInterval) + ' s, alcance ' + B.castleAttackRange + '.\n' +
   '- Partida de ' + B.matchSeconds + ' s. Baralho de ' + B.deckSize + ' cartas, mão de até ' + B.handMax + ', compra uma carta a cada ' + B.drawInterval + ' s.\n' +
   '- Mana: começa em ' + B.startEnergy + '; o máximo começa em ' + B.maxEnergyStart + ' e sobe +1 a cada ' + n(B.maxEnergyGrowEvery) + ' s até ' + B.maxEnergy + '. Enche ' + n(B.energyPerSecond) + ' por segundo, acelera até +' + Math.round(B.energyRamp * 100) + '% em ' + B.energyRampSeconds + ' s, e no último minuto fica ×' + n(B.doubleEnergyMult) + '.\n' +
   '- Cada nível da carta dá +' + Math.round(B.levelStatBonus * 100) + '% de vida e dano (nível máximo ' + B.maxCardLevel + ').\n' +

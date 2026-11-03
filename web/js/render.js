@@ -148,9 +148,10 @@
             divine_heal: { x: sx, h: lh * 1.0, d: 1.1 }, arcane_shield: { x: sx, h: lh * 1.4, d: 1.2 },
             lightning: { x: sx, h: lh * 1.5, d: 1.0 }, arrow_rain: { x: (l.xL + l.xR) / 2, h: lh * 1.2, d: 1.2 },
             skeleton_summon: { x: sx, h: lh * 1.0, d: 1.0 },
+            spark: { x: sx, h: lh * 0.9, d: 0.6, key: 'fx_lightning' },
           };
           const anim = SPELL_FX[e.id];
-          if (anim && this.fxSheet('fx_' + e.id)) this.fx.push(Object.assign({ k: 'anim', key: 'fx_' + e.id, y: l.y1 - lh * 0.15, t: 0 }, anim));
+          if (anim && this.fxSheet(anim.key || 'fx_' + e.id)) this.fx.push(Object.assign({ k: 'anim', key: 'fx_' + e.id, y: l.y1 - lh * 0.15, t: 0 }, anim));
           else if (!e.radius) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.6, c });
           else this.fx.push({ k: 'burst', x: sx, y: l.y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.55, c });
           if (e.id === 'fireball') this.shake = 0.25;
@@ -199,6 +200,20 @@
               } else this.fx.push({ k: 'anim', key, x: (l.xL + l.xR) / 2, y: l.y1 - lh * 0.1, h: lh * 1.7, t: 0, d: 1.4, flip: e.player === 1 });
             }
           } else if (e.lane >= 0) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.9, c });
+          break;
+        }
+        case 'WallDamaged': {
+          (this.wallHit = this.wallHit || {})[e.player + ':' + e.lane] = 0.18;
+          const w = this.wallPoint(e.player, e.lane);
+          if (e.value >= 1) this.texts.push({ x: w.x + (Math.random() - 0.5) * 30, y: w.y - 60, s: '-' + Math.round(e.value), t: 0, d: 0.8, c: e.player === 0 ? '#ff8080' : '#ffe08a' });
+          break;
+        }
+        case 'WallDestroyed': {
+          const w = this.wallPoint(e.player, e.lane), l = ARENA.lanes[e.lane];
+          this.shake = Math.max(this.shake, 0.35);
+          if (!this.playFx('fx_castle_hit', w.x, l.y1, (l.y1 - l.y0) * 1.6, 0.8)) this.fx.push({ k: 'burst', x: w.x, y: l.y, r: 90, t: 0, d: 0.6, c: '#ffd34d' });
+          for (let i = 0; i < 14; i++) this.fx.push({ k: 'shard', x: w.x, y: l.y - 20, vx: (Math.random() - 0.5) * 420 + (e.player === 0 ? 160 : -160), vy: -200 - Math.random() * 260, t: 0, d: 0.9, c: e.player === 0 ? '#7fb6ff' : '#ff8a7a' });
+          this.texts.push({ x: w.x, y: l.y0 - 10, s: '👑', t: 0, d: 1.4, c: '#ffd34d', big: true });
           break;
         }
         case 'CastleDamaged': {
@@ -303,6 +318,50 @@
       return c;
     }
 
+    wallPoint(owner, lane) {
+      const l = ARENA.lanes[lane], x = ARENA.seam ? ARENA.seam(l.y) - 6 : l.xL;
+      return { x: owner === 0 ? x : AW - x, y: l.y };
+    }
+
+    // muralha mágica de cada rota: faixa de energia na linha do piso, na cor do time, com barra de vida
+    drawWalls(m, owner) {
+      const p = m.players[owner];
+      if (!p.walls || !p.wallMaxHp) return;
+      const g = this.g, col = owner === 0 ? [90, 160, 255] : [255, 90, 80];
+      for (let lane = 0; lane < 3; lane++) {
+        const hp = p.walls[lane];
+        if (hp <= 0) continue;
+        const l = ARENA.lanes[lane], pct = hp / p.wallMaxHp;
+        const X = (y) => { const x = (ARENA.seam ? ARENA.seam(y) : l.xL) - 6; return owner === 0 ? x : AW - x; };
+        const hit = (this.wallHit && this.wallHit[owner + ':' + lane]) || 0;
+        if (hit > 0) this.wallHit[owner + ':' + lane] = hit - this.lastDt;
+        const y0 = l.y0 + 4, y1 = l.y1 - 2, a = 0.55 + 0.12 * Math.sin(this.t * 4 + lane) + (hit > 0 ? 0.3 : 0), W2 = 16;
+        g.save();
+        const band = () => { g.beginPath(); g.moveTo(X(y0) - W2, y0); g.lineTo(X(y1) - W2, y1); g.lineTo(X(y1) + W2, y1); g.lineTo(X(y0) + W2, y0); g.closePath(); };
+        // véu de energia grosso, mais forte embaixo
+        band();
+        const gr = g.createLinearGradient(0, y0, 0, y1);
+        gr.addColorStop(0, `rgba(${col},${a * 0.35})`); gr.addColorStop(0.6, `rgba(${col},${a * 0.75})`); gr.addColorStop(1, `rgba(${col},${a})`);
+        g.fillStyle = gr; g.fill();
+        g.save(); band(); g.clip(); // linhas de escudo (hexagonal simples) correndo
+        g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1.5;
+        for (let k = 0; k < 7; k++) { const y = y0 + ((k / 7 + this.t * 0.15) % 1) * (y1 - y0); g.beginPath(); g.moveTo(X(y) - W2, y); g.lineTo(X(y), y - 8); g.lineTo(X(y) + W2, y); g.stroke(); }
+        g.restore();
+        // bordas brilhantes
+        g.shadowColor = `rgb(${col})`; g.shadowBlur = 14; g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 3;
+        for (const sx of [-W2, W2]) { g.beginPath(); g.moveTo(X(y0) + sx, y0); g.lineTo(X(y1) + sx, y1); g.stroke(); }
+        g.shadowBlur = 0;
+        // base no chão
+        g.fillStyle = `rgba(${col},.5)`; g.beginPath(); g.ellipse(X(y1), y1, W2 + 10, 7, 0, 0, TAU); g.fill();
+        // barra de vida
+        const bx = X(y0) - 36, by = y0 - 16, bw = 72;
+        g.fillStyle = 'rgba(0,0,0,.75)'; g.fillRect(bx - 2, by - 2, bw + 4, 12);
+        g.fillStyle = owner === 0 ? '#3f8bff' : '#ff4a4a'; g.fillRect(bx, by, bw * pct, 8);
+        g.strokeStyle = '#f2c14e'; g.lineWidth = 1.5; g.strokeRect(bx - 2, by - 2, bw + 4, 12);
+        g.restore();
+      }
+    }
+
     castlePoint(owner) { const c = ARENA.castle[owner]; return { x: c.gx, y: c.gy }; }
 
     // ------------------------------------------------------------ quadro
@@ -376,6 +435,7 @@
       }
 
       for (let i = 0; i < 2; i++) this.drawCastleState(m, i);
+      for (let i = 0; i < 2; i++) this.drawWalls(m, i);
       this.drawFrontWall();
       this.drawRage(dt);
       this.syncViews(m, dt);
@@ -657,8 +717,8 @@
       if (v.lunge > 0) v.lunge -= dt;
       if (v.flash > 0) v.flash -= dt;
       const dir = v.owner === 0 ? 1 : -1;
-      const sp = BB.SPRITES && BB.SPRITES[u.def.id];
-      const sheet = sp ? BB.art.image(BB.unitSrc(u.def.id)) : null;
+      const sp = BB.SPRITES && BB.SPRITES[u.def.sprite || u.def.id];
+      const sheet = sp ? BB.art.image(BB.unitSrc(u.def.sprite || u.def.id)) : null;
       if (sheet && sheet.complete && sheet.naturalWidth) return this.drawSprite(v, u, sp, sheet, dt, dir);
       let x = v.x, r = v.r;
       const y = v.y;
@@ -700,7 +760,7 @@
     // Tropa animada (quadros extraídos dos vídeos: linha 0 = andar, linha 1 = ataque; desenhados virados para a direita)
     drawSprite(v, u, sp, sheet, dt, dir) {
       const g = this.g, k = ARENA.lanes[u.lane].k;
-      const bodyPx = (v.fly ? 126 : 140) * k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3) * (u.size || 1) * (sp.scale || 1);
+      const bodyPx = (v.fly ? 126 : 140) * k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3) * (u.size || 1) * (sp.scale || 1) * (u.def.visualScale || 1);
       let scale = v.born < 1 ? 0.3 + 0.7 * easeOutBack(v.born) : 1, alpha = 1;
       if (v.dying >= 0) { scale *= 1 - v.dying / 0.4; alpha = 1 - v.dying / 0.4; }
       const s = (bodyPx / sp.body) * scale;
@@ -787,6 +847,9 @@
           const P = (q) => ({ x: f.x0 + (f.x1 - f.x0) * q, y: f.y0 + (f.y1 - f.y0) * q - Math.sin(q * Math.PI) * (f.arc ?? 40) });
           const p = P(k), pb = P(Math.max(0, k - 0.06)), ang = Math.atan2(p.y - pb.y, p.x - pb.x);
           this.drawProj(f, p.x, p.y, ang, k);
+        } else if (f.k === 'shard') { // pedaços da muralha voando
+          const tt = f.t; g.globalAlpha = 1 - k; g.fillStyle = f.c;
+          g.save(); g.translate(f.x + f.vx * tt, f.y + f.vy * tt + 600 * tt * tt); g.rotate(tt * 8); g.fillRect(-6, -6, 12, 12); g.restore(); g.globalAlpha = 1;
         } else if (f.k === 'puff') {
           g.globalAlpha = 0.6 * (1 - k); g.fillStyle = '#d8d4cc';
           for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(f.x + (i - 1) * 8 * (1 + k), f.y - k * 18 - i * 4, 6 + k * 10, 0, TAU); g.fill(); }
@@ -812,6 +875,7 @@
       g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '900 40px sans-serif';
       for (const t of this.texts) {
         g.globalAlpha = 1 - t.t / t.d;
+        if (t.big) { g.save(); g.font = 'bold 64px sans-serif'; g.fillText(t.s, t.x, t.y - t.t * 50); g.restore(); continue; }
         g.lineWidth = 7; g.strokeStyle = '#000'; g.strokeText(t.s, t.x, t.y - t.t * 70);
         g.fillStyle = t.c; g.fillText(t.s, t.x, t.y - t.t * 70);
       }

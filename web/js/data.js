@@ -24,7 +24,8 @@ BB.CONTENT = {
   "laneLength": 100,
   "spawnOffset": 4,
   "castleFront": 6,
-  "castleHp": 6000,
+  "castleHp": 4000,
+  "wallHp": 1500,
   "castleAttackDamage": 0,
   "castleAttackInterval": 1,
   "castleAttackRange": 16,
@@ -118,14 +119,15 @@ BB.CONTENT = {
    "rarity": "Common",
    "cls": "King",
    "cost": 3,
-   "hp": 620,
-   "damage": 68,
+   "hp": 700,
+   "damage": 75,
    "attackInterval": 1,
    "moveSpeed": 5,
    "range": 1.5,
    "targets": "Ground",
    "ability": "Knockback",
-   "abilityValue": 3
+   "abilityValue": 3,
+   "role": "Linha de frente"
   },
   {
    "id": "paladin",
@@ -133,15 +135,16 @@ BB.CONTENT = {
    "category": "Troop",
    "rarity": "Rare",
    "cls": "Paladin",
-   "cost": 4,
-   "hp": 800,
+   "cost": 5,
+   "hp": 650,
    "damage": 50,
    "attackInterval": 1,
    "moveSpeed": 4.5,
    "range": 1.5,
    "targets": "Ground",
    "ability": "ShieldDome",
-   "abilityRadius": 6
+   "abilityRadius": 5,
+   "role": "Suporte"
   },
   {
    "id": "barbarian",
@@ -150,12 +153,13 @@ BB.CONTENT = {
    "rarity": "Common",
    "cls": "Barbarian",
    "cost": 3,
-   "hp": 480,
+   "hp": 600,
    "damage": 110,
    "attackInterval": 1,
    "moveSpeed": 5.5,
    "range": 1.5,
-   "targets": "Ground"
+   "targets": "Ground",
+   "role": "Corpo a corpo"
   },
   {
    "id": "red_orc",
@@ -171,7 +175,8 @@ BB.CONTENT = {
    "range": 1.5,
    "targets": "Ground",
    "ability": "Enrage",
-   "abilityValue": 0.5
+   "abilityValue": 0.5,
+   "role": "Linha de frente"
   },
   {
    "id": "shadow_assassin",
@@ -185,7 +190,8 @@ BB.CONTENT = {
    "attackInterval": 1,
    "moveSpeed": 11.43,
    "range": 1.5,
-   "targets": "Ground"
+   "targets": "Ground",
+   "role": "Pressão"
   },
   {
    "id": "stone_guardian",
@@ -194,14 +200,15 @@ BB.CONTENT = {
    "rarity": "Rare",
    "cls": "Guardian",
    "cost": 5,
-   "hp": 1600,
+   "hp": 1750,
    "damage": 33,
    "attackInterval": 1,
    "moveSpeed": 3,
    "range": 1.5,
    "targets": "Ground",
    "ability": "Grow",
-   "abilityValue": 0.1
+   "abilityValue": 0.1,
+   "role": "Tanque"
   },
   {
    "id": "dwarf_warrior",
@@ -211,13 +218,14 @@ BB.CONTENT = {
    "cls": "Guardian",
    "cost": 4,
    "hp": 850,
-   "damage": 71,
+   "damage": 80,
    "attackInterval": 1,
    "moveSpeed": 4,
    "range": 1.5,
    "targets": "Ground",
    "ability": "Splash",
-   "abilityRadius": 3
+   "abilityRadius": 3,
+   "role": "Dano em área"
   },
   {
    "id": "royal_lancer",
@@ -231,7 +239,8 @@ BB.CONTENT = {
    "attackInterval": 1,
    "moveSpeed": 5,
    "range": 3,
-   "targets": "Both"
+   "targets": "Both",
+   "role": "Anti-aéreo"
   },
   {
    "id": "elven_archer",
@@ -247,7 +256,8 @@ BB.CONTENT = {
    "range": 20,
    "targets": "Both",
    "ability": "LaneHop",
-   "abilityRadius": 10
+   "abilityRadius": 10,
+   "role": "Atirador"
   },
   {
    "id": "royal_archer",
@@ -257,11 +267,12 @@ BB.CONTENT = {
    "cls": "Archer",
    "cost": 2,
    "hp": 260,
-   "damage": 50,
+   "damage": 40,
    "attackInterval": 1,
    "moveSpeed": 5,
    "range": 30,
-   "targets": "Both"
+   "targets": "Both",
+   "role": "Atirador"
   },
   {
    "id": "arcane_mage",
@@ -277,7 +288,8 @@ BB.CONTENT = {
    "range": 11,
    "targets": "Both",
    "ability": "Splash",
-   "abilityRadius": 2.5
+   "abilityRadius": 2.5,
+   "role": "Dano em área"
   },
   {
    "id": "shadow_sorceress",
@@ -285,15 +297,16 @@ BB.CONTENT = {
    "category": "Troop",
    "rarity": "Epic",
    "cls": "Mage",
-   "cost": 5,
+   "cost": 4,
    "hp": 380,
-   "damage": 50,
+   "damage": 60,
    "attackInterval": 1,
    "moveSpeed": 4.5,
    "range": 10,
    "targets": "Both",
    "ability": "Splash",
-   "abilityRadius": 4
+   "abilityRadius": 4,
+   "role": "Dano em área"
   },
   {
    "id": "necromancer",
@@ -301,7 +314,7 @@ BB.CONTENT = {
    "category": "Troop",
    "rarity": "Legendary",
    "cls": "Necromancer",
-   "cost": 5,
+   "cost": 4,
    "hp": 420,
    "damage": 38,
    "attackInterval": 1,
@@ -309,7 +322,8 @@ BB.CONTENT = {
    "range": 10,
    "targets": "Both",
    "ability": "RaiseDead",
-   "summonId": "skeleton"
+   "summonId": "skeleton",
+   "role": "Invocador"
   },
   {
    "id": "goblin_gunner",
@@ -324,7 +338,8 @@ BB.CONTENT = {
    "moveSpeed": 6,
    "range": 10,
    "targets": "Both",
-   "ability": "DoubleShot"
+   "ability": "DoubleShot",
+   "role": "Atirador"
   },
   {
    "id": "fire_dragon",
@@ -341,7 +356,8 @@ BB.CONTENT = {
    "targets": "Both",
    "flying": true,
    "ability": "Splash",
-   "abilityRadius": 3
+   "abilityRadius": 3,
+   "role": "Voador"
   },
   {
    "id": "ice_dragon",
@@ -350,7 +366,7 @@ BB.CONTENT = {
    "rarity": "Epic",
    "cls": "Beast",
    "cost": 5,
-   "hp": 950,
+   "hp": 1050,
    "damage": 50,
    "attackInterval": 1,
    "moveSpeed": 4,
@@ -358,7 +374,8 @@ BB.CONTENT = {
    "targets": "Both",
    "flying": true,
    "ability": "FreezeOnHit",
-   "abilityDuration": 1.5
+   "abilityDuration": 1.5,
+   "role": "Voador"
   },
   {
    "id": "phoenix",
@@ -367,7 +384,7 @@ BB.CONTENT = {
    "rarity": "Mythic",
    "cls": "Beast",
    "cost": 5,
-   "hp": 600,
+   "hp": 700,
    "damage": 75,
    "attackInterval": 1,
    "moveSpeed": 5.5,
@@ -375,7 +392,8 @@ BB.CONTENT = {
    "targets": "Both",
    "flying": true,
    "ability": "Rebirth",
-   "abilityValue": 2
+   "abilityValue": 2,
+   "role": "Voador"
   },
   {
    "id": "stone_golem",
@@ -384,12 +402,13 @@ BB.CONTENT = {
    "rarity": "Epic",
    "cls": "Guardian",
    "cost": 7,
-   "hp": 2600,
-   "damage": 140,
+   "hp": 3200,
+   "damage": 180,
    "attackInterval": 2,
    "moveSpeed": 2.5,
    "range": 1.5,
-   "targets": "CastleOnly"
+   "targets": "CastleOnly",
+   "role": "Cerco"
   },
   {
    "id": "mountain_troll",
@@ -398,14 +417,15 @@ BB.CONTENT = {
    "rarity": "Rare",
    "cls": "Barbarian",
    "cost": 5,
-   "hp": 1300,
+   "hp": 1350,
    "damage": 81,
    "attackInterval": 1,
    "moveSpeed": 3.5,
    "range": 1.5,
    "targets": "Ground",
    "ability": "FirstHitKnockback",
-   "abilityValue": 20
+   "abilityValue": 20,
+   "role": "Tanque"
   },
   {
    "id": "royal_griffin",
@@ -414,13 +434,14 @@ BB.CONTENT = {
    "rarity": "Rare",
    "cls": "Beast",
    "cost": 4,
-   "hp": 550,
-   "damage": 85,
+   "hp": 620,
+   "damage": 95,
    "attackInterval": 1,
    "moveSpeed": 7,
    "range": 1.5,
    "targets": "Both",
-   "deployAnywhere": true
+   "deployAnywhere": true,
+   "role": "Pressão"
   },
   {
    "id": "guardian_ent",
@@ -436,7 +457,8 @@ BB.CONTENT = {
    "range": 1.5,
    "targets": "Ground",
    "ability": "Regen",
-   "abilityValue": 25
+   "abilityValue": 25,
+   "role": "Tanque"
   },
   {
    "id": "infernal_demon",
@@ -445,14 +467,15 @@ BB.CONTENT = {
    "rarity": "Mythic",
    "cls": "Barbarian",
    "cost": 7,
-   "hp": 1400,
+   "hp": 1250,
    "damage": 147,
    "attackInterval": 1,
    "moveSpeed": 4,
    "range": 1.5,
    "targets": "Ground",
    "ability": "Hex",
-   "summonId": "skeleton"
+   "summonId": "skeleton",
+   "role": "Vencedor de jogo"
   },
   {
    "id": "royal_cleric",
@@ -468,9 +491,10 @@ BB.CONTENT = {
    "range": 6,
    "targets": "Both",
    "ability": "HealAura",
-   "abilityValue": 40,
+   "abilityValue": 50,
    "abilityRadius": 7,
-   "abilityInterval": 2
+   "abilityInterval": 2,
+   "role": "Suporte"
   },
   {
    "id": "dwarf_engineer",
@@ -487,7 +511,8 @@ BB.CONTENT = {
    "targets": "Ground",
    "ability": "BuildTurret",
    "summonId": "dwarf_turret",
-   "summonCount": 1
+   "summonCount": 1,
+   "role": "Construção"
   },
   {
    "id": "war_wolf",
@@ -495,14 +520,15 @@ BB.CONTENT = {
    "category": "Creature",
    "rarity": "Common",
    "cls": "Beast",
-   "cost": 3,
-   "hp": 520,
-   "damage": 145,
+   "cost": 4,
+   "hp": 340,
+   "damage": 85,
    "attackInterval": 1,
    "moveSpeed": 7.5,
    "range": 1.5,
    "targets": "Ground",
-   "allLanes": true
+   "allLanes": true,
+   "role": "Pressão"
   },
   {
    "id": "goblin_hunter",
@@ -511,8 +537,8 @@ BB.CONTENT = {
    "rarity": "Rare",
    "cls": "Archer",
    "cost": 3,
-   "hp": 480,
-   "damage": 131,
+   "hp": 420,
+   "damage": 105,
    "attackInterval": 1,
    "moveSpeed": 5,
    "range": 9,
@@ -521,7 +547,8 @@ BB.CONTENT = {
    "abilityValue": 1,
    "bonusTag": "goblin",
    "deathDamage": 131,
-   "deathRadius": 5
+   "deathRadius": 5,
+   "role": "Anti-tanque"
   },
   {
    "id": "forest_druid",
@@ -537,9 +564,10 @@ BB.CONTENT = {
    "range": 7,
    "targets": "Ground",
    "ability": "HealAura",
-   "abilityValue": 60,
+   "abilityValue": 75,
    "abilityRadius": 8,
-   "abilityInterval": 3
+   "abilityInterval": 3,
+   "role": "Suporte"
   },
   {
    "id": "skeleton_summoner",
@@ -557,7 +585,8 @@ BB.CONTENT = {
    "ability": "Summon",
    "abilityInterval": 9,
    "summonId": "skeleton",
-   "summonCount": 3
+   "summonCount": 3,
+   "role": "Invocador"
   },
   {
    "id": "vampire_bat",
@@ -566,15 +595,16 @@ BB.CONTENT = {
    "rarity": "Rare",
    "cls": "Beast",
    "cost": 2,
-   "hp": 320,
-   "damage": 110,
+   "hp": 230,
+   "damage": 75,
    "attackInterval": 1,
    "moveSpeed": 8.5,
    "range": 1.5,
    "targets": "Both",
    "flying": true,
    "ability": "Lifesteal",
-   "abilityValue": 0.3
+   "abilityValue": 0.3,
+   "role": "Voador"
   },
   {
    "id": "fireball",
@@ -584,9 +614,10 @@ BB.CONTENT = {
    "cls": "Mage",
    "cost": 4,
    "spell": "Damage",
-   "spellValue": 320,
+   "spellValue": 350,
    "spellRadius": 4,
-   "castleDamageRatio": 0.3
+   "castleDamageRatio": 0.3,
+   "role": "Feitiço de dano"
   },
   {
    "id": "freeze",
@@ -594,11 +625,12 @@ BB.CONTENT = {
    "category": "Spell",
    "rarity": "Epic",
    "cls": "Mage",
-   "cost": 4,
+   "cost": 3,
    "spell": "Stun",
    "spellValue": 0,
    "spellRadius": 6,
-   "spellDuration": 3
+   "spellDuration": 4,
+   "role": "Controle"
   },
   {
    "id": "divine_heal",
@@ -608,8 +640,9 @@ BB.CONTENT = {
    "cls": "Cleric",
    "cost": 3,
    "spell": "Heal",
-   "spellValue": 350,
-   "spellRadius": 0
+   "spellValue": 500,
+   "spellRadius": 0,
+   "role": "Suporte"
   },
   {
    "id": "lightning",
@@ -619,9 +652,10 @@ BB.CONTENT = {
    "cls": "Mage",
    "cost": 5,
    "spell": "StrongestTargets",
-   "spellValue": 550,
+   "spellValue": 650,
    "spellHits": 3,
-   "castleDamageRatio": 0.25
+   "castleDamageRatio": 0.25,
+   "role": "Anti-tanque"
   },
   {
    "id": "arcane_shield",
@@ -631,9 +665,10 @@ BB.CONTENT = {
    "cls": "Mage",
    "cost": 3,
    "spell": "Shield",
-   "spellValue": 300,
+   "spellValue": 250,
    "spellRadius": 0,
-   "spellDuration": 8
+   "spellDuration": 8,
+   "role": "Suporte"
   },
   {
    "id": "poison",
@@ -643,9 +678,10 @@ BB.CONTENT = {
    "cls": "Druid",
    "cost": 3,
    "spell": "Poison",
-   "spellValue": 70,
+   "spellValue": 80,
    "spellRadius": 5,
-   "spellDuration": 6
+   "spellDuration": 6,
+   "role": "Feitiço de dano"
   },
   {
    "id": "arrow_rain",
@@ -655,9 +691,10 @@ BB.CONTENT = {
    "cls": "Archer",
    "cost": 3,
    "spell": "Damage",
-   "spellValue": 150,
+   "spellValue": 200,
    "spellRadius": 0,
-   "castleDamageRatio": 0.2
+   "castleDamageRatio": 0.2,
+   "role": "Feitiço de dano"
   },
   {
    "id": "skeleton_summon",
@@ -669,7 +706,8 @@ BB.CONTENT = {
    "spell": "Summon",
    "spellValue": 0,
    "summonId": "skeleton",
-   "summonCount": 4
+   "summonCount": 5,
+   "role": "Invocador"
   },
   {
    "id": "skeleton",
@@ -685,7 +723,8 @@ BB.CONTENT = {
    "range": 1.5,
    "targets": "Ground",
    "token": true,
-   "lifetime": 25
+   "lifetime": 25,
+   "role": "Invocada"
   },
   {
    "id": "dwarf_turret",
@@ -701,7 +740,58 @@ BB.CONTENT = {
    "range": 13,
    "targets": "Both",
    "token": true,
-   "lifetime": 30
+   "lifetime": 30,
+   "role": "Invocada"
+  },
+  {
+   "id": "skeleton_trio",
+   "type": "Troop",
+   "category": "Troop",
+   "rarity": "Common",
+   "cls": "Necromancer",
+   "cost": 1,
+   "count": 3,
+   "hp": 95,
+   "damage": 40,
+   "attackInterval": 1,
+   "moveSpeed": 6,
+   "range": 1.5,
+   "targets": "Ground",
+   "sprite": "skeleton",
+   "role": "Ciclo"
+  },
+  {
+   "id": "spark",
+   "type": "Spell",
+   "category": "Spell",
+   "rarity": "Common",
+   "cls": "Mage",
+   "cost": 2,
+   "spell": "Zap",
+   "spellValue": 190,
+   "spellRadius": 3,
+   "spellDuration": 0.6,
+   "castleDamageRatio": 0.3,
+   "role": "Ciclo"
+  },
+  {
+   "id": "bat_swarm",
+   "type": "Troop",
+   "category": "Creature",
+   "rarity": "Rare",
+   "cls": "Beast",
+   "cost": 2,
+   "count": 3,
+   "hp": 90,
+   "damage": 38,
+   "attackInterval": 1,
+   "moveSpeed": 8.5,
+   "range": 1.5,
+   "targets": "Both",
+   "flying": true,
+   "sprite": "vampire_bat",
+   "visualScale": 0.65,
+   "role": "Ciclo"
   }
  ],
  "barons": [

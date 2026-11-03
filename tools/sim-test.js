@@ -33,8 +33,8 @@ function force(m, player, id) { const h = m.players[player].deck.hand; let i = h
 const play = (m, player, id, lane) => m.execute({ type: 'play', player, hand: force(m, player, id), cardId: id, lane });
 
 console.log('Conteúdo');
-test('37 cartas colecionáveis (29 tropas + 8 feitiços), 5 Barões, 3 castelos', () => {
-  eq(content.collectible.length, 37); eq(content.collectible.filter((c) => !c.isSpell).length, 29);
+test('40 cartas colecionáveis (31 tropas + 9 feitiços), 5 Barões, 5 castelos', () => {
+  eq(content.collectible.length, 40); eq(content.collectible.filter((c) => !c.isSpell).length, 31);
   eq(content.barons.length, 5); eq(content.castles.length, 5);
 });
 test('todas as cartas, Barões e castelos têm textos em pt e en', () => {
@@ -120,11 +120,18 @@ test('comandos inválidos são recusados', () => {
 });
 
 console.log('Combate');
+test('muralha cai, dá coroa e libera o castelo pela rota', () => {
+  const m = newMatch(); const p = m.players[1];
+  m.damageCastle(1, p.wallMaxHp + 10, 0, 2); eq(p.walls[2], 0); eq(m.crowns(0), 1); near(p.castleHp, p.castleMaxHp, 0.01);
+  m.damageCastle(1, 100, 0, 2); near(p.castleHp, p.castleMaxHp - 100, 0.01);
+  m.damageCastle(1, 100, 0, 0); near(p.castleHp, p.castleMaxHp - 100, 0.01);
+});
 test('tropa nasce, avança e ataca o castelo inimigo', () => {
   const m = newMatch(); m.players[0].energy = 10;
   eq(play(m, 0, 'royal_knight', 1), 'Ok');
   const u = m.units[0], x0 = u.x; run(m, 3); assert(u.x > x0, 'avança'); run(m, 40);
-  assert(m.players[1].castleHp < m.players[1].castleMaxHp, 'castelo inimigo recebe dano');
+  assert(m.players[1].walls[1] < m.players[1].wallMaxHp, 'muralha da rota recebe dano primeiro');
+  near(m.players[1].castleHp, m.players[1].castleMaxHp, 0.01);
 });
 test('tropas lutam apenas na mesma rota', () => {
   const m = newMatch(); const k = content.card('royal_knight');
@@ -169,9 +176,9 @@ test('bola de fogo causa dano e congelamento paralisa', () => {
   m.players[0].energy = 10; eq(play(m, 0, 'fireball', 1), 'Ok'); assert(t.hp < t.maxHp);
   m.players[0].energy = 10; eq(play(m, 0, 'freeze', 1), 'Ok'); assert(t.stun > 0);
 });
-test('invocação esquelética cria 4 esqueletos temporários', () => {
+test('invocação esquelética cria 5 esqueletos temporários', () => {
   const m = newMatch(); m.players[0].energy = 10; play(m, 0, 'skeleton_summon', 2);
-  eq(m.units.filter((u) => u.def.id === 'skeleton' && u.lane === 2).length, 4);
+  eq(m.units.filter((u) => u.def.id === 'skeleton' && u.lane === 2).length, 5);
   run(m, 30); eq(m.units.filter((u) => u.def.id === 'skeleton' && u.owner === 0).length, 0);
 });
 test('engenheiro anão constrói torre', () => {
@@ -185,7 +192,7 @@ test('Caçador de Goblins: dobro de dano contra Goblin; Morcego recupera vida', 
   g.maxHp = g.hp = 2000; m.attack(h, g, 1); m.attack(h, k, 1);
   { const dh = content.card('goblin_hunter').damage; near(g.maxHp - g.hp, dh * 2, 0.01); near(k.maxHp - k.hp, dh, 0.01); }
   const b = m.spawnUnit(0, content.card('vampire_bat'), 2, 40, 1); b.hp = 100;
-  const t = m.spawnUnit(1, content.card('stone_golem'), 2, 41, 1); m.attack(b, t, 1); near(b.hp, 133, 0.01);
+  const t = m.spawnUnit(1, content.card('stone_golem'), 2, 41, 1); m.attack(b, t, 1); near(b.hp, 100 + content.card('vampire_bat').damage * 0.3, 0.01);
 });
 console.log('Barões e castelos');
 test('poder do Barão só ativa quando carregado', () => {

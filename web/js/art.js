@@ -64,7 +64,7 @@
     drawPreview(cv, def, t) {
       const g = cv.getContext('2d'), W = cv.width, H = cv.height;
       g.clearRect(0, 0, W, H);
-      const sp = BB.SPRITES && BB.SPRITES[def.id], fx = BB.FX && BB.FX['fx_' + def.id];
+      const sp = BB.SPRITES && BB.SPRITES[def.sprite || def.id], fx = BB.FX && BB.FX['fx_' + def.id];
       if (sp) {
         const im = BB.art.image(BB.unitSrc(def.id));
         if (!im.complete || !im.naturalWidth) return;
