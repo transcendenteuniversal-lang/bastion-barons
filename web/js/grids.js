@@ -188,7 +188,7 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    1
   ],
   "blend": 1,
-  "scale": 0.72,
+  "scale": 0.78,
   "src": "img/units/goblin_hunter_g.webp"
  },
  "guardian_ent": {

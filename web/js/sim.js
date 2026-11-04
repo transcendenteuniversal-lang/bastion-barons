@@ -350,8 +350,7 @@
       }
       const front = this.castleFront(1 - u.owner);
       const dist = (front - u.x) * u.dir;
-      // todas as tropas (inclusive as de longo alcance) andam até a divisa do piso antes de atacar o castelo
-      const reach = Math.min(d.range, this.B.castleReach || 1.5);
+      const reach = Math.min(d.range, this.B.castleReach || 99); // castelo: todos chegam até a divisa para atacar
       if (dist <= reach + 0.01) {
         u.state = 'AttackingCastle'; u.targetId = 0;
         if (u.attackCd <= 0) {
@@ -423,12 +422,14 @@
     abilityPulse(u) {
       const d = u.def;
       if (d.ability === 'HealAura') {
+        this.emit('AuraPulse', u.owner, { unitId: u.id, lane: u.lane, x: u.x, radius: d.abilityRadius, kind: 'heal' });
         for (const a of this.units) {
           if (a.hp <= 0 || a.owner !== u.owner || a.lane !== u.lane || Math.abs(a.x - u.x) > d.abilityRadius || a.hp >= a.maxHp) continue;
           a.hp = Math.min(a.maxHp, a.hp + u.abilityPower);
           this.emit('Heal', u.owner, { unitId: a.id, lane: a.lane, x: a.x, value: u.abilityPower });
         }
       } else if (d.ability === 'Summon' && this.content.cards[d.summonId]) {
+        this.emit('AuraPulse', u.owner, { unitId: u.id, lane: u.lane, x: u.x, radius: 3, kind: 'summon' });
         const s = this.content.cards[d.summonId];
         for (let i = 0; i < Math.max(1, d.summonCount || 1); i++) this.spawnUnit(u.owner, s, u.lane, u.x + u.dir * (1 + i), u.level);
       }

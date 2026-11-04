@@ -24,7 +24,7 @@ BB.CONTENT = {
   "laneLength": 100,
   "spawnOffset": 4,
   "castleFront": 6,
-  "castleReach": 1.5,
+  "castleReach": 2,
   "castleHp": 6000,
   "wallHp": 0,
   "castleAttackDamage": 0,
@@ -425,7 +425,7 @@ BB.CONTENT = {
    "range": 1.5,
    "targets": "Ground",
    "ability": "FirstHitKnockback",
-   "abilityValue": 20,
+   "abilityValue": 60,
    "role": "Tanque"
   },
   {

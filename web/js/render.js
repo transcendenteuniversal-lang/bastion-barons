@@ -110,6 +110,7 @@
               this.sparks(tv.x - tv.kickDir * tv.r * 0.4, tv.y - tv.r * 0.5, heavy ? 8 : 5);
             } else if (!e.targetId) { const c = this.castlePoint(1 - e.player); this.playFx('fx_hit', c.x, c.y + 40, 90, 0.3); this.sparks(c.x, c.y, 6); }
             this.hitstop = Math.max(this.hitstop || 0, heavy ? 0.085 : 0.035);
+            if (def.ability === 'Splash' && tv) this.fx.push({ k: 'shock', x: tv.x, y: tv.y, r: (def.abilityRadius / m.L) * laneW(e.lane), t: 0, d: 0.45, c: def.id === 'infernal_demon' ? '#ff6a1e' : '#ffd77a' });
           }
           if (heavy) this.shake = Math.max(this.shake, 0.18);
           if (def.range > 4) {
@@ -118,10 +119,11 @@
             const col = PROJ_COLOR[def.cls] || '#f2e3b3';
             const pk = PROJ_KIND[def.id] || 'orb', x0 = v.x + (e.player === 0 ? 1 : -1) * v.r * 0.3, y0 = v.y - v.r - v.lift;
             const dist = Math.hypot(to.x - x0, to.y - y0);
-            this.fx.push({ k: 'proj', pk, x0, y0, x1: to.x, y1: to.y, t: 0, d: Math.max(0.16, Math.min(0.5, dist / 1500)), c: PROJ_TINT[def.id] || col,
-              r: def.cls === 'Mage' ? 9 : 6, arc: pk === 'arrow' || pk === 'bolt' ? Math.min(60, dist * 0.12) : pk === 'bullet' ? 4 : 18 });
+            const pd = Math.max(0.14, Math.min(0.42, dist / 1800)), pc = PROJ_TINT[def.id] || col;
+            this.fx.push({ k: 'proj', pk, x0, y0, x1: to.x, y1: to.y, t: 0, d: pd, c: pc, r: def.cls === 'Mage' ? 9 : 6, arc: 0 }); // sempre em linha reta
+            this.fx.push({ k: 'impact', x: to.x, y: to.y, c: pk === 'arrow' || pk === 'bolt' || pk === 'bullet' ? '#fff2c0' : pc, t: -pd, d: 0.3 });
             if (pk === 'bullet') this.fx.push({ k: 'puff', x: x0, y: y0, t: 0, d: 0.3 });
-            if (def.ability === 'Splash') this.fx.push({ k: 'burst', x: to.x, y: to.y, r: (def.abilityRadius / m.L) * laneW(e.lane), t: -0.2, d: 0.4, c: col });
+            if (def.ability === 'Splash') { const tv2 = e.targetId ? this.views.get(e.targetId) : null; this.fx.push({ k: 'shock', x: to.x, y: tv2 ? tv2.y : to.y + 40, r: (def.abilityRadius / m.L) * laneW(e.lane), t: -pd, d: 0.45, c: pc }); }
           }
           break;
         }
@@ -140,6 +142,9 @@
           if (!this.playFx('fx_fireball', x, l.y1 - (l.y1 - l.y0) * 0.1, (l.y1 - l.y0) * 1.3, 0.6)) this.fx.push({ k: 'burst', x, y: l.y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.5, c: '#ff8a2a' }); break; }
         case 'Hexed': case 'UnitRestored': case 'Raised': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.6, t: 0, d: 0.5, c: e.type === 'UnitRestored' ? '#ffffff' : '#a64dff' }); break;
         case 'UnitGrew': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.4, t: 0, d: 0.45, c: '#ffd34d' }); break;
+        case 'AuraPulse': if (v) this.fx.push({ k: 'shock', x: v.x, y: v.y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.7, c: e.kind === 'heal' ? '#7dff8a' : '#b06bff' }); break;
+        case 'Knocked': if (v) { v.knockT = 0.35; this.dust(v.x, v.y, 6); this.fx.push({ k: 'streak', x: v.x, y: v.y - v.r, dir: e.player === 0 ? -1 : 1, t: 0, d: 0.35 }); } break;
+        case 'UnitLaneChange': if (v) { this.dust(v.x, v.y, 8); this.fx.push({ k: 'burst', x: v.x, y: v.y - v.r, r: v.r * 1.2, t: 0, d: 0.35, c: '#9dff8a' }); } break;
         case 'Frozen': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.1, t: 0, d: 0.35, c: '#bfefff' }); break;
         case 'Blocked': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y - v.r, r: v.r * 0.9, t: 0, d: 0.3, c: '#ffe68a' }); break;
         case 'UnitDied':
@@ -253,6 +258,16 @@
             this.lastCastleFx[e.player] = this.t;
             const cp = this.castlePoint(e.player);
             this.playFx('fx_castle_hit', cp.x + (Math.random() - 0.5) * 80, cp.y + 20 - Math.random() * 120, 190, 0.7);
+          }
+          { // cada golpe no castelo: faíscas, lasquinhas de pedra e poeira no ponto atingido
+            if (!this.lastChip) this.lastChip = [0, 0];
+            if (this.t - this.lastChip[e.player] > 0.15) {
+              this.lastChip[e.player] = this.t;
+              const cp = this.castlePoint(e.player), hx = cp.x + (e.player === 0 ? 70 : -70) + (Math.random() - 0.5) * 50, hy = cp.y - 20 - Math.random() * 140;
+              this.sparks(hx, hy, 5);
+              for (let i = 0; i < 4; i++) this.fx.push({ k: 'rock', x: hx, y: hy, vx: (e.player === 0 ? 1 : -1) * (60 + Math.random() * 160), vy: -80 - Math.random() * 160, r: 3 + Math.random() * 4, c: '#8a8095', t: 0, d: 0.7 });
+              this.dust(hx, hy + 30, 2);
+            }
           }
           const pt = this.castlePoint(e.player);
           if (e.value >= 1) this.texts.push({ x: pt.x + (Math.random() - 0.5) * 60, y: pt.y - 40, s: '-' + Math.round(e.value), t: 0, d: 0.9, c: '#ff4a3a', size: 40, pop: true });
@@ -515,9 +530,11 @@
         for (let i = 0; i < Math.min(C.length, crack * 2); i++) { g.beginPath(); C[i].forEach(([x, y], j) => (j ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke(); }
         g.restore();
       }
-      if (this.castleHit[owner] > 0) {
-        g.fillStyle = 'rgba(255,90,60,' + this.castleHit[owner] * 1.2 + ')';
-        g.beginPath(); g.ellipse(c.gx, c.gy - 40, 110, 150, 0, 0, TAU); g.fill();
+      if (this.castleHit[owner] > 0) { // pisca em vermelho/branco ao ser atingido
+        g.save(); g.globalCompositeOperation = 'lighter';
+        const gr = g.createRadialGradient(c.gx, c.gy - 60, 10, c.gx, c.gy - 60, 220);
+        gr.addColorStop(0, 'rgba(255,220,200,' + this.castleHit[owner] * 2.2 + ')'); gr.addColorStop(0.5, 'rgba(255,80,50,' + this.castleHit[owner] * 1.4 + ')'); gr.addColorStop(1, 'rgba(255,60,40,0)');
+        g.fillStyle = gr; g.beginPath(); g.ellipse(c.gx, c.gy - 60, 200, 260, 0, 0, TAU); g.fill(); g.restore();
       }
       const dmg = 1 - m.hpPct(p);
       if (dmg > 0.2) { // fumaça crescente com o dano
@@ -756,46 +773,15 @@
           if (dmg >= 8) this.texts.push({ x: v.x + (Math.random() - 0.5) * 30, y: v.y - v.r * 2.2 - v.lift, s: String(Math.round(dmg)), t: 0, d: 0.75,
             c: dmg >= 120 ? '#ffd34d' : '#ffffff', size: dmg >= 120 ? 46 : 30, pop: true });
         }
-        // cura (Ent, Clérigo, magias, roubo de vida...): brilho verde enquanto a vida sobe
-        if (u.hp > v.lastHp + 0.05 && v.dying < 0) {
-          const h = u.hp - v.lastHp;
-          v.heal = 0.7; v.healAcc = (v.healAcc || 0) + h;
-          if (v.healAcc >= 30) {
-            this.texts.push({ x: v.x + (Math.random() - 0.5) * 24, y: v.y - v.r * 2.2 - v.lift, s: '+' + Math.round(v.healAcc), t: 0, d: 0.8, c: '#7dff8a', size: 28, pop: true });
-            v.healAcc = 0;
-          }
+        if (u.hp > v.lastHp + 0.5 && (v.healT = (v.healT || 0) - dt) <= 0) { // curando: brilho verde e cruzinhas subindo
+          v.healT = 0.45; v.heal = 0.5;
+          for (let i = 0; i < 3; i++) this.fx.push({ k: 'plus', x: v.x + (Math.random() - 0.5) * v.r * 1.6, y: v.y - v.lift - Math.random() * v.r * 1.5, t: -i * 0.08, d: 0.8 });
         }
         if (u.state === 'Moving' && !u.flying && (v.dustT = (v.dustT || 0) - dt) <= 0) { v.dustT = 0.22 + Math.random() * 0.1; this.dust(v.x - (u.owner === 0 ? 1 : -1) * v.r * 0.5, v.y, 1, 0.5); }
         v.lastHp = u.hp;
       }
       for (const [id, v] of this.views) if (!seen.has(id)) { this.views.delete(id); v.dying = 0; this.ghosts.push(v); }
       this.ghosts = this.ghosts.filter((v) => (v.dying += dt) < 0.4);
-    }
-
-    // efeito de cura: aura verde no chão, brilho no corpo e cruzinhas verdes subindo
-    drawHeal(v, cx, cy, foot, w, h, dt) {
-      if (!(v.heal > 0) || v.dying >= 0) { v.healP = null; return; }
-      const g = this.g, a = Math.min(1, v.heal / 0.35);
-      v.heal -= dt;
-      v.healP = v.healP || [];
-      if ((v.healSpawn = (v.healSpawn || 0) - dt) <= 0) {
-        v.healSpawn = 0.07;
-        v.healP.push({ x: (Math.random() - 0.5) * w * 0.8, y: (Math.random() - 0.2) * h * 0.5, t: 0, d: 0.7 + Math.random() * 0.3, s: 6 + Math.random() * 6 });
-      }
-      g.save();
-      g.globalCompositeOperation = 'lighter';
-      g.fillStyle = 'rgba(90,255,120,' + 0.28 * a + ')';
-      g.beginPath(); g.ellipse(cx, foot, w * 0.55, w * 0.16, 0, 0, TAU); g.fill();
-      const gr = g.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.6);
-      gr.addColorStop(0, 'rgba(120,255,140,' + 0.42 * a + ')'); gr.addColorStop(1, 'rgba(60,255,100,0)');
-      g.fillStyle = gr; g.beginPath(); g.ellipse(cx, cy, w * 0.62, h * 0.62, 0, 0, TAU); g.fill();
-      v.healP = v.healP.filter((p) => (p.t += dt) < p.d);
-      for (const p of v.healP) {
-        const k = p.t / p.d, px = cx + p.x, py = cy + p.y - k * h * 0.7, s = p.s * (1 - k * 0.3);
-        g.fillStyle = 'rgba(120,255,140,' + (1 - k) * 0.95 + ')';
-        g.fillRect(px - s / 2, py - s / 6, s, s / 3); g.fillRect(px - s / 6, py - s / 2, s / 3, s);
-      }
-      g.restore();
     }
 
     drawUnit(v, dt) {
@@ -828,7 +814,6 @@
       medallion(g, v.img, x, cy, r, v.owner === 0 ? '#2f7bff' : '#e0323a', Math.max(4, r * 0.16), dir < 0);
       if (v.flash > 0) { g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.arc(x, cy, r, 0, TAU); g.fill(); }
       if (u.state === 'Stunned') { g.fillStyle = 'rgba(160,230,255,.5)'; g.beginPath(); g.arc(x, cy, r, 0, TAU); g.fill(); }
-      this.drawHeal(v, x, cy, y + v.r * 0.75, r * 2, r * 2, dt);
       if (u.poisonTime > 0) { g.fillStyle = 'rgba(124,211,43,.3)'; g.beginPath(); g.arc(x, cy, r, 0, TAU); g.fill(); }
       if (u.shield > 0) { g.strokeStyle = '#8fe3ff'; g.lineWidth = 5; g.beginPath(); g.arc(x, cy, r + 8, 0, TAU); g.stroke(); }
       if (u.slow < 1) { g.strokeStyle = '#bfefff'; g.lineWidth = 3; g.setLineDash([7, 5]); g.beginPath(); g.arc(x, cy, r + 5, 0, TAU); g.stroke(); g.setLineDash([]); }
@@ -866,6 +851,8 @@
       }
       const lift = v.fly ? 46 * k : 0, bob = v.fly ? Math.sin(v.phase * 3) * 5 : 0;
       if (v.kick > 0) { v.kick -= dt; }
+      if (v.heal > 0) { v.heal -= dt; g.save(); g.globalAlpha = Math.min(1, v.heal * 2) * 0.45; g.fillStyle = '#5dff7a'; g.beginPath(); g.ellipse(v.x, v.y, bodyPx * 0.45, bodyPx * 0.14, 0, 0, TAU); g.fill(); g.restore(); }
+      if (u.enraged && v.dying < 0) { const a = 0.3 + 0.15 * Math.sin(this.t * 10); g.save(); g.globalAlpha = a; g.fillStyle = '#ff3a1a'; g.beginPath(); g.ellipse(v.x, v.y, bodyPx * 0.5, bodyPx * 0.16, 0, 0, TAU); g.fill(); g.restore(); }
       const kx = v.kick > 0 ? v.kickDir * Math.sin((v.kick / 0.22) * Math.PI) * 14 : 0;
       const foot = v.y;
       g.save(); g.globalAlpha = alpha;
@@ -895,7 +882,6 @@
       }
       g.restore();
       const top = foot - lift + bob - bodyPx * scale;
-      this.drawHeal(v, v.x, top + bodyPx * scale * 0.5, foot, bodyPx * 0.7, bodyPx * scale, dt);
       if (u.shield > 0) { g.strokeStyle = '#8fe3ff'; g.lineWidth = 4; g.beginPath(); g.ellipse(v.x, top + bodyPx * 0.5, bodyPx * 0.42, bodyPx * 0.58, 0, 0, TAU); g.stroke(); }
       if (u.slow < 1) { g.strokeStyle = '#bfefff'; g.lineWidth = 3; g.setLineDash([7, 5]); g.beginPath(); g.ellipse(v.x, foot, bodyPx * 0.36, bodyPx * 0.11, 0, 0, TAU); g.stroke(); g.setLineDash([]); }
       // vida e nível: discretos, acima da cabeça
@@ -942,6 +928,23 @@
         } else if (f.k === 'shard') { // pedaços da muralha voando
           const tt = f.t; g.globalAlpha = 1 - k; g.fillStyle = f.c;
           g.save(); g.translate(f.x + f.vx * tt, f.y + f.vy * tt + 600 * tt * tt); g.rotate(tt * 8); g.fillRect(-6, -6, 12, 12); g.restore(); g.globalAlpha = 1;
+        } else if (f.k === 'impact') { // impacto do projétil
+          g.save(); g.globalAlpha = 1 - k; g.fillStyle = f.c; g.shadowColor = f.c; g.shadowBlur = 14;
+          g.beginPath(); g.arc(f.x, f.y, 6 + k * 18, 0, TAU); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2;
+          for (let i = 0; i < 6; i++) { const a = i * TAU / 6 + 0.3, r0 = 8 + k * 10, r1 = 14 + k * 26; g.beginPath(); g.moveTo(f.x + Math.cos(a) * r0, f.y + Math.sin(a) * r0); g.lineTo(f.x + Math.cos(a) * r1, f.y + Math.sin(a) * r1); g.stroke(); }
+          g.restore();
+        } else if (f.k === 'shock') { // onda de área no chão
+          g.save(); g.globalAlpha = (1 - k) * 0.85; g.strokeStyle = f.c; g.lineWidth = 5 * (1 - k) + 2; g.shadowColor = f.c; g.shadowBlur = 12;
+          const rr = Math.max(20, f.r) * (0.3 + 0.8 * k);
+          g.beginPath(); g.ellipse(f.x, f.y, rr, rr * 0.3, 0, 0, TAU); g.stroke();
+          g.globalAlpha = (1 - k) * 0.18; g.fillStyle = f.c; g.fill(); g.restore();
+        } else if (f.k === 'plus') { // cruzinhas verdes da cura
+          const y = f.y - k * 40; g.save(); g.globalAlpha = 1 - k; g.fillStyle = '#6dff7d'; g.strokeStyle = '#0a5a1a'; g.lineWidth = 2;
+          g.beginPath(); g.rect(f.x - 3, y - 9, 6, 18); g.rect(f.x - 9, y - 3, 18, 6); g.fill(); g.restore();
+        } else if (f.k === 'streak') { // rastro do empurrão
+          g.save(); g.globalAlpha = 1 - k; g.strokeStyle = '#ffffff'; g.lineWidth = 3;
+          for (let i = 0; i < 3; i++) { const yy = f.y + (i - 1) * 12; g.beginPath(); g.moveTo(f.x - f.dir * 10, yy); g.lineTo(f.x - f.dir * (40 + k * 30), yy); g.stroke(); }
+          g.restore();
         } else if (f.k === 'dust') {
           g.globalAlpha = 0.45 * (1 - k); g.fillStyle = '#cfc6b8';
           g.beginPath(); g.arc(f.x + f.vx * f.t, f.y + f.vy * f.t, f.r * (0.6 + k), 0, TAU); g.fill(); g.globalAlpha = 1;
