@@ -235,7 +235,7 @@
                 if (meta.vert) { // tira: a cabeça na parede do castelo e o fogo cobrindo a rota inteira
                   const w = (l.xR - l.xL) + 160, h = meta.h * (w / meta.w);
                   const x = e.player === 0 ? l.xL - 90 + w / 2 : l.xR + 90 - w / 2;
-                  this.fx.push({ k: 'anim', key, x, y: l.y + h * 0.3, w, t: 0, d: 1.6, flip: e.player === 1 });
+                  this.fx.push({ k: 'anim', key, x, y: l.y - (l.y1 - l.y0) * 0.15 + h * 0.3, w, t: 0, d: 1.6, flip: e.player === 1 });
                   this.shake = Math.max(this.shake, 0.4);
                 } else {
                   const h = lh * 1.9, w = meta.w * (h / meta.h);
@@ -825,7 +825,7 @@
       for (const u of alive) {
         seen.add(u.id);
         const l = ARENA.lanes[u.lane];
-        let x = tx.get(u.id); const y = l.y + rowOf.get(u.id) * (l.y1 - l.y0) * (u.flying ? 0.12 : 0.24) - (u.flying ? (l.y1 - l.y0) * 0.38 : 0); // voadores na parte de cima da rota
+        let x = tx.get(u.id); const y = l.y + rowOf.get(u.id) * (l.y1 - l.y0) * (u.flying ? 0.1 : 0.24) - (u.flying ? (l.y1 - l.y0) * 0.62 : 0); // voadores bem no alto da rota
         if (this.castleArt) { // segue a junta do piso também nas fileiras de cima e de baixo
           const f = (x - l.xL) / (l.xR - l.xL), a = ARENA.seam(y); x = a + f * (AW - 2 * a);
         }

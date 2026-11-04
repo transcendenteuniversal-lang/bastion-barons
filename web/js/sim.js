@@ -322,6 +322,7 @@
       const n = this.units.length;
       for (let i = 0; i < n; i++) this.updateUnit(this.units[i], dt);
       this.processHits();
+      this.processDelayed();
       this.applyKnocks();
       for (const p of this.players) this.castleDefense(p, dt);
       this.units = this.units.filter((u) => u.hp > 0);
@@ -403,6 +404,16 @@
         if (d <= u.def.range + this.bodyR(u.def) + this.bodyR(e.def) + 0.01 && d < bestD) { best = e; bestD = d; }
       }
       return best;
+    }
+
+    // efeito com atraso (dano de magia/poder no impacto da animação)
+    after(wait, fn) { if (!(wait > 0)) return fn(); (this.delayed = this.delayed || []).push({ wait, fn }); }
+    fxDelay(id) { return (this.B.fxDelay && this.B.fxDelay[id]) || 0; }
+    processDelayedAll() { const d = this.delayed || []; this.delayed = []; for (const x of d) x.fn(); } // testes
+    processDelayed() {
+      if (!this.delayed || !this.delayed.length) return;
+      const now = this.delayed; this.delayed = [];
+      for (const d of now) { if ((d.wait -= this.dt) <= 0) d.fn(); else this.delayed.push(d); }
     }
 
     // o golpe começa agora (animação) e o dano entra no momento do impacto da animação (B.hitDelay)
@@ -664,19 +675,25 @@
         case 'Damage': {
           const f = this.frontUnit(enemy, lane);
           center = f === null ? this.castleFront(enemy) : f;
-          this.damageLane(p.index, lane, value, center, r);
-          if (def.castleDamageRatio > 0 && (r <= 0 || Math.abs(this.castleFront(enemy) - center) <= r + 2))
-            this.damageCastle(enemy, value * def.castleDamageRatio, p.index, lane);
+          const c0 = center;
+          this.after(this.fxDelay(def.id), () => { // dano no momento do impacto da animação
+            this.damageLane(p.index, lane, value, c0, r);
+            if (def.castleDamageRatio > 0 && (r <= 0 || Math.abs(this.castleFront(enemy) - c0) <= r + 2))
+              this.damageCastle(enemy, value * def.castleDamageRatio, p.index, lane);
+          });
           break;
         }
         case 'Zap': { // Faísca: dano pequeno em área + atordoa por um instante
           const f = this.frontUnit(enemy, lane);
           center = f === null ? this.castleFront(enemy) : f;
-          for (const e of this.units) {
-            if (e.hp <= 0 || e.owner === p.index || e.lane !== lane || Math.abs(e.x - center) > r) continue;
-            this.applyDamage(e, value, p.index); if (e.hp > 0) e.stun = Math.max(e.stun, def.spellDuration || 0.5);
-          }
-          if (def.castleDamageRatio > 0 && Math.abs(this.castleFront(enemy) - center) <= r + 2) this.damageCastle(enemy, value * def.castleDamageRatio, p.index, lane);
+          const c0 = center;
+          this.after(this.fxDelay(def.id), () => {
+            for (const e of this.units) {
+              if (e.hp <= 0 || e.owner === p.index || e.lane !== lane || Math.abs(e.x - c0) > r) continue;
+              this.applyDamage(e, value, p.index); if (e.hp > 0) e.stun = Math.max(e.stun, def.spellDuration || 0.5);
+            }
+            if (def.castleDamageRatio > 0 && Math.abs(this.castleFront(enemy) - c0) <= r + 2) this.damageCastle(enemy, value * def.castleDamageRatio, p.index, lane);
+          });
           break;
         }
         case 'Stun':
@@ -706,9 +723,11 @@
         case 'StrongestTargets': {
           const list = this.units.filter((e) => e.hp > 0 && e.owner !== p.index && e.lane === lane).sort((a, b) => b.hp - a.hp);
           const hits = Math.max(1, def.spellHits || 1);
-          for (let i = 0; i < list.length && i < hits; i++) this.applyDamage(list[i], value, p.index);
           center = list.length ? list[0].x : this.castleFront(enemy);
-          if (list.length < hits && def.castleDamageRatio > 0) this.damageCastle(enemy, value * def.castleDamageRatio, p.index, lane);
+          this.after(this.fxDelay(def.id), () => {
+            for (let i = 0; i < list.length && i < hits; i++) this.applyDamage(list[i], value, p.index);
+            if (list.length < hits && def.castleDamageRatio > 0) this.damageCastle(enemy, value * def.castleDamageRatio, p.index, lane);
+          });
           break;
         }
         case 'Summon': {
@@ -747,22 +766,21 @@
       const l = Math.max(0, Math.min(2, lane | 0));
       switch (c.ability) {
         case 'ImperialShield': p.castleShield = c.value; p.castleShieldTime = c.duration; break;
-        case 'DragonBreath': this.damageLane(p.index, l, c.value, -1, 0); break;
+        case 'DragonBreath': this.after(this.fxDelay('dragon_breath'), () => this.damageLane(p.index, l, c.value, -1, 0)); break;
         case 'IceStorm': this.players[1 - p.index].mods.push({ lane: l, dmg: 1, move: 1 - c.value, atk: 1 - (c.value2 || 0), time: c.duration }); break;
         case 'ForestBlessing': { // cura o castelo e todas as tropas aliadas (fração da vida máxima)
           p.castleHp = Math.min(p.castleMaxHp, p.castleHp + c.value);
           for (const u of this.units) if (u.hp > 0 && u.owner === p.index) u.hp = Math.min(u.maxHp, u.hp + u.maxHp * (c.value2 || 0));
           break;
         }
-        case 'SoulDrain': { // dano na rota; o castelo recupera parte do dano causado
+        case 'SoulDrain': this.after(this.fxDelay('soul_drain'), () => { // dano na rota; o castelo recupera parte do dano causado
           let dealt = 0;
           for (const e of this.units) {
             if (e.hp <= 0 || e.owner === p.index || e.lane !== l) continue;
             const before = e.hp; this.applyDamage(e, c.value, p.index); dealt += before - Math.max(0, e.hp);
           }
           p.castleHp = Math.min(p.castleMaxHp, p.castleHp + dealt * (c.value2 || 0));
-          break;
-        }
+        }); break;
       }
       p.castleCooldown = c.cooldown;
       p.stats.castleUses++;

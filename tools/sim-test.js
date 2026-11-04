@@ -168,7 +168,7 @@ test('habilidades: empurrão, congelar, lobos nas 3 rotas, troca de rota, necrom
 });
 test('bola de fogo causa dano e congelamento paralisa', () => {
   const m = newMatch(); const t = m.spawnUnit(1, content.card('red_orc'), 1, 60, 1);
-  m.players[0].energy = 10; eq(play(m, 0, 'fireball', 1), 'Ok'); assert(t.hp < t.maxHp);
+  m.players[0].energy = 10; eq(play(m, 0, 'fireball', 1), 'Ok'); m.processDelayedAll(); assert(t.hp < t.maxHp);
   m.players[0].energy = 10; eq(play(m, 0, 'freeze', 1), 'Ok'); assert(t.stun > 0);
 });
 test('invocação esquelética cria 5 esqueletos temporários', () => {
@@ -227,7 +227,7 @@ test('Dreno de Almas causa dano na rota e cura o castelo', () => {
   const m = newMatch({ castle0: 'shadow_necropolis' }); m.players[0].castleCooldown = 0;
   const a = m.spawnUnit(1, content.card('royal_knight'), 0, 70, 1), b = m.spawnUnit(1, content.card('royal_knight'), 2, 70, 1);
   m.players[0].castleHp -= 1000; const hp = m.players[0].castleHp, ha = a.hp, hb = b.hp;
-  eq(m.execute({ type: 'castle', player: 0, lane: 0 }), 'Ok');
+  a.stun = b.stun = 99; eq(m.execute({ type: 'castle', player: 0, lane: 0 }), 'Ok'); m.processDelayedAll();
   near(a.hp, ha - 220, 0.01); near(b.hp, hb, 0.01); near(m.players[0].castleHp, hp + 220 * 0.6, 0.01);
 });
 test('Tempestade de Gelo desacelera inimigos da rota', () => {
@@ -238,7 +238,7 @@ test('Tempestade de Gelo desacelera inimigos da rota', () => {
 test('Sopro do Dragão causa dano na rota', () => {
   const m = newMatch({ castle0: 'draconic_castle' }); m.players[0].castleCooldown = 0;
   const e = m.spawnUnit(1, content.card('red_orc'), 2, 70, 1);
-  eq(m.execute({ type: 'castle', player: 0, lane: 2 }), 'Ok'); assert(e.hp < e.maxHp);
+  eq(m.execute({ type: 'castle', player: 0, lane: 2 }), 'Ok'); m.processDelayedAll(); assert(e.hp < e.maxHp);
 });
 
 console.log('Vitória e derrota');
