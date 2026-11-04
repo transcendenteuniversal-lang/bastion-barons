@@ -594,8 +594,8 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
 });
 Object.assign(BB.FX = BB.FX || {}, {
  "fx_arcane_shield": {
-  "w": 336,
-  "h": 226,
+  "w": 267,
+  "h": 282,
   "n": 12,
   "src": "img/units/fx_arcane_shield_g.webp"
  },
@@ -606,8 +606,8 @@ Object.assign(BB.FX = BB.FX || {}, {
   "src": "img/units/fx_arrow_rain_g.webp"
  },
  "fx_divine_heal": {
-  "w": 232,
-  "h": 284,
+  "w": 193,
+  "h": 304,
   "n": 12,
   "src": "img/units/fx_divine_heal_g.webp"
  },
@@ -622,6 +622,12 @@ Object.assign(BB.FX = BB.FX || {}, {
   "h": 232,
   "n": 12,
   "src": "img/units/fx_freeze_g.webp"
+ },
+ "fx_ice_prison": {
+  "w": 270,
+  "h": 304,
+  "n": 12,
+  "src": "img/units/fx_ice_prison_g.webp"
  },
  "fx_imperial_shield": {
   "w": 321,
@@ -672,7 +678,7 @@ Object.assign(BB.FX = BB.FX || {}, {
   "src": "img/units/fx_sylvan_blessing_g.webp"
  },
  "fx_sylvan_heal": {
-  "w": 276,
+  "w": 274,
   "h": 304,
   "n": 12,
   "src": "img/units/fx_sylvan_heal_g.webp"

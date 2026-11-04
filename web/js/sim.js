@@ -703,7 +703,7 @@
           for (const e of this.units) {
             if (e.hp <= 0 || e.owner === p.index || e.lane !== lane) continue;
             if (r > 0 && Math.abs(e.x - center) > r) continue;
-            if (def.spell === 'Stun') e.stun = Math.max(e.stun, def.spellDuration);
+            if (def.spell === 'Stun') { e.stun = Math.max(e.stun, def.spellDuration); this.emit('Frozen', e.owner, { unitId: e.id, lane, x: e.x, dur: def.spellDuration }); }
             else { e.poisonDps = Math.max(e.poisonTime > 0 ? e.poisonDps : 0, value); e.poisonTime = def.spellDuration; }
           }
           break;
@@ -716,7 +716,7 @@
             if (a.hp <= 0 || a.owner !== p.index || a.lane !== lane) continue;
             if (r > 0 && Math.abs(a.x - center) > r) continue;
             if (def.spell === 'Heal') { a.hp = Math.min(a.maxHp, a.hp + value); this.emit('Heal', p.index, { unitId: a.id, lane, x: a.x, value }); }
-            else { a.shield = Math.max(a.shield, value); a.shieldTime = def.spellDuration; }
+            else { a.shield = Math.max(a.shield, value); a.shieldTime = def.spellDuration; this.emit('Shielded', p.index, { unitId: a.id, lane, x: a.x, dur: def.spellDuration }); }
           }
           break;
         }
@@ -753,7 +753,7 @@
           break;
         }
         case 'ArcaneStorm': // Tempestade: congela todos os inimigos da rota
-          for (const u of this.units) if (u.hp > 0 && u.owner !== p.index && u.lane === l) { u.stun = Math.max(u.stun, b.duration || 4); this.emit('Frozen', u.owner, { unitId: u.id, lane: l, x: u.x }); }
+          for (const u of this.units) if (u.hp > 0 && u.owner !== p.index && u.lane === l) { u.stun = Math.max(u.stun, b.duration || 4); this.emit('Frozen', u.owner, { unitId: u.id, lane: l, x: u.x, dur: b.duration || 4 }); }
           break;
       }
       p.baronCharge = 0;

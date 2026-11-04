@@ -150,7 +150,12 @@
         case 'AuraPulse': if (v) this.fx.push({ k: 'shock', x: v.x, y: v.y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.7, c: e.kind === 'heal' ? '#7dff8a' : '#b06bff' }); break;
         case 'Knocked': if (v) { if (e.dist >= 20) { v.flyT = 0.5; v.flyFrom = v.x; this.dust(v.x, v.y, 10, 1.3); } v.knockT = 0.35; this.dust(v.x, v.y, 6); this.fx.push({ k: 'streak', x: v.x, y: v.y - v.r, dir: e.player === 0 ? -1 : 1, t: 0, d: 0.35 }); } break;
         case 'UnitLaneChange': if (v) { this.dust(v.x, v.y, 8); this.fx.push({ k: 'burst', x: v.x, y: v.y - v.r, r: v.r * 1.2, t: 0, d: 0.35, c: '#9dff8a' }); } break;
-        case 'Frozen': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.1, t: 0, d: 0.35, c: '#bfefff' }); break;
+        case 'Frozen': if (v) {
+          if (e.dur >= 2 && this.fxSheet('fx_ice_prison')) { // prisão de gelo em volta da tropa enquanto estiver congelada
+            const bh = this.bodyH(v.u); this.fx.push({ k: 'anim', key: 'fx_ice_prison', x: v.x, y: v.y + 6, h: bh * 1.45, t: 0, d: e.dur, follow: v, loopFrom: 5, loopDur: 0.6, intro: 0.35, outro: 0.6 });
+          } else this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.1, t: 0, d: 0.35, c: '#bfefff' });
+        } break;
+        case 'Shielded': if (v && this.fxSheet('fx_arcane_shield')) { const bh = this.bodyH(v.u); this.fx.push({ k: 'anim', key: 'fx_arcane_shield', x: v.x, y: v.y + 6, h: bh * 1.35, t: 0, d: e.dur || 8, follow: v, loopFrom: 6, loopDur: 0.8, intro: 0.5, unitShield: v.u, alpha: 0.6 }); } break;
         case 'Blocked': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y - v.r, r: v.r * 0.9, t: 0, d: 0.3, c: '#ffe68a' }); break;
         case 'UnitDied':
           if (!this.lastCheer) this.lastCheer = [0, 0];
@@ -165,7 +170,10 @@
           break;
         }
         case 'UnitRevived': if (v) { v.x = this.laneX(m, e.x, e.lane); v.born = 0; this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 2.5, t: 0, d: 0.5, c: '#ffb23a' }); } break;
-        case 'Heal': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y - v.lift, r: v.r * 1.4, t: 0, d: 0.35, c: '#7cff8a' }); break;
+        case 'Heal': if (v) {
+          if (e.value >= 200 && this.fxSheet('fx_divine_heal')) this.fx.push({ k: 'anim', key: 'fx_divine_heal', x: v.x, y: v.y + 6, h: this.bodyH(v.u) * 1.5, t: -Math.random() * 0.15, d: 1.2, ease: 1, follow: v });
+          else this.fx.push({ k: 'burst', x: v.x, y: v.y - v.lift, r: v.r * 1.4, t: 0, d: 0.35, c: '#7cff8a' });
+        } break;
         case 'SpellCast': {
           const c = SPELL_COLOR[e.id] || '#f7c548';
           const l = ARENA.lanes[e.lane], lh = l.y1 - l.y0, sx = this.laneX(m, e.x, e.lane);
@@ -176,6 +184,7 @@
             skeleton_summon: { x: sx, h: lh * 1.4, d: 1.3 },
             spark: { x: sx, h: lh * 1.0, d: 0.8 },
           };
+          if ((e.id === 'divine_heal' && this.fxSheet('fx_divine_heal')) || (e.id === 'arcane_shield' && this.fxSheet('fx_arcane_shield')) || (e.id === 'freeze' && this.fxSheet('fx_ice_prison'))) break; // efeito em cada tropa
           const anim = SPELL_FX[e.id];
           if (anim && this.fxSheet(anim.key || 'fx_' + e.id)) this.fx.push(Object.assign({ k: 'anim', key: 'fx_' + e.id, y: l.y1 - lh * 0.15, t: 0 }, anim));
           else if (!e.radius) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.6, c });
@@ -205,6 +214,7 @@
             }
             if (this.fxSheet('fx_orc_rage')) break;
           }
+          if (bab === 'ArcaneStorm' && this.fxSheet('fx_ice_prison')) { this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.6, c: '#9fe6ff' }); break; } // prisão de gelo em cada inimigo (evento Frozen)
           const bkey = { RoyalCommand: 'fx_royal_command', ElvenRain: 'fx_elven_rain', ArmyOfDead: 'fx_army_of_dead', OrcFury: 'fx_orc_fury', ArcaneStorm: 'fx_arcane_storm' }[bab];
           if (bkey && this.fxSheet(bkey)) {
             if (e.lane < 0) { // Comando Real: todas as rotas
@@ -1104,12 +1114,16 @@
           const meta = BB.FX[f.key], sheet = this.fxSheet(f.key);
           if (!sheet) continue;
           let fr = Math.min(meta.n - 1, Math.floor((f.ease ? Math.pow(k, 0.6) : k) * meta.n)); // ease: aparece rápido
-          if (f.loopFrom != null) { // entra uma vez e depois fica em loop nos últimos quadros (escudos)
-            const tt = f.t; fr = tt < f.intro ? Math.floor(tt / f.intro * f.loopFrom) : f.loopFrom + Math.floor(((tt - f.intro) / f.loopDur) * (meta.n - f.loopFrom)) % (meta.n - f.loopFrom);
+          if (f.follow) { if (f.follow.dying >= 0) { f.t = f.d; continue; } f.x = f.follow.x; f.y = f.follow.y + 6; }
+          if (f.unitShield && !(f.unitShield.shield > 0) && f.t > f.intro) { f.t = f.d; continue; }
+          if (f.loopFrom != null) { // entra uma vez e depois fica em loop nos quadros do meio/fim
+            const tt = f.t, lastN = f.outro ? Math.max(f.loopFrom + 1, Math.round(meta.n * 0.6)) : meta.n;
+            if (f.outro && tt > f.d - f.outro) fr = Math.min(meta.n - 1, lastN + Math.floor((tt - (f.d - f.outro)) / f.outro * (meta.n - lastN))); // quebra no fim
+            else fr = tt < f.intro ? Math.floor(tt / f.intro * f.loopFrom) : f.loopFrom + Math.floor(((tt - f.intro) / f.loopDur) * (lastN - f.loopFrom)) % (lastN - f.loopFrom);
             if (f.castleShield != null && this.match && this.match.players[f.castleShield].castleShield <= 0 && tt > f.intro) f.t = f.d; // escudo acabou
           }
           const sc = f.w ? f.w / meta.w : f.h / meta.h, w = meta.w * sc, h = meta.h * sc;
-          g.save(); g.translate(f.x, f.y); if (f.flip) g.scale(-1, 1);
+          g.save(); g.translate(f.x, f.y); if (f.flip) g.scale(-1, 1); if (f.alpha) g.globalAlpha = f.alpha;
           g.drawImage(sheet, meta.vert ? 0 : fr * meta.w, meta.vert ? fr * meta.h : 0, meta.w, meta.h, -w / 2, -h, w, h);
           g.restore();
         } else if (f.k === 'lane') {
