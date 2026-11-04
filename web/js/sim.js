@@ -327,7 +327,7 @@
     updateUnit(u, dt) {
       if (u.hp <= 0) return;
       const d = u.def;
-      if (d.lifetime > 0) {
+      if (d.lifetime > 0 && !u.orig) { // quem virou esqueleto pelo Demônio não expira
         u.life -= dt;
         if (u.life <= 0) { u.expired = true; u.hp = 0; u.state = 'Dead'; this.emit('UnitDied', u.owner, { unitId: u.id, lane: u.lane, x: u.x }); return; }
       }
@@ -415,7 +415,16 @@
         const before = target.hp;
         this.applyDamage(target, hit, u.owner, u);
         if (target.hp > 0 && d.ability === 'Knockback') this.knock(target, d.abilityValue);
-        if (target.hp > 0 && d.ability === 'FirstHitKnockback' && !u.firstHit) { u.firstHit = true; this.knock(target, d.abilityValue); }
+        if (d.ability === 'FirstHitKnockback' && !u.firstHit) { // 1º golpe em área: arremessa todos os inimigos perto do alvo
+          u.firstHit = true;
+          const r = d.abilityRadius || 4;
+          this.emit('AreaSlam', u.owner, { unitId: u.id, lane: u.lane, x: target.x, radius: r });
+          for (const e of this.units) {
+            if (e.hp <= 0 || e.owner === u.owner || e.lane !== u.lane || !Match.canTarget(d, e) || Math.abs(e.x - target.x) > r) continue;
+            if (e !== target) this.applyDamage(e, hit, u.owner, u);
+            if (e.hp > 0) this.knock(e, d.abilityValue, 0.35);
+          }
+        }
         if (target.hp > 0 && d.ability === 'FreezeOnHit') { target.stun = Math.max(target.stun, d.abilityDuration || 1.5); this.emit('Frozen', target.owner, { unitId: target.id, lane: target.lane, x: target.x }); }
         if (d.ability === 'Lifesteal') u.hp = Math.min(u.maxHp, u.hp + Math.max(0, before - Math.max(0, target.hp)) * d.abilityValue);
         if (d.ability === 'SlowOnHit' && target.hp > 0) {
@@ -489,7 +498,7 @@
       // o Demônio cai: quem ele transformou volta à forma original
       if (d.ability === 'Hex') {
         for (const u of this.units) if (u.hp > 0 && u.hexBy === t.id && u.orig) {
-          Object.assign(u, u.orig); u.orig = null; u.hexBy = 0;
+          const pct = u.hp / u.maxHp; Object.assign(u, u.orig); u.hp = u.maxHp * pct; u.orig = null; u.hexBy = 0;
           this.emit('UnitRestored', u.owner, { unitId: u.id, lane: u.lane, x: u.x });
         }
       }
@@ -503,24 +512,26 @@
         const nec = this.units.find((u) => u.hp > 0 && u !== t && u.lane === t.lane && u.def.ability === 'RaiseDead');
         const sk = this.content.cards.skeleton;
         if (nec && sk) {
-          const s = this.spawnUnit(nec.owner, sk, t.lane, t.x, nec.level);
-          if (s) { s.deploy = 0.4; this.emit('Raised', nec.owner, { unitId: s.id, lane: t.lane, x: t.x }); }
+          const sx = this.spawnX(nec.owner), s = this.spawnUnit(nec.owner, sk, t.lane, sx, nec.level); // nasce no começo da rota
+          if (s) { s.deploy = 0.4; this.emit('Raised', nec.owner, { unitId: s.id, lane: t.lane, x: sx, fromX: t.x }); }
         }
       }
     }
 
     // empurra o alvo para trás (na direção do castelo dele). Aplicado no fim do passo, depois que todos atacaram:
     // assim quem foi empurrado também dá o golpe da mesma batida (golpes simultâneos não "roubam" o ataque do outro)
-    knock(t, dist) { (this.knocks = this.knocks || []).push([t, dist]); }
+    // delay: espera a animação do golpe terminar antes de empurrar
+    knock(t, dist, delay) { (this.knocks = this.knocks || []).push({ t, dist, wait: delay || 0 }); }
     applyKnocks() {
       if (!this.knocks || !this.knocks.length) return;
-      const B = this.B;
-      for (const [t, dist] of this.knocks) {
-        if (t.hp <= 0) continue;
-        t.x = Math.min(this.L - B.castleFront, Math.max(B.castleFront, t.x - t.dir * dist));
-        this.emit('Knocked', t.owner, { unitId: t.id, lane: t.lane, x: t.x });
+      const B = this.B, keep = [];
+      for (const k of this.knocks) {
+        if (k.t.hp <= 0) continue;
+        if (k.wait > 0) { k.wait -= this.dt; keep.push(k); continue; }
+        const t = k.t; t.x = Math.min(this.L - B.castleFront, Math.max(B.castleFront, t.x - t.dir * k.dist));
+        this.emit('Knocked', t.owner, { unitId: t.id, lane: t.lane, x: t.x, dist: k.dist });
       }
-      this.knocks.length = 0;
+      this.knocks = keep;
     }
 
     // Arqueira Élfica: na primeira vez que um inimigo chega perto, muda para a rota vizinha mais vazia
@@ -553,7 +564,8 @@
       for (const u of this.units) {
         if (u.hp <= 0 || u.owner === demon.owner || u.lane !== demon.lane || u.def === sk || u.orig) continue;
         u.orig = { def: u.def, maxHp: u.maxHp, hp: u.hp, damage: u.damage, baseDamage: u.baseDamage, size: u.size };
-        u.def = sk; u.maxHp = sk.hp * mult; u.hp = u.maxHp; u.damage = u.baseDamage = sk.damage * mult; u.size = 1; u.hexBy = demon.id;
+        const pct = u.hp / u.maxHp; // mesma porcentagem de vida
+        u.def = sk; u.maxHp = sk.hp * mult; u.hp = u.maxHp * pct; u.damage = u.baseDamage = sk.damage * mult; u.size = 1; u.hexBy = demon.id; u.life = 0;
         this.emit('Hexed', u.owner, { unitId: u.id, lane: u.lane, x: u.x });
       }
     }

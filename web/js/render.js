@@ -110,21 +110,22 @@
               this.sparks(tv.x - tv.kickDir * tv.r * 0.4, tv.y - tv.r * 0.5, heavy ? 8 : 5);
             } else if (!e.targetId) { const c = this.castlePoint(1 - e.player); this.playFx('fx_hit', c.x, c.y + 40, 90, 0.3); this.sparks(c.x, c.y, 6); }
             this.hitstop = Math.max(this.hitstop || 0, heavy ? 0.085 : 0.035);
-            if (def.ability === 'Splash' && tv) this.fx.push({ k: 'shock', x: tv.x, y: tv.y, r: (def.abilityRadius / m.L) * laneW(e.lane), t: 0, d: 0.45, c: def.id === 'infernal_demon' ? '#ff6a1e' : '#ffd77a' });
+            if (def.ability === 'Splash' && tv) { this.fx.push({ k: 'shock', x: tv.x, y: tv.y, r: (def.abilityRadius / m.L) * laneW(e.lane) * 1.3, t: 0, d: 0.55, c: def.id === 'infernal_demon' ? '#ff6a1e' : '#ffd77a' }); this.dust(tv.x, tv.y, 6, 1.2); }
           }
           if (heavy) this.shake = Math.max(this.shake, 0.18);
           if (def.range > 4) {
             const tv = e.targetId ? this.views.get(e.targetId) : null;
-            const sy = v.y - v.r - v.lift; // contra o castelo: voa reto (mesma altura) até bater na parede da rota
             const to = tv ? { x: tv.x, y: tv.y - tv.r * 0.4 - tv.lift } : { x: this.laneX(m, m.castleFront(1 - e.player), e.lane), y: sy };
             const col = PROJ_COLOR[def.cls] || '#f2e3b3';
-            const pk = PROJ_KIND[def.id] || 'orb', x0 = v.x + (e.player === 0 ? 1 : -1) * v.r * 0.3, y0 = v.y - v.r - v.lift;
+            const bh = this.bodyH(v.u), dirx = e.player === 0 ? 1 : -1;
+            const pk = PROJ_KIND[def.id] || 'orb', x0 = v.x + dirx * bh * 0.32, y0 = v.y - v.lift - bh * (v.fly ? 0.45 : 0.58); // sai da arma (altura do arco/peito)
+            const sy = y0; // contra o castelo: voa reto (mesma altura) até bater na parede da rota
             const dist = Math.hypot(to.x - x0, to.y - y0);
             const pd = Math.max(0.14, Math.min(0.42, dist / 1800)), pc = PROJ_TINT[def.id] || col;
             this.fx.push({ k: 'proj', pk, x0, y0, x1: to.x, y1: to.y, t: 0, d: pd, c: pc, r: def.cls === 'Mage' ? 9 : 6, arc: 0 }); // sempre em linha reta
             this.fx.push({ k: 'impact', x: to.x, y: to.y, c: pk === 'arrow' || pk === 'bolt' || pk === 'bullet' ? '#fff2c0' : pc, t: -pd, d: 0.3 });
             if (pk === 'bullet') this.fx.push({ k: 'puff', x: x0, y: y0, t: 0, d: 0.3 });
-            if (def.ability === 'Splash') { const tv2 = e.targetId ? this.views.get(e.targetId) : null; this.fx.push({ k: 'shock', x: to.x, y: tv2 ? tv2.y : to.y + 40, r: (def.abilityRadius / m.L) * laneW(e.lane), t: -pd, d: 0.45, c: pc }); }
+            if (def.ability === 'Splash') { const tv2 = e.targetId ? this.views.get(e.targetId) : null; this.fx.push({ k: 'shock', x: to.x, y: tv2 ? tv2.y : to.y + 40, r: (def.abilityRadius / m.L) * laneW(e.lane) * 1.3, t: -pd, d: 0.55, c: pc }); }
           }
           break;
         }
@@ -143,8 +144,9 @@
           if (!this.playFx('fx_fireball', x, l.y1 - (l.y1 - l.y0) * 0.1, (l.y1 - l.y0) * 1.3, 0.6)) this.fx.push({ k: 'burst', x, y: l.y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.5, c: '#ff8a2a' }); break; }
         case 'Hexed': case 'UnitRestored': case 'Raised': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.6, t: 0, d: 0.5, c: e.type === 'UnitRestored' ? '#ffffff' : '#a64dff' }); break;
         case 'UnitGrew': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.4, t: 0, d: 0.45, c: '#ffd34d' }); break;
+        case 'AreaSlam': { const l = ARENA.lanes[e.lane]; const x = this.laneX(m, e.x, e.lane); this.fx.push({ k: 'shock', x, y: l.y, r: (e.radius / m.L) * laneW(e.lane) * 1.4, t: 0, d: 0.6, c: '#ffcf6a' }); this.dust(x, l.y, 12, 1.4); this.shake = Math.max(this.shake, 0.4); break; }
         case 'AuraPulse': if (v) this.fx.push({ k: 'shock', x: v.x, y: v.y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.7, c: e.kind === 'heal' ? '#7dff8a' : '#b06bff' }); break;
-        case 'Knocked': if (v) { v.knockT = 0.35; this.dust(v.x, v.y, 6); this.fx.push({ k: 'streak', x: v.x, y: v.y - v.r, dir: e.player === 0 ? -1 : 1, t: 0, d: 0.35 }); } break;
+        case 'Knocked': if (v) { if (e.dist >= 20) { v.flyT = 0.5; v.flyFrom = v.x; this.dust(v.x, v.y, 10, 1.3); } v.knockT = 0.35; this.dust(v.x, v.y, 6); this.fx.push({ k: 'streak', x: v.x, y: v.y - v.r, dir: e.player === 0 ? -1 : 1, t: 0, d: 0.35 }); } break;
         case 'UnitLaneChange': if (v) { this.dust(v.x, v.y, 8); this.fx.push({ k: 'burst', x: v.x, y: v.y - v.r, r: v.r * 1.2, t: 0, d: 0.35, c: '#9dff8a' }); } break;
         case 'Frozen': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y, r: v.r * 1.1, t: 0, d: 0.35, c: '#bfefff' }); break;
         case 'Blocked': if (v) this.fx.push({ k: 'burst', x: v.x, y: v.y - v.r, r: v.r * 0.9, t: 0, d: 0.3, c: '#ffe68a' }); break;
@@ -389,6 +391,12 @@
       if (stage >= 2) { const gr = g.createRadialGradient(W * 0.4, H * 0.65, 0, W * 0.4, H * 0.65, W * 0.5); gr.addColorStop(0, 'rgba(30,20,25,' + 0.12 * stage + ')'); gr.addColorStop(1, 'rgba(30,20,25,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
       g.globalCompositeOperation = 'destination-in'; g.drawImage(im, 0, 0, W, H); // só dentro do castelo
       return (this.crackCache[key] = c);
+    }
+
+    // altura desenhada do corpo (a mesma conta do drawSprite)
+    bodyH(u) {
+      const sp = BB.SPRITES && BB.SPRITES[u.def.sprite || u.def.id], k = ARENA.lanes[u.lane].k;
+      return (u.flying ? 126 : 140) * k * (0.86 + Math.min(1, u.def.hp / 1800) * 0.3) * (u.size || 1) * ((sp && sp.scale) || 1) * (u.def.visualScale || 1);
     }
 
     // silhueta branca do quadro atual (piscada de dano)
@@ -881,6 +889,7 @@
       if (v.heal > 0) { v.heal -= dt; g.save(); g.globalAlpha = Math.min(1, v.heal * 2) * 0.45; g.fillStyle = '#5dff7a'; g.beginPath(); g.ellipse(v.x, v.y, bodyPx * 0.45, bodyPx * 0.14, 0, 0, TAU); g.fill(); g.restore(); }
       if (u.enraged && v.dying < 0) { const a = 0.3 + 0.15 * Math.sin(this.t * 10); g.save(); g.globalAlpha = a; g.fillStyle = '#ff3a1a'; g.beginPath(); g.ellipse(v.x, v.y, bodyPx * 0.5, bodyPx * 0.16, 0, 0, TAU); g.fill(); g.restore(); }
       const kx = v.kick > 0 ? v.kickDir * Math.sin((v.kick / 0.22) * Math.PI) * 14 : 0;
+      let flyUp = 0; if (v.flyT > 0) { v.flyT -= dt; flyUp = Math.sin((1 - v.flyT / 0.5) * Math.PI) * 120; } // arremesso: voa em arco
       const foot = v.y;
       g.save(); g.globalAlpha = alpha;
       if (u.def.ability === 'ShieldDome' && v.dying < 0) { // cúpula do Paladino no chão
@@ -896,7 +905,7 @@
       }
       // sombra e marca do time no chão
       g.save();
-      g.translate(v.x + kx, foot - lift + bob);
+      g.translate(v.x + kx, foot - lift + bob - flyUp);
       if (dir < 0) g.scale(-1, 1);
       if (u.state === 'Stunned') g.filter = 'saturate(.35) brightness(1.25) hue-rotate(160deg)';
       else if (u.poisonTime > 0) g.filter = 'sepia(.4) hue-rotate(50deg) saturate(1.4)';
@@ -966,11 +975,17 @@
           g.beginPath(); g.arc(f.x, f.y, 6 + k * 18, 0, TAU); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2;
           for (let i = 0; i < 6; i++) { const a = i * TAU / 6 + 0.3, r0 = 8 + k * 10, r1 = 14 + k * 26; g.beginPath(); g.moveTo(f.x + Math.cos(a) * r0, f.y + Math.sin(a) * r0); g.lineTo(f.x + Math.cos(a) * r1, f.y + Math.sin(a) * r1); g.stroke(); }
           g.restore();
-        } else if (f.k === 'shock') { // onda de área no chão
-          g.save(); g.globalAlpha = (1 - k) * 0.85; g.strokeStyle = f.c; g.lineWidth = 5 * (1 - k) + 2; g.shadowColor = f.c; g.shadowBlur = 12;
-          const rr = Math.max(20, f.r) * (0.3 + 0.8 * k);
-          g.beginPath(); g.ellipse(f.x, f.y, rr, rr * 0.3, 0, 0, TAU); g.stroke();
-          g.globalAlpha = (1 - k) * 0.18; g.fillStyle = f.c; g.fill(); g.restore();
+        } else if (f.k === 'shock') { // área atingida: disco cheio no chão + dois anéis que se abrem + rachadinhas
+          const R = Math.max(30, f.r), e = 1 - Math.pow(1 - Math.min(1, k * 1.6), 3), fade = 1 - k;
+          g.save(); g.translate(f.x, f.y); g.scale(1, 0.32);
+          const gr = g.createRadialGradient(0, 0, 0, 0, 0, R);
+          gr.addColorStop(0, 'rgba(255,255,255,' + 0.55 * fade + ')'); gr.addColorStop(0.35, f.c); gr.addColorStop(1, 'rgba(0,0,0,0)');
+          g.globalAlpha = 0.7 * fade; g.fillStyle = gr; g.beginPath(); g.arc(0, 0, R * (0.4 + 0.6 * e), 0, TAU); g.fill();
+          g.globalAlpha = fade; g.strokeStyle = '#fff'; g.lineWidth = 7 * fade + 2; g.beginPath(); g.arc(0, 0, R * e, 0, TAU); g.stroke();
+          g.strokeStyle = f.c; g.lineWidth = 5; g.beginPath(); g.arc(0, 0, R * e * 0.72, 0, TAU); g.stroke();
+          g.strokeStyle = 'rgba(40,25,20,' + 0.6 * fade + ')'; g.lineWidth = 4;
+          for (let i = 0; i < 8; i++) { const a = i * TAU / 8 + 0.2; g.beginPath(); g.moveTo(Math.cos(a) * R * 0.15, Math.sin(a) * R * 0.15); g.lineTo(Math.cos(a + 0.15) * R * 0.6 * e, Math.sin(a + 0.15) * R * 0.6 * e); g.stroke(); }
+          g.restore();
         } else if (f.k === 'plus') { // cruzinhas verdes da cura
           const y = f.y - k * 40; g.save(); g.globalAlpha = 1 - k; g.fillStyle = '#6dff7d'; g.strokeStyle = '#0a5a1a'; g.lineWidth = 2;
           g.beginPath(); g.rect(f.x - 3, y - 9, 6, 18); g.rect(f.x - 9, y - 3, 18, 6); g.fill(); g.restore();

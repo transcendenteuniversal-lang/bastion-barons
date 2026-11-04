@@ -93,7 +93,7 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    0
   ],
   "blend": 1,
-  "scale": 1,
+  "scale": 0.8,
   "src": "img/units/dwarf_warrior_g.webp"
  },
  "elven_archer": {
@@ -436,7 +436,7 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    0
   ],
   "blend": 1,
-  "scale": 1,
+  "scale": 1.2,
   "src": "img/units/royal_lancer_g.webp"
  },
  "shadow_assassin": {

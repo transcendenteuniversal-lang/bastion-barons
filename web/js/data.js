@@ -238,7 +238,7 @@ BB.CONTENT = {
    "damage": 71,
    "attackInterval": 1,
    "moveSpeed": 5,
-   "range": 3,
+   "range": 6,
    "targets": "Both",
    "role": "Anti-aéreo"
   },
@@ -256,7 +256,7 @@ BB.CONTENT = {
    "range": 20,
    "targets": "Both",
    "ability": "LaneHop",
-   "abilityRadius": 10,
+   "abilityRadius": 5,
    "role": "Atirador"
   },
   {
@@ -425,7 +425,8 @@ BB.CONTENT = {
    "targets": "Ground",
    "ability": "FirstHitKnockback",
    "abilityValue": 60,
-   "role": "Tanque"
+   "role": "Tanque",
+   "abilityRadius": 4
   },
   {
    "id": "royal_griffin",
@@ -488,7 +489,7 @@ BB.CONTENT = {
    "damage": 25,
    "attackInterval": 1,
    "moveSpeed": 3,
-   "range": 6,
+   "range": 12,
    "targets": "Both",
    "ability": "HealAura",
    "abilityValue": 35,
