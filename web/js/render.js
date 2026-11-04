@@ -528,11 +528,14 @@
       for (let i = 0; i < 2; i++) this.drawWalls(m, i);
       this.drawFrontWall();
       this.drawRage(dt);
+      // Barões (com o parapeito) antes das tropas: as criaturas ficam sempre na frente do castelo e da sacada
+      for (let i = 0; i < 2; i++) this.drawBaron(m, i);
       this.syncViews(m, dt);
-      const list = [...this.views.values(), ...this.ghosts].sort((a, b) => (a.fly - b.fly) || (a.y - b.y));
+      // ordem: chão antes dos voadores; de trás para a frente; na mesma fileira, as maiores atrás das menores
+      const size = (v) => (v.u && v.u.def ? this.bodyH(v.u) : 0);
+      const list = [...this.views.values(), ...this.ghosts].sort((a, b) => (a.fly - b.fly) || (Math.round(a.y / 6) - Math.round(b.y / 6)) || (size(b) - size(a)));
       for (const v of list) this.drawUnit(v, dt);
       if (ui && ui.ghost) this.drawGhost(m, ui.ghost);
-      for (let i = 0; i < 2; i++) this.drawBaron(m, i);
       this.drawFx(dt);
       g.restore();
     }
@@ -775,7 +778,9 @@
         const lastX = ROWS.map(() => null);
         for (const u of group) {
           const x = tx.get(u.id), gap = bodyW(u) * 0.95;
-          let r = ROWS.findIndex((_, i) => lastX[i] === null || dir * (lastX[i] - x) >= gap);
+          // grandes preferem a fileira de trás, pequenas a da frente (não ficam escondidas)
+          const pref = u.def.hp >= 1200 ? [1, 0, 2] : u.def.hp < 500 ? [2, 0, 1] : [0, 1, 2]; // índices em ROWS = [0, -1, 1]
+          let r = pref.find((i) => lastX[i] === null || dir * (lastX[i] - x) >= gap); if (r === undefined) r = -1;
           if (r < 0) { // todas as fileiras ocupadas: recua na fileira com mais espaço
             r = 0; let best = -Infinity;
             ROWS.forEach((_, i) => { const d = dir * (lastX[i] - x); if (d > best) { best = d; r = i; } });
@@ -788,7 +793,7 @@
       for (const u of alive) {
         seen.add(u.id);
         const l = ARENA.lanes[u.lane];
-        let x = tx.get(u.id); const y = l.y + rowOf.get(u.id) * (l.y1 - l.y0) * 0.24;
+        let x = tx.get(u.id); const y = l.y + rowOf.get(u.id) * (l.y1 - l.y0) * (u.flying ? 0.12 : 0.24) - (u.flying ? (l.y1 - l.y0) * 0.38 : 0); // voadores na parte de cima da rota
         if (this.castleArt) { // segue a junta do piso também nas fileiras de cima e de baixo
           const f = (x - l.xL) / (l.xR - l.xL), a = ARENA.seam(y); x = a + f * (AW - 2 * a);
         }

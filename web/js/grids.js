@@ -379,7 +379,7 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    1
   ],
   "blend": 1,
-  "scale": 1,
+  "scale": 0.85,
   "src": "img/units/royal_cleric_g.webp"
  },
  "royal_griffin": {
