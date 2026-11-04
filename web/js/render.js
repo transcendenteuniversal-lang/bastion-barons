@@ -187,7 +187,7 @@
           if ((e.id === 'divine_heal' && this.fxSheet('fx_divine_heal')) || (e.id === 'arcane_shield' && this.fxSheet('fx_arcane_shield')) || (e.id === 'freeze' && this.fxSheet('fx_ice_prison'))) break; // efeito em cada tropa
           const anim = SPELL_FX[e.id];
           if (anim && this.fxSheet(anim.key || 'fx_' + e.id)) this.fx.push(Object.assign({ k: 'anim', key: 'fx_' + e.id, y: l.y1 - lh * 0.15, t: 0 }, anim));
-          else if (!e.radius) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.6, c });
+          else if (!e.radius && e.id !== 'elven_rain_wave') this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.6, c }); // rajada élfica: sem retângulo verde
           else this.fx.push({ k: 'burst', x: sx, y: l.y, r: (e.radius / m.L) * laneW(e.lane), t: 0, d: 0.55, c });
           this.shake = Math.max(this.shake, e.id === 'fireball' || e.id === 'lightning' ? 0.3 : 0.15);
           break;
@@ -244,8 +244,8 @@
           }
           const castle = ARENA.castle[e.player];
           if (e.id === 'royal_fortress' && this.fxSheet('fx_imperial_shield')) { // escudo sobre o castelo: forma e fica pulsando (loop) enquanto durar
-            const b = ARENA.baron[e.player], cx = b.x + (e.player === 0 ? 70 : -70);
-            this.fx.push({ k: 'anim', key: 'fx_imperial_shield', x: cx, y: 640, h: 440, t: 0, d: (m.players[e.player].castle.duration || 10), loopFrom: 6, loopDur: 0.9, intro: 0.9, castleShield: e.player });
+            const b = ARENA.baron[e.player], cx = b.x + (e.player === 0 ? 30 : -30);
+            this.fx.push({ k: 'anim', key: 'fx_imperial_shield', x: cx, y: 790, h: 720, alpha: 0.85, t: 0, d: (m.players[e.player].castle.duration || 10), loopFrom: 6, loopDur: 0.9, intro: 0.9, castleShield: e.player });
             break;
           }
           if (e.id === 'sylvan_sanctuary' && this.fxSheet('fx_sylvan_heal')) { // cura em cada tropa + no castelo
