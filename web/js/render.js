@@ -115,11 +115,11 @@
           if (heavy) this.shake = Math.max(this.shake, 0.18);
           if (def.range > 4) {
             const tv = e.targetId ? this.views.get(e.targetId) : null;
-            const to = tv ? { x: tv.x, y: tv.y - tv.r * 0.4 - tv.lift } : { x: this.laneX(m, m.castleFront(1 - e.player), e.lane), y: sy };
             const col = PROJ_COLOR[def.cls] || '#f2e3b3';
             const bh = this.bodyH(v.u), dirx = e.player === 0 ? 1 : -1;
             const pk = PROJ_KIND[def.id] || 'orb', x0 = v.x + dirx * bh * 0.32, y0 = v.y - v.lift - bh * (v.fly ? 0.45 : 0.58); // sai da arma (altura do arco/peito)
-            const sy = y0; // contra o castelo: voa reto (mesma altura) até bater na parede da rota
+            // contra o castelo: voa reto (mesma altura) até bater na parede da rota
+            const to = tv ? { x: tv.x, y: tv.y - tv.r * 0.4 - tv.lift } : { x: this.laneX(m, m.castleFront(1 - e.player), e.lane), y: y0 };
             const dist = Math.hypot(to.x - x0, to.y - y0);
             const pd = Math.max(0.14, Math.min(0.42, dist / 1800)), pc = PROJ_TINT[def.id] || col;
             this.fx.push({ k: 'proj', pk, x0, y0, x1: to.x, y1: to.y, t: 0, d: pd, c: pc, r: def.cls === 'Mage' ? 9 : 6, arc: 0 }); // sempre em linha reta
