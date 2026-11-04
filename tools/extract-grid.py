@@ -190,12 +190,14 @@ def main():
         for row, fr in enumerate((walk, atk)):
             for i, (f, ax, ay) in enumerate(fr):
                 sheet.alpha_composite(f, (int(i * fw + L - ax), int(row * fh + T - ay)))
-        if uid in RECOLOR:
-            sheet = recolor(sheet, *RECOLOR[uid])
         sheet.save(os.path.join(OUT, uid + '_g.webp'), 'WEBP', quality=90, method=6)
+        if uid in RECOLOR:  # versão alternativa (ex.: Orc em fúria todo vermelho)
+            recolor(sheet, *RECOLOR[uid]).save(os.path.join(OUT, uid + '_rage_g.webp'), 'WEBP', quality=90, method=6)
         wb = [-int(max(ax for _, ax, _ in walk)), -int(max(ay for _, _, ay in walk)), int(max(f.width - ax for f, ax, _ in walk)), int(max(f.height - ay for f, _, ay in walk))]
         sprites[uid] = {'w': fw, 'h': fh, 'ax': L, 'ay': T, 'body': BODY, 'walk': len(walk), 'attack': len(atk), 'fps': 8, 'wb': wb, 'blend': 1, 'scale': SCALE.get(uid, 1),
                         'src': 'img/units/' + uid + '_g.webp'}
+        if uid in RECOLOR:
+            sprites[uid]['rage'] = 'img/units/' + uid + '_rage_g.webp'
         print(uid, 'quadros', len(walk), len(atk), 'tamanho', fw, fh)
     with open(os.path.join(ROOT, 'web', 'js', 'grids.js'), 'w') as fh_:
         fh_.write('// Animações em alta resolução das folhas 6x2 (gerado por tools/extract-grid.py).\nwindow.BB = window.BB || {};\n'

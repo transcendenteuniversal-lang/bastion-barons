@@ -341,7 +341,8 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
   ],
   "blend": 1,
   "scale": 1,
-  "src": "img/units/red_orc_g.webp"
+  "src": "img/units/red_orc_g.webp",
+  "rage": "img/units/red_orc_rage_g.webp"
  },
  "royal_archer": {
   "w": 258,

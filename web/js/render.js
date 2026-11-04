@@ -819,7 +819,7 @@
       if (v.flash > 0) v.flash -= dt;
       const dir = v.owner === 0 ? 1 : -1;
       const sp = BB.SPRITES && BB.SPRITES[u.def.sprite || u.def.id];
-      const sheet = sp ? BB.art.image(BB.unitSrc(u.def.sprite || u.def.id)) : null;
+      const sheet = sp ? BB.art.image(u.enraged && sp.rage ? sp.rage : BB.unitSrc(u.def.sprite || u.def.id)) : null; // Orc: vermelho só em fúria
       if (sheet && sheet.complete && sheet.naturalWidth) return this.drawSprite(v, u, sp, sheet, dt, dir);
       let x = v.x, r = v.r;
       const y = v.y;

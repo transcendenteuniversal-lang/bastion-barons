@@ -487,13 +487,13 @@ BB.CONTENT = {
    "hp": 380,
    "damage": 25,
    "attackInterval": 1,
-   "moveSpeed": 4.5,
+   "moveSpeed": 3,
    "range": 6,
    "targets": "Both",
    "ability": "HealAura",
-   "abilityValue": 50,
-   "abilityRadius": 7,
-   "abilityInterval": 2,
+   "abilityValue": 35,
+   "abilityRadius": 14,
+   "abilityInterval": 1,
    "role": "Suporte"
   },
   {

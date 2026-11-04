@@ -339,7 +339,8 @@
 
       const m = this.modifiers(u);
       let moveMult = m.move * u.slow, atkMult = m.atk * u.slow;
-      if (d.ability === 'Enrage' && u.hp <= u.maxHp * (d.abilityValue || 0.5)) { moveMult *= 2; atkMult *= 2; u.enraged = true; }
+      u.enraged = d.ability === 'Enrage' && u.hp <= u.maxHp * (d.abilityValue || 0.5);
+      if (u.enraged) { moveMult *= 2; atkMult *= 2; }
       if (d.ability === 'LaneHop' && !u.hopped) this.tryLaneHop(u);
       if ((d.ability === 'HealAura' || d.ability === 'Summon') && d.abilityInterval > 0) {
         u.abilityTimer += dt;
