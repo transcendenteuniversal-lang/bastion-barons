@@ -275,6 +275,15 @@
         const I = def.attackInterval || 1, tEnd = this.time + B.deployDelay;
         u.attackCd = Math.ceil(tEnd / I - 1e-6) * I - tEnd;
       }
+      // invocada no meio da luta: os inimigos de corpo a corpo que já estão ao alcance esperam e batem junto com ela
+      // (ela não apanha antes de conseguir atacar); quem ataca de longe continua normal
+      if (def.range <= 4 && !def.flying && def.targets !== 'CastleOnly') {
+        const first = u.deploy + u.attackCd, reach = 6 + this.bodyR(def);
+        for (const e of this.units) {
+          if (e.hp <= 0 || e.owner === owner || e.lane !== lane || e.def.range > 4 || Math.abs(e.x - u.x) > reach + e.def.range + this.bodyR(e.def)) continue;
+          e.attackCd = Math.max(e.attackCd, first);
+        }
+      }
       this.units.push(u);
       this.emit('UnitSpawned', owner, { unitId: u.id, lane, x: u.x, id: def.id });
       if (def.ability === 'Hex') this.hexLane(u);

@@ -186,7 +186,17 @@
         case 'BaronUsed': {
           this.baronCast[e.player] = 1; this.baronAnim[e.player] = 0; this.setBaronAnim(e.player, 'power');
           const bab = m.players[e.player].baron.ability;
-          if (bab === 'OrcFury' && e.lane >= 0) (this.rage = this.rage || []).push({ lane: e.lane, t: 0, d: m.players[e.player].baron.duration || 8 });
+          if (bab === 'OrcFury' && e.lane >= 0) {
+            (this.rage = this.rage || []).push({ lane: e.lane, owner: e.player, t: 0, d: m.players[e.player].baron.duration || 8 });
+            // explosão de fúria em cima de cada guerreiro afetado (um depois do outro)
+            let i = 0;
+            for (const u of m.units) if (u.hp > 0 && u.owner === e.player && u.lane === e.lane) {
+              const uv = this.views.get(u.id); if (!uv) continue;
+              const bh = this.bodyH(u), delay = (i++) * 0.08;
+              this.fx.push({ k: 'anim', key: 'fx_orc_rage', x: uv.x, y: uv.y + 6, h: bh * 1.5, t: -delay, d: 1.8 });
+            }
+            if (this.fxSheet('fx_orc_rage')) break;
+          }
           const bkey = { RoyalCommand: 'fx_royal_command', ElvenRain: 'fx_elven_rain', ArmyOfDead: 'fx_army_of_dead', OrcFury: 'fx_orc_fury', ArcaneStorm: 'fx_arcane_storm' }[bab];
           if (bkey && this.fxSheet(bkey)) {
             if (e.lane < 0) { // Comando Real: todas as rotas
@@ -222,9 +232,16 @@
               if (key === 'fx_soul_drain') { // almas sobem ao longo da rota e voam para o próprio castelo
                 for (let i = 0; i < 3; i++) this.fx.push({ k: 'anim', key, x: l.xL + (l.xR - l.xL) * (0.25 + i * 0.25), y: l.y1 - lh * 0.1, h: lh * 1.3, t: -i * 0.12, d: 1.5, flip: e.player === 1 });
               } else if (key === 'fx_dragon_breath') { // cabeça de dragão na borda do castelo, fogo atravessando a rota
-                const h = lh * 1.9, w = meta.w * (h / meta.h);
-                const x = e.player === 0 ? l.xL - 70 + w / 2 : l.xR + 70 - w / 2;
-                this.fx.push({ k: 'anim', key, x, y: l.y1 - lh * 0.05, h, t: 0, d: 1.4, flip: e.player === 1 });
+                if (meta.vert) { // tira: a cabeça na parede do castelo e o fogo cobrindo a rota inteira
+                  const w = (l.xR - l.xL) + 160, h = meta.h * (w / meta.w);
+                  const x = e.player === 0 ? l.xL - 90 + w / 2 : l.xR + 90 - w / 2;
+                  this.fx.push({ k: 'anim', key, x, y: l.y + h * 0.42, w, t: 0, d: 1.6, flip: e.player === 1 });
+                  this.shake = Math.max(this.shake, 0.4);
+                } else {
+                  const h = lh * 1.9, w = meta.w * (h / meta.h);
+                  const x = e.player === 0 ? l.xL - 70 + w / 2 : l.xR + 70 - w / 2;
+                  this.fx.push({ k: 'anim', key, x, y: l.y1 - lh * 0.05, h, t: 0, d: 1.4, flip: e.player === 1 });
+                }
               } else this.fx.push({ k: 'anim', key, x: (l.xL + l.xR) / 2, y: l.y1 - lh * 0.1, h: lh * 1.7, t: 0, d: 1.4, flip: e.player === 1 });
             }
           } else if (e.lane >= 0) this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.9, c });
@@ -903,6 +920,16 @@
       const lift = v.fly ? 46 * k : 0, bob = v.fly ? Math.sin(v.phase * 3) * 5 : 0;
       if (v.kick > 0) { v.kick -= dt; }
       if (v.heal > 0) { v.heal -= dt; g.save(); g.globalAlpha = Math.min(1, v.heal * 2) * 0.45; g.fillStyle = '#5dff7a'; g.beginPath(); g.ellipse(v.x, v.y, bodyPx * 0.45, bodyPx * 0.14, 0, 0, TAU); g.fill(); g.restore(); }
+      if (this.rage && v.dying < 0 && this.rage.some((r) => r.lane === u.lane && r.owner === u.owner)) { // aura da Fúria Orc
+        const a = 0.35 + 0.15 * Math.sin(this.t * 8 + v.id), w = bodyPx * 0.55;
+        g.save(); g.globalCompositeOperation = 'lighter';
+        const gr = g.createRadialGradient(v.x, v.y - bodyPx * 0.4, 0, v.x, v.y - bodyPx * 0.4, bodyPx * 0.7);
+        gr.addColorStop(0, 'rgba(255,90,30,' + a * 0.5 + ')'); gr.addColorStop(1, 'rgba(255,40,10,0)');
+        g.fillStyle = gr; g.beginPath(); g.ellipse(v.x, v.y - bodyPx * 0.4, w, bodyPx * 0.7, 0, 0, TAU); g.fill();
+        g.fillStyle = 'rgba(255,70,20,' + a + ')'; g.beginPath(); g.ellipse(v.x, v.y, w, bodyPx * 0.15, 0, 0, TAU); g.fill();
+        g.restore();
+        if (Math.random() < 0.25) this.fx.push({ k: 'spark', x: v.x + (Math.random() - 0.5) * w, y: v.y - Math.random() * bodyPx * 0.8, vx: (Math.random() - 0.5) * 40, vy: -160 - Math.random() * 120, t: 0, d: 0.5 });
+      }
       if (u.enraged && v.dying < 0) { const a = 0.3 + 0.15 * Math.sin(this.t * 10); g.save(); g.globalAlpha = a; g.fillStyle = '#ff3a1a'; g.beginPath(); g.ellipse(v.x, v.y, bodyPx * 0.5, bodyPx * 0.16, 0, 0, TAU); g.fill(); g.restore(); }
       const kx = v.kick > 0 ? v.kickDir * Math.sin((v.kick / 0.22) * Math.PI) * 14 : 0;
       let flyUp = 0; if (v.flyT > 0) { v.flyT -= dt; flyUp = Math.sin((1 - v.flyT / 0.5) * Math.PI) * 120; } // arremesso: voa em arco
@@ -1044,7 +1071,7 @@
           const fr = Math.min(meta.n - 1, Math.floor(k * meta.n));
           const sc = f.w ? f.w / meta.w : f.h / meta.h, w = meta.w * sc, h = meta.h * sc;
           g.save(); g.translate(f.x, f.y); if (f.flip) g.scale(-1, 1);
-          g.drawImage(sheet, fr * meta.w, 0, meta.w, meta.h, -w / 2, -h, w, h);
+          g.drawImage(sheet, meta.vert ? 0 : fr * meta.w, meta.vert ? fr * meta.h : 0, meta.w, meta.h, -w / 2, -h, w, h);
           g.restore();
         } else if (f.k === 'lane') {
           const l = ARENA.lanes[f.lane];

@@ -629,6 +629,12 @@ Object.assign(BB.FX = BB.FX || {}, {
   "n": 12,
   "src": "img/units/fx_lightning_g.webp"
  },
+ "fx_orc_rage": {
+  "w": 249,
+  "h": 304,
+  "n": 12,
+  "src": "img/units/fx_orc_rage_g.webp"
+ },
  "fx_poison": {
   "w": 337,
   "h": 260,
