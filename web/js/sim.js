@@ -746,7 +746,7 @@
       switch (b.ability) {
         case 'RoyalCommand': p.mods.push({ lane: -1, dmg: 1 + b.value, move: 1 + (b.value2 || 0), atk: 1, time: b.duration }); break;
         case 'OrcFury': p.mods.push({ lane: l, dmg: 1 + b.value, move: 1, atk: 1 + (b.value2 || 0), time: b.duration }); break;
-        case 'ElvenRain': this.effects.push({ player: p.index, lane: l, waves: Math.max(1, b.count), interval: Math.max(0.05, b.interval), timer: 0, damage: b.value }); break;
+        case 'ElvenRain': this.effects.push({ player: p.index, lane: l, waves: Math.max(1, b.count), interval: Math.max(0.05, b.interval), timer: this.fxDelay('elven_rain'), damage: b.value }); break; // 1ª rajada quando as flechas caem
         case 'ArmyOfDead': {
           const s = this.content.cards[b.summonId];
           if (s) for (let i = 0; i < Math.max(1, b.count); i++) this.spawnUnit(p.index, s, l, this.spawnX(p.index) - dirOf(p.index) * 1.2 * i, 1);

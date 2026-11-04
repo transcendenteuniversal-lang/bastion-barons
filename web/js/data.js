@@ -25,7 +25,7 @@ BB.CONTENT = {
   "spawnOffset": 4,
   "castleFront": 6,
   "hitDelay": 0.4,
-  "fxDelay": { "fireball": 0.45, "arrow_rain": 0.5, "lightning": 0.3, "spark": 0.25, "dragon_breath": 0.55, "soul_drain": 0.6 },
+  "fxDelay": { "fireball": 0.45, "arrow_rain": 0.55, "elven_rain": 0.5, "lightning": 0.3, "spark": 0.25, "dragon_breath": 0.55, "soul_drain": 0.6 },
   "castleHp": 6000,
   "wallHp": 0,
   "castleAttackDamage": 0,

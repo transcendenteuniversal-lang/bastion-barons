@@ -9,13 +9,27 @@ src, uid, n = sys.argv[1], sys.argv[2], int(sys.argv[3])
 FIRE = len(sys.argv) > 4 and sys.argv[4] == 'fire'  # correção de bordas oliva só para fogo
 TINT = [float(v) for v in sys.argv[4][5:].split(',')] if len(sys.argv) > 4 and sys.argv[4].startswith('tint:') else None  # cor das bordas translúcidas
 a = np.asarray(Image.open(src).convert('RGB')).astype(np.float32)
-r, g, b = a[..., 0], a[..., 1], a[..., 2]; mx = np.maximum(r, b); k = g - mx
-al = np.clip((90 - k) / 60, 0, 1)
+r, g, b = a[..., 0], a[..., 1], a[..., 2]
 bg = a[:6, -6:].reshape(-1, 3).mean(axis=0)
+MAG = bg[0] > 180 and bg[1] < 90
+if MAG:  # fundo magenta
+    k = np.minimum(r, b) - g
+    al = np.clip((100 - k) / 70, 0, 1)
+else:
+    mx = np.maximum(r, b); k = g - mx
+    al = np.clip((90 - k) / 60, 0, 1)
 col = np.clip((a - (1 - al[..., None]) * bg) / np.maximum(al[..., None], 0.08), 0, 255)
-col[..., 1] = np.minimum(col[..., 1], np.maximum(col[..., 0], col[..., 2]))  # sem reflexo verde
-semi = al < 0.95
-col[..., 1] = np.where(semi, np.minimum(col[..., 1], col[..., 0] * 0.72), col[..., 1])  # borda do fogo: laranja, não oliva
+if MAG:  # tira o rosa que sobra nos brilhos
+    # o brilho do desenho já vem misturado com o rosa do fundo: tom rosa/magenta vira transparência
+    pk = np.clip((np.minimum(col[..., 0], col[..., 2]) - col[..., 1] + 15) / 45, 0, 1) * np.clip((col[..., 2] - col[..., 1] * 0.75) / 40, 0, 1)
+    al = al * (1 - pk * 0.92)
+    lim = col[..., 1] + 25
+    col[..., 0] = np.where(pk > 0, np.minimum(col[..., 0], np.maximum(lim, col[..., 0] * (1 - pk))), col[..., 0])
+    col[..., 2] = np.where(pk > 0, np.minimum(col[..., 2], lim * 0.8), col[..., 2])
+else:
+    col[..., 1] = np.minimum(col[..., 1], np.maximum(col[..., 0], col[..., 2]))  # sem reflexo verde
+    semi = al < 0.95
+    col[..., 1] = np.where(semi, np.minimum(col[..., 1], col[..., 0] * 0.72), col[..., 1])  # borda do fogo: laranja, não oliva
 # fogo: tons oliva (fogo misturado com o verde do fundo no próprio desenho) viram transparência + laranja
 gr = (1.0 if FIRE else 0.0) * np.clip((col[..., 1] - col[..., 0] * 0.92) / 40, 0, 1) * (col[..., 2] < col[..., 1] * 0.8) * np.clip((215 - col[..., 1]) / 30, 0, 1)
 al = al * (1 - gr * 0.85)

@@ -28,5 +28,19 @@ Object.assign(BB.FX = BB.FX || {}, {
   "n": 6,
   "vert": 1,
   "src": "img/units/fx_ice_storm_g.webp"
+ },
+ "fx_arrow_rain_lane": {
+  "w": 1400,
+  "h": 130,
+  "n": 6,
+  "vert": 1,
+  "src": "img/units/fx_arrow_rain_lane_g.webp"
+ },
+ "fx_elven_rain_lane": {
+  "w": 1400,
+  "h": 138,
+  "n": 6,
+  "vert": 1,
+  "src": "img/units/fx_elven_rain_lane_g.webp"
  }
 });

@@ -184,6 +184,7 @@
             skeleton_summon: { x: sx, h: lh * 1.4, d: 1.3 },
             spark: { x: sx, h: lh * 1.0, d: 0.8 },
           };
+          if ((e.id === 'arrow_rain' && this.laneStrip('fx_arrow_rain_lane', e.lane, e.player, 1.3)) || (e.id === 'elven_rain_wave' && this.fxSheet('fx_elven_rain_lane'))) break; // chuva na rota inteira
           if ((e.id === 'divine_heal' && this.fxSheet('fx_divine_heal')) || (e.id === 'arcane_shield' && this.fxSheet('fx_arcane_shield')) || (e.id === 'freeze' && this.fxSheet('fx_ice_prison'))) break; // efeito em cada tropa
           const anim = SPELL_FX[e.id];
           if (anim && this.fxSheet(anim.key || 'fx_' + e.id)) this.fx.push(Object.assign({ k: 'anim', key: 'fx_' + e.id, y: l.y1 - lh * 0.15, t: 0 }, anim));
@@ -214,6 +215,7 @@
             }
             if (this.fxSheet('fx_orc_rage')) break;
           }
+          if (bab === 'ElvenRain' && e.lane >= 0 && this.laneStrip('fx_elven_rain_lane', e.lane, e.player, (m.players[e.player].baron.count || 8) * (m.players[e.player].baron.interval || 0.4) + 0.6)) break; // Chuva Élfica na rota inteira
           if (bab === 'ArcaneStorm' && this.fxSheet('fx_ice_prison')) { this.fx.push({ k: 'lane', lane: e.lane, t: 0, d: 0.6, c: '#9fe6ff' }); break; } // prisão de gelo em cada inimigo (evento Frozen)
           const bkey = { RoyalCommand: 'fx_royal_command', ElvenRain: 'fx_elven_rain', ArmyOfDead: 'fx_army_of_dead', OrcFury: 'fx_orc_fury', ArcaneStorm: 'fx_arcane_storm' }[bab];
           if (bkey && this.fxSheet(bkey)) {
@@ -446,6 +448,14 @@
       if (stage >= 2) { const gr = g.createRadialGradient(W * 0.4, H * 0.65, 0, W * 0.4, H * 0.65, W * 0.5); gr.addColorStop(0, 'rgba(30,20,25,' + 0.12 * stage + ')'); gr.addColorStop(1, 'rgba(30,20,25,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
       g.globalCompositeOperation = 'destination-in'; g.drawImage(im, 0, 0, W, H); // só dentro do castelo
       return (this.crackCache[key] = c);
+    }
+
+    // efeito em tira cobrindo a rota inteira (de um castelo ao outro)
+    laneStrip(key, lane, owner, d) {
+      const meta = BB.FX[key]; if (!meta || !this.fxSheet(key)) return false;
+      const l = ARENA.lanes[lane], w = (l.xR - l.xL) + 100, h = meta.h * (w / meta.w);
+      this.fx.push({ k: 'anim', key, x: (l.xL + l.xR) / 2, y: l.y + h * 0.32, w, t: 0, d, flip: owner === 1 });
+      return true;
     }
 
     // agenda um efeito visual para daqui a `s` segundos (sincroniza com o impacto da animação)
