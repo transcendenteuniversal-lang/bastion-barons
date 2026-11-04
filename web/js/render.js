@@ -115,7 +115,8 @@
           if (heavy) this.shake = Math.max(this.shake, 0.18);
           if (def.range > 4) {
             const tv = e.targetId ? this.views.get(e.targetId) : null;
-            const to = tv ? { x: tv.x, y: tv.y - tv.r * 0.4 - tv.lift } : this.castlePoint(1 - e.player);
+            const sy = v.y - v.r - v.lift; // contra o castelo: voa reto (mesma altura) até bater na parede da rota
+            const to = tv ? { x: tv.x, y: tv.y - tv.r * 0.4 - tv.lift } : { x: this.laneX(m, m.castleFront(1 - e.player), e.lane), y: sy };
             const col = PROJ_COLOR[def.cls] || '#f2e3b3';
             const pk = PROJ_KIND[def.id] || 'orb', x0 = v.x + (e.player === 0 ? 1 : -1) * v.r * 0.3, y0 = v.y - v.r - v.lift;
             const dist = Math.hypot(to.x - x0, to.y - y0);

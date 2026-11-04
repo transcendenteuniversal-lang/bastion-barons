@@ -143,7 +143,7 @@ BB.CONTENT = {
    "range": 1.5,
    "targets": "Ground",
    "ability": "ShieldDome",
-   "abilityRadius": 5,
+   "abilityRadius": 20,
    "role": "Suporte"
   },
   {

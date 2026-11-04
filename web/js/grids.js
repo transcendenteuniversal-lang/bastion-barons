@@ -55,7 +55,7 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    1
   ],
   "blend": 1,
-  "scale": 1,
+  "scale": 0.8,
   "src": "img/units/dwarf_engineer_g.webp"
  },
  "dwarf_turret": {
@@ -74,7 +74,7 @@ Object.assign(BB.SPRITES = BB.SPRITES || {}, {
    11
   ],
   "blend": 1,
-  "scale": 1,
+  "scale": 1.45,
   "src": "img/units/dwarf_turret_g.webp"
  },
  "dwarf_warrior": {

@@ -13,7 +13,7 @@ OUT = os.path.join(ROOT, 'web', 'img', 'units')
 COLS, ROWS = 6, 2
 BODY = 220          # altura do corpo (px) na folha final: alta resolução
 FLYERS = {'fire_dragon', 'ice_dragon', 'phoenix', 'vampire_bat'}
-SCALE = {'fire_dragon': 1.3, 'ice_dragon': 1.3, 'skeleton': 0.8, 'war_wolf': 0.85, 'goblin_hunter': 0.78}  # tamanho na arena
+SCALE = {'fire_dragon': 1.3, 'ice_dragon': 1.3, 'skeleton': 0.8, 'war_wolf': 0.85, 'goblin_hunter': 0.78, 'dwarf_engineer': 0.8, 'dwarf_turret': 1.45}  # tamanho na arena
 
 
 def key(a):
