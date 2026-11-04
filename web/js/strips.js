@@ -14,5 +14,19 @@ Object.assign(BB.FX = BB.FX || {}, {
   "n": 6,
   "vert": 1,
   "src": "img/units/fx_lane_fire_g.webp"
+ },
+ "fx_soul_drain": {
+  "w": 1400,
+  "h": 132,
+  "n": 6,
+  "vert": 1,
+  "src": "img/units/fx_soul_drain_g.webp"
+ },
+ "fx_ice_storm": {
+  "w": 1400,
+  "h": 118,
+  "n": 6,
+  "vert": 1,
+  "src": "img/units/fx_ice_storm_g.webp"
  }
 });

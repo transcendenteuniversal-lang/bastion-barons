@@ -623,6 +623,12 @@ Object.assign(BB.FX = BB.FX || {}, {
   "n": 12,
   "src": "img/units/fx_freeze_g.webp"
  },
+ "fx_imperial_shield": {
+  "w": 321,
+  "h": 304,
+  "n": 12,
+  "src": "img/units/fx_imperial_shield_g.webp"
+ },
  "fx_lightning": {
   "w": 314,
   "h": 275,
@@ -641,17 +647,17 @@ Object.assign(BB.FX = BB.FX || {}, {
   "n": 12,
   "src": "img/units/fx_poison_g.webp"
  },
+ "fx_royal_command": {
+  "w": 203,
+  "h": 304,
+  "n": 12,
+  "src": "img/units/fx_royal_command_g.webp"
+ },
  "fx_skeleton_summon": {
   "w": 334,
   "h": 274,
   "n": 12,
   "src": "img/units/fx_skeleton_summon_g.webp"
- },
- "fx_soul_drain": {
-  "w": 336,
-  "h": 189,
-  "n": 12,
-  "src": "img/units/fx_soul_drain_g.webp"
  },
  "fx_spark": {
   "w": 228,
@@ -664,5 +670,11 @@ Object.assign(BB.FX = BB.FX || {}, {
   "h": 304,
   "n": 12,
   "src": "img/units/fx_sylvan_blessing_g.webp"
+ },
+ "fx_sylvan_heal": {
+  "w": 276,
+  "h": 304,
+  "n": 12,
+  "src": "img/units/fx_sylvan_heal_g.webp"
  }
 });

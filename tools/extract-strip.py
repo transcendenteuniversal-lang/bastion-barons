@@ -6,6 +6,8 @@ import numpy as np
 from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src, uid, n = sys.argv[1], sys.argv[2], int(sys.argv[3])
+FIRE = len(sys.argv) > 4 and sys.argv[4] == 'fire'  # correção de bordas oliva só para fogo
+TINT = [float(v) for v in sys.argv[4][5:].split(',')] if len(sys.argv) > 4 and sys.argv[4].startswith('tint:') else None  # cor das bordas translúcidas
 a = np.asarray(Image.open(src).convert('RGB')).astype(np.float32)
 r, g, b = a[..., 0], a[..., 1], a[..., 2]; mx = np.maximum(r, b); k = g - mx
 al = np.clip((90 - k) / 60, 0, 1)
@@ -15,9 +17,16 @@ col[..., 1] = np.minimum(col[..., 1], np.maximum(col[..., 0], col[..., 2]))  # s
 semi = al < 0.95
 col[..., 1] = np.where(semi, np.minimum(col[..., 1], col[..., 0] * 0.72), col[..., 1])  # borda do fogo: laranja, não oliva
 # fogo: tons oliva (fogo misturado com o verde do fundo no próprio desenho) viram transparência + laranja
-gr = np.clip((col[..., 1] - col[..., 0] * 0.92) / 40, 0, 1) * (col[..., 2] < col[..., 1] * 0.8) * np.clip((215 - col[..., 1]) / 30, 0, 1)
+gr = (1.0 if FIRE else 0.0) * np.clip((col[..., 1] - col[..., 0] * 0.92) / 40, 0, 1) * (col[..., 2] < col[..., 1] * 0.8) * np.clip((215 - col[..., 1]) / 30, 0, 1)
 al = al * (1 - gr * 0.85)
 col[..., 1] = np.where(gr > 0, np.minimum(col[..., 1], col[..., 0] * 0.8), col[..., 1])
+if TINT is not None:  # brilho translúcido: puxa para a cor do efeito (sem resto do verde do fundo)
+    w = np.sqrt(np.clip(al, 0, 1))[..., None]
+    col = col * w + np.array(TINT)[None, None, :] * (1 - w)
+    if TINT[1] < min(TINT[0], TINT[2]):  # efeito sem verde (ex.: roxo): o verde nunca passa da média de vermelho e azul
+        col[..., 1] = np.minimum(col[..., 1], (col[..., 0] + col[..., 2]) * 0.42)
+    else:
+        col[..., 1] = np.minimum(col[..., 1], np.maximum(col[..., 0], col[..., 2]))
 rgba = np.dstack([col, al * 255]).astype(np.uint8)
 H, W = al.shape; bh = H / n
 xs = np.nonzero((al > 0.1).any(axis=0))[0]; x1 = xs.max() + 1

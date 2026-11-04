@@ -186,6 +186,14 @@
         case 'BaronUsed': {
           this.baronCast[e.player] = 1; this.baronAnim[e.player] = 0; this.setBaronAnim(e.player, 'power');
           const bab = m.players[e.player].baron.ability;
+          if (bab === 'RoyalCommand' && this.fxSheet('fx_royal_command')) { // coroa e espadas em cada tropa (todas as rotas)
+            let i = 0; (this.command = this.command || []).push({ owner: e.player, t: 0, d: m.players[e.player].baron.duration || 8 });
+            for (const u of m.units) if (u.hp > 0 && u.owner === e.player) {
+              const uv = this.views.get(u.id); if (!uv) continue;
+              this.fx.push({ k: 'anim', key: 'fx_royal_command', x: uv.x, y: uv.y + 6, h: this.bodyH(u) * 1.5, t: -(i++) * 0.05, d: 1.2, ease: 1 });
+            }
+            break;
+          }
           if (bab === 'OrcFury' && e.lane >= 0) {
             (this.rage = this.rage || []).push({ lane: e.lane, owner: e.player, t: 0, d: m.players[e.player].baron.duration || 8 });
             // explosão de fúria em cima de cada guerreiro afetado (um depois do outro)
@@ -225,11 +233,25 @@
             break;
           }
           const castle = ARENA.castle[e.player];
+          if (e.id === 'royal_fortress' && this.fxSheet('fx_imperial_shield')) { // escudo sobre o castelo: forma e fica pulsando (loop) enquanto durar
+            const b = ARENA.baron[e.player], cx = b.x + (e.player === 0 ? 70 : -70);
+            this.fx.push({ k: 'anim', key: 'fx_imperial_shield', x: cx, y: 640, h: 440, t: 0, d: (m.players[e.player].castle.duration || 10), loopFrom: 6, loopDur: 0.9, intro: 0.9, castleShield: e.player });
+            break;
+          }
+          if (e.id === 'sylvan_sanctuary' && this.fxSheet('fx_sylvan_heal')) { // cura em cada tropa + no castelo
+            for (const u of m.units) if (u.hp > 0 && u.owner === e.player) { const uv = this.views.get(u.id); if (uv) this.fx.push({ k: 'anim', key: 'fx_sylvan_heal', x: uv.x, y: uv.y + 6, h: this.bodyH(u) * 1.5, t: -Math.random() * 0.2, d: 1.3, ease: 1 }); }
+            const b = ARENA.baron[e.player];
+            this.fx.push({ k: 'anim', key: 'fx_sylvan_heal', x: b.x + (e.player === 0 ? 40 : -40), y: 700, h: 520, t: 0, d: 1.6, ease: 1 });
+            break;
+          }
           if (key && this.fxSheet(key)) {
             if (e.lane < 0) this.fx.push({ k: 'anim', key, x: (castle.x0 + castle.x1) / 2, y: castle.y1 - 20, h: 420, t: 0, d: 1.6 });
             else {
               const l = ARENA.lanes[e.lane], lh = l.y1 - l.y0, meta = BB.FX[key];
-              if (key === 'fx_soul_drain') { // almas sobem ao longo da rota e voam para o próprio castelo
+              if (meta.vert && key !== 'fx_dragon_breath') { // tira na rota inteira (Dreno de Almas: almas voam para o próprio castelo; Tempestade de Gelo)
+                const w = (l.xR - l.xL) + 120, h = meta.h * (w / meta.w);
+                this.fx.push({ k: 'anim', key, x: (l.xL + l.xR) / 2, y: l.y + h * 0.35, w, t: 0, d: key === 'fx_soul_drain' ? 1.6 : 1.5, flip: (key === 'fx_soul_drain') === (e.player === 1) });
+              } else if (key === 'fx_soul_drain') { // almas sobem ao longo da rota e voam para o próprio castelo
                 for (let i = 0; i < 3; i++) this.fx.push({ k: 'anim', key, x: l.xL + (l.xR - l.xL) * (0.25 + i * 0.25), y: l.y1 - lh * 0.1, h: lh * 1.3, t: -i * 0.12, d: 1.5, flip: e.player === 1 });
               } else if (key === 'fx_dragon_breath') { // cabeça de dragão na borda do castelo, fogo atravessando a rota
                 if (meta.vert) { // tira: a cabeça na parede do castelo e o fogo cobrindo a rota inteira
@@ -510,7 +532,8 @@
     draw(m, dt, ui) {
       this.t += dt; this.lastDt = dt;
       this.applyCastleFronts(m);
-      this.runLater(dt);
+      this.runLater(dt); this.match = m;
+      if (this.command) for (const c of this.command) c.t += dt;
       const g = this.g;
       g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
       // fundo: sobras laterais/verticais com a arte esticada e desfocada
@@ -625,7 +648,7 @@
           g.beginPath(); g.moveTo(x - 22, y); g.quadraticCurveTo(x, y - 70 * f - 30, x + 22, y); g.fill();
         }
       }
-      if (p.castleShield > 0) {
+      if (p.castleShield > 0 && !this.fxSheet('fx_imperial_shield')) { // sem a arte nova: oval simples
         g.save(); g.globalAlpha = 0.22 + 0.08 * Math.sin(this.t * 6);
         g.fillStyle = '#8fe3ff'; g.beginPath(); g.ellipse(cx, c.y0 + h * 0.5, w * 0.6, h * 0.58, 0, 0, TAU); g.fill();
         g.globalAlpha = 0.9; g.strokeStyle = '#bff1ff'; g.lineWidth = 6; g.stroke(); g.restore();
@@ -924,6 +947,13 @@
       const lift = v.fly ? 46 * k : 0, bob = v.fly ? Math.sin(v.phase * 3) * 5 : 0;
       if (v.kick > 0) { v.kick -= dt; }
       if (v.heal > 0) { v.heal -= dt; g.save(); g.globalAlpha = Math.min(1, v.heal * 2) * 0.45; g.fillStyle = '#5dff7a'; g.beginPath(); g.ellipse(v.x, v.y, bodyPx * 0.45, bodyPx * 0.14, 0, 0, TAU); g.fill(); g.restore(); }
+      if (this.command && v.dying < 0) { // Comando Real: brasão dourado no chão enquanto durar
+        this.command = this.command.filter((c) => c.t < c.d);
+        if (this.command.some((c) => c.owner === u.owner)) {
+          const rs = this.fxSheet('fx_royal_command'), rm = BB.FX.fx_royal_command;
+          if (rs && rm) { const dw = bodyPx * 1.4, dh = rm.h * (dw / rm.w); g.save(); g.globalAlpha = 0.7 + 0.3 * Math.sin(this.t * 5); g.drawImage(rs, 0, 0, rm.w, rm.h, v.x - dw / 2, v.y + dh * 0.04 - dh, dw, dh); g.restore(); }
+        }
+      }
       if (this.rage && v.dying < 0 && this.rage.some((r) => r.lane === u.lane && r.owner === u.owner)) { // aura da Fúria Orc
         const a = 0.35 + 0.15 * Math.sin(this.t * 8 + v.id), w = bodyPx * 0.55;
         g.save(); g.globalCompositeOperation = 'lighter';
@@ -1073,7 +1103,11 @@
         } else if (f.k === 'anim') {
           const meta = BB.FX[f.key], sheet = this.fxSheet(f.key);
           if (!sheet) continue;
-          const fr = Math.min(meta.n - 1, Math.floor((f.ease ? Math.pow(k, 0.6) : k) * meta.n)); // ease: aparece rápido
+          let fr = Math.min(meta.n - 1, Math.floor((f.ease ? Math.pow(k, 0.6) : k) * meta.n)); // ease: aparece rápido
+          if (f.loopFrom != null) { // entra uma vez e depois fica em loop nos últimos quadros (escudos)
+            const tt = f.t; fr = tt < f.intro ? Math.floor(tt / f.intro * f.loopFrom) : f.loopFrom + Math.floor(((tt - f.intro) / f.loopDur) * (meta.n - f.loopFrom)) % (meta.n - f.loopFrom);
+            if (f.castleShield != null && this.match && this.match.players[f.castleShield].castleShield <= 0 && tt > f.intro) f.t = f.d; // escudo acabou
+          }
           const sc = f.w ? f.w / meta.w : f.h / meta.h, w = meta.w * sc, h = meta.h * sc;
           g.save(); g.translate(f.x, f.y); if (f.flip) g.scale(-1, 1);
           g.drawImage(sheet, meta.vert ? 0 : fr * meta.w, meta.vert ? fr * meta.h : 0, meta.w, meta.h, -w / 2, -h, w, h);
@@ -1100,7 +1134,7 @@
       g.globalAlpha = 1;
     }
 
-    reset() { this.pending = []; this.crack = [0, 0]; this.lastCheer = [0, 0]; this.hitstop = 0; this.slowmo = 0; this.rage = []; this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; this.endZoom = 0; }
+    reset() { this.command = []; this.pending = []; this.crack = [0, 0]; this.lastCheer = [0, 0]; this.hitstop = 0; this.slowmo = 0; this.rage = []; this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; this.endZoom = 0; }
   }
 
   function medallion(g, img, x, y, r, ring, lw, flip) {
