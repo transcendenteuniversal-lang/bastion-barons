@@ -318,6 +318,7 @@
       }
       const n = this.units.length;
       for (let i = 0; i < n; i++) this.updateUnit(this.units[i], dt);
+      this.applyKnocks();
       for (const p of this.players) this.castleDefense(p, dt);
       this.units = this.units.filter((u) => u.hp > 0);
       this.checkEnd();
@@ -366,7 +367,7 @@
         }
         return;
       }
-      if (u.attackCd < 0) { const I = d.attackInterval || 1; u.attackCd += Math.ceil(-u.attackCd / I) * I; } // sem alvo: segue no ritmo da batida
+      if (u.attackCd < 0) u.attackCd = 0; // sem alvo: fica pronto para golpear assim que alcançar alguém
       if (d.moveSpeed <= 0) { u.state = 'Idle'; return; }
       u.state = 'Moving';
       u.x += u.dir * Math.min(d.moveSpeed * (this.B.moveSpeedScale || 1) * moveMult * dt, Math.max(0, dist - reach));
@@ -508,10 +509,18 @@
       }
     }
 
-    knock(t, dist) { // empurra o alvo para trás (na direção do castelo dele)
+    // empurra o alvo para trás (na direção do castelo dele). Aplicado no fim do passo, depois que todos atacaram:
+    // assim quem foi empurrado também dá o golpe da mesma batida (golpes simultâneos não "roubam" o ataque do outro)
+    knock(t, dist) { (this.knocks = this.knocks || []).push([t, dist]); }
+    applyKnocks() {
+      if (!this.knocks || !this.knocks.length) return;
       const B = this.B;
-      t.x = Math.min(this.L - B.castleFront, Math.max(B.castleFront, t.x - t.dir * dist));
-      this.emit('Knocked', t.owner, { unitId: t.id, lane: t.lane, x: t.x });
+      for (const [t, dist] of this.knocks) {
+        if (t.hp <= 0) continue;
+        t.x = Math.min(this.L - B.castleFront, Math.max(B.castleFront, t.x - t.dir * dist));
+        this.emit('Knocked', t.owner, { unitId: t.id, lane: t.lane, x: t.x });
+      }
+      this.knocks.length = 0;
     }
 
     // Arqueira Élfica: na primeira vez que um inimigo chega perto, muda para a rota vizinha mais vazia
