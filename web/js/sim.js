@@ -275,15 +275,9 @@
         const I = def.attackInterval || 1, tEnd = this.time + B.deployDelay;
         u.attackCd = Math.ceil(tEnd / I - 1e-6) * I - tEnd;
       }
-      // invocada no meio da luta: os inimigos de corpo a corpo que já estão ao alcance esperam e batem junto com ela
-      // (ela não apanha antes de conseguir atacar); quem ataca de longe continua normal
-      if (def.range <= 4 && !def.flying && def.targets !== 'CastleOnly') {
-        const first = u.deploy + u.attackCd, reach = 6 + this.bodyR(def);
-        for (const e of this.units) {
-          if (e.hp <= 0 || e.owner === owner || e.lane !== lane || e.def.range > 4 || Math.abs(e.x - u.x) > reach + e.def.range + this.bodyR(e.def)) continue;
-          e.attackCd = Math.max(e.attackCd, first);
-        }
-      }
+      // corpo a corpo recém-invocado: os inimigos de corpo a corpo que forem bater nele esperam o primeiro golpe dele
+      // e batem juntos (ele não apanha antes de conseguir atacar); quem ataca de longe continua normal
+      if (def.range <= 4 && def.targets !== 'CastleOnly') { u.waitFirst = true; u.attackCd = 0; }
       this.units.push(u);
       this.emit('UnitSpawned', owner, { unitId: u.id, lane, x: u.x, id: def.id });
       if (def.ability === 'Hex') this.hexLane(u);
@@ -361,6 +355,8 @@
       const target = this.findTarget(u);
       if (target) {
         u.state = 'Attacking'; u.targetId = target.id;
+        if (target.waitFirst && target.stun > 0) target.waitFirst = false; // paralisado não fica protegido
+        if (target.waitFirst && d.range <= 4) u.attackCd = Math.max(u.attackCd, target.deploy + target.attackCd);
         if (u.attackCd <= 0) { u.attackCd = Math.max(0, u.attackCd + d.attackInterval); this.attack(u, target, m.dmg, true); }
         return;
       }
@@ -426,6 +422,7 @@
 
     attack(u, target, dmgMult, delayed) {
       const d = u.def;
+      u.waitFirst = false;
       this.emit('UnitAttack', u.owner, { unitId: u.id, targetId: target.id, lane: u.lane, x: target.x, value: u.damage * dmgMult, id: d.id });
       if (delayed && (this.B.hitDelay || 0) > 0) { this.queueHit({ u, target, mult: dmgMult }); return; }
       this.doHit(u, target, dmgMult);

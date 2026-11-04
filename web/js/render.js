@@ -193,7 +193,7 @@
             for (const u of m.units) if (u.hp > 0 && u.owner === e.player && u.lane === e.lane) {
               const uv = this.views.get(u.id); if (!uv) continue;
               const bh = this.bodyH(u), delay = (i++) * 0.08;
-              this.fx.push({ k: 'anim', key: 'fx_orc_rage', x: uv.x, y: uv.y + 6, h: bh * 1.5, t: -delay, d: 1.8 });
+              this.fx.push({ k: 'anim', key: 'fx_orc_rage', x: uv.x, y: uv.y + 6, h: bh * 1.5, t: -delay, d: 1.1, ease: 1 });
             }
             if (this.fxSheet('fx_orc_rage')) break;
           }
@@ -235,7 +235,7 @@
                 if (meta.vert) { // tira: a cabeça na parede do castelo e o fogo cobrindo a rota inteira
                   const w = (l.xR - l.xL) + 160, h = meta.h * (w / meta.w);
                   const x = e.player === 0 ? l.xL - 90 + w / 2 : l.xR + 90 - w / 2;
-                  this.fx.push({ k: 'anim', key, x, y: l.y + h * 0.42, w, t: 0, d: 1.6, flip: e.player === 1 });
+                  this.fx.push({ k: 'anim', key, x, y: l.y + h * 0.3, w, t: 0, d: 1.6, flip: e.player === 1 });
                   this.shake = Math.max(this.shake, 0.4);
                 } else {
                   const h = lh * 1.9, w = meta.w * (h / meta.h);
@@ -359,15 +359,19 @@
         const gr = g.createLinearGradient(0, l.y0, 0, l.y1);
         gr.addColorStop(0, 'rgba(255,40,20,' + (pulse + 0.1) + ')'); gr.addColorStop(0.5, 'rgba(200,20,10,' + pulse + ')'); gr.addColorStop(1, 'rgba(255,40,20,' + (pulse + 0.1) + ')');
         g.fillStyle = gr; g.fillRect(l.xL - 40, l.y0, l.xR - l.xL + 80, l.y1 - l.y0);
-        g.globalCompositeOperation = 'lighter';
-        for (const ey of [l.y0, l.y1]) { // chamas ao longo das duas linhas da rota
-          for (let x = l.xL - 30; x < l.xR + 30; x += 18) {
-            const seed = x * 0.37 + ey, f = 0.5 + 0.5 * Math.sin(this.t * 11 + seed) * Math.sin(this.t * 7.3 + seed * 1.7);
-            const h = 16 + 22 * f, w = 9 + 3 * f;
+        const fire = this.fxSheet('fx_lane_fire'), meta = BB.FX.fx_lane_fire;
+        if (fire && meta) { // fogo animado (tira em loop) ao longo das duas linhas da rota
+          const fr = Math.floor(this.t * 12) % meta.n, h = 46, w = meta.w * (h / meta.h), x0 = l.xL - 40, x1 = l.xR + 40;
+          for (const ey of [l.y0 + 6, l.y1 + 4]) for (let x = x0; x < x1; x += w) {
+            const cw = Math.min(w, x1 - x);
+            g.drawImage(fire, 0, fr * meta.h, meta.w * (cw / w), meta.h, x, ey - h, cw, h);
+          }
+        } else {
+          g.globalCompositeOperation = 'lighter';
+          for (const ey of [l.y0, l.y1]) for (let x = l.xL - 30; x < l.xR + 30; x += 18) {
+            const seed = x * 0.37 + ey, f = 0.5 + 0.5 * Math.sin(this.t * 11 + seed) * Math.sin(this.t * 7.3 + seed * 1.7), h = 16 + 22 * f, w = 9 + 3 * f;
             g.fillStyle = 'rgba(255,' + Math.round(90 + 90 * f) + ',20,.75)';
             g.beginPath(); g.moveTo(x - w, ey); g.quadraticCurveTo(x - w * 0.6, ey - h * 0.6, x, ey - h); g.quadraticCurveTo(x + w * 0.6, ey - h * 0.6, x + w, ey); g.closePath(); g.fill();
-            g.fillStyle = 'rgba(255,240,150,.7)';
-            g.beginPath(); g.ellipse(x, ey - h * 0.25, w * 0.35, h * 0.25, 0, 0, TAU); g.fill();
           }
         }
         g.restore();
@@ -807,7 +811,7 @@
         for (const u of group) {
           const x = tx.get(u.id), gap = bodyW(u) * 0.95;
           // grandes preferem a fileira de trás, pequenas a da frente (não ficam escondidas)
-          const pref = u.def.hp >= 1200 ? [1, 0, 2] : u.def.hp < 500 ? [2, 0, 1] : [0, 1, 2]; // índices em ROWS = [0, -1, 1]
+          const pref = u.def.hp >= 1200 ? [0, 1, 2] : u.def.hp < 500 ? [0, 2, 1] : [0, 1, 2]; // índices em ROWS = [0, -1, 1]: centro primeiro
           let r = pref.find((i) => lastX[i] === null || dir * (lastX[i] - x) >= gap); if (r === undefined) r = -1;
           if (r < 0) { // todas as fileiras ocupadas: recua na fileira com mais espaço
             r = 0; let best = -Infinity;
@@ -926,8 +930,9 @@
         const gr = g.createRadialGradient(v.x, v.y - bodyPx * 0.4, 0, v.x, v.y - bodyPx * 0.4, bodyPx * 0.7);
         gr.addColorStop(0, 'rgba(255,90,30,' + a * 0.5 + ')'); gr.addColorStop(1, 'rgba(255,40,10,0)');
         g.fillStyle = gr; g.beginPath(); g.ellipse(v.x, v.y - bodyPx * 0.4, w, bodyPx * 0.7, 0, 0, TAU); g.fill();
-        g.fillStyle = 'rgba(255,70,20,' + a + ')'; g.beginPath(); g.ellipse(v.x, v.y, w, bodyPx * 0.15, 0, 0, TAU); g.fill();
         g.restore();
+        const rs = this.fxSheet('fx_orc_rage'), rm = BB.FX.fx_orc_rage; // marca da caveira no chão (1º quadro do efeito)
+        if (rs && rm) { const dw = bodyPx * 1.6, dh = rm.h * (dw / rm.w); g.save(); g.globalAlpha = 0.75 + 0.25 * Math.sin(this.t * 6); g.drawImage(rs, 0, 0, rm.w, rm.h, v.x - dw / 2, v.y + dh * 0.04 - dh, dw, dh); g.restore(); }
         if (Math.random() < 0.25) this.fx.push({ k: 'spark', x: v.x + (Math.random() - 0.5) * w, y: v.y - Math.random() * bodyPx * 0.8, vx: (Math.random() - 0.5) * 40, vy: -160 - Math.random() * 120, t: 0, d: 0.5 });
       }
       if (u.enraged && v.dying < 0) { const a = 0.3 + 0.15 * Math.sin(this.t * 10); g.save(); g.globalAlpha = a; g.fillStyle = '#ff3a1a'; g.beginPath(); g.ellipse(v.x, v.y, bodyPx * 0.5, bodyPx * 0.16, 0, 0, TAU); g.fill(); g.restore(); }
@@ -1068,7 +1073,7 @@
         } else if (f.k === 'anim') {
           const meta = BB.FX[f.key], sheet = this.fxSheet(f.key);
           if (!sheet) continue;
-          const fr = Math.min(meta.n - 1, Math.floor(k * meta.n));
+          const fr = Math.min(meta.n - 1, Math.floor((f.ease ? Math.pow(k, 0.6) : k) * meta.n)); // ease: aparece rápido
           const sc = f.w ? f.w / meta.w : f.h / meta.h, w = meta.w * sc, h = meta.h * sc;
           g.save(); g.translate(f.x, f.y); if (f.flip) g.scale(-1, 1);
           g.drawImage(sheet, meta.vert ? 0 : fr * meta.w, meta.vert ? fr * meta.h : 0, meta.w, meta.h, -w / 2, -h, w, h);

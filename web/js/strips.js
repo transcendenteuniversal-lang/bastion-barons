@@ -3,9 +3,16 @@ window.BB = window.BB || {};
 Object.assign(BB.FX = BB.FX || {}, {
  "fx_dragon_breath": {
   "w": 1400,
-  "h": 131,
+  "h": 138,
   "n": 6,
   "vert": 1,
   "src": "img/units/fx_dragon_breath_g.webp"
+ },
+ "fx_lane_fire": {
+  "w": 1400,
+  "h": 122,
+  "n": 6,
+  "vert": 1,
+  "src": "img/units/fx_lane_fire_g.webp"
  }
 });

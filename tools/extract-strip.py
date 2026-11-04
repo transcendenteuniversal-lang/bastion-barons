@@ -21,7 +21,19 @@ col[..., 1] = np.where(gr > 0, np.minimum(col[..., 1], col[..., 0] * 0.8), col[.
 rgba = np.dstack([col, al * 255]).astype(np.uint8)
 H, W = al.shape; bh = H / n
 xs = np.nonzero((al > 0.1).any(axis=0))[0]; x1 = xs.max() + 1
-frames = [Image.fromarray(rgba[int(i * bh):int((i + 1) * bh), :x1]) for i in range(n)]
+# divisões entre as tiras: linha mais vazia perto de cada divisão igual (não corta o fogo que encosta na borda)
+rowsum = (al > 0.1).sum(axis=1)
+cuts = [0]
+for i in range(1, n):
+    c = int(i * bh); lo, hi = int(c - bh * 0.25), int(c + bh * 0.25)
+    cuts.append(lo + int(np.argmin(rowsum[lo:hi])))
+cuts.append(H)
+frames = [Image.fromarray(rgba[cuts[i]:cuts[i + 1], :x1]) for i in range(n)]
+# alinha pela base: cada tira vai para uma moldura do mesmo tamanho com o fundo da arte embaixo
+bottoms = [np.nonzero((np.asarray(f)[..., 3] > 25).any(axis=1))[0].max() + 1 for f in frames]
+tops = [np.nonzero((np.asarray(f)[..., 3] > 25).any(axis=1))[0].min() for f in frames]
+up = max(b - t for b, t in zip(bottoms, tops)) + 4
+frames = [f.crop((0, b - up, x1, b)) for f, b in zip(frames, bottoms)]
 fh = min(f.height for f in frames); fw = x1
 s = min(1.0, 1400 / fw)
 fw2, fh2 = round(fw * s), round(fh * s)
