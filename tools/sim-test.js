@@ -154,9 +154,9 @@ test('cúpula do paladino: só leva dano de quem está dentro', () => {
 });
 test('habilidades: empurrão, congelar, lobos nas 3 rotas, troca de rota, necromante, demônio', () => {
   let m = newMatch(); const k = m.spawnUnit(0, content.card('royal_knight'), 1, 40, 1), t = m.spawnUnit(1, content.card('stone_guardian'), 1, 44, 1);
-  k.deploy = t.deploy = 0; k.attackCd = 0; t.stun = 99; m.step(); near(t.x, 47, 0.01);
+  k.deploy = t.deploy = 0; k.attackCd = 0; t.stun = 99; run(m, 0.5); near(t.x, 47, 0.01);
   m = newMatch(); const d = m.spawnUnit(0, content.card('ice_dragon'), 1, 40, 1), v = m.spawnUnit(1, content.card('barbarian'), 1, 45, 1);
-  d.deploy = v.deploy = 0; d.attackCd = 0; m.step(); assert(v.stun > 1);
+  d.deploy = v.deploy = 0; d.attackCd = 0; run(m, 0.5); assert(v.stun > 0.5);
   m = newMatch(); m.players[0].energy = 10; eq(play(m, 0, 'war_wolf', 1), 'Ok'); eq(new Set(m.units.map((u) => u.lane)).size, 3);
   m = newMatch(); const e = m.spawnUnit(0, content.card('elven_archer'), 1, 40, 1); e.deploy = 0; m.spawnUnit(1, content.card('barbarian'), 1, 44, 1).deploy = 9; m.step(); assert(e.lane !== 1 && e.hopped);
   m = newMatch(); const n = m.spawnUnit(0, content.card('necromancer'), 1, 20, 1), b = m.spawnUnit(1, content.card('barbarian'), 1, 60, 1);
@@ -164,7 +164,7 @@ test('habilidades: empurrão, congelar, lobos nas 3 rotas, troca de rota, necrom
   m = newMatch(); const o = m.spawnUnit(1, content.card('red_orc'), 1, 60, 1); const dm = m.spawnUnit(0, content.card('infernal_demon'), 1, 20, 1);
   eq(o.def.id, 'skeleton'); near(o.hp / o.maxHp, 1, 1e-6); o.hp = o.maxHp * 0.5; m.applyDamage(dm, 99999, 1); eq(o.def.id, 'red_orc'); near(o.hp / o.maxHp, 0.5, 1e-6);
   m = newMatch(); const tr = m.spawnUnit(0, content.card('mountain_troll'), 1, 40, 1), a1 = m.spawnUnit(1, content.card('stone_guardian'), 1, 45, 1), a2 = m.spawnUnit(1, content.card('stone_guardian'), 1, 47, 1);
-  tr.deploy = 0; tr.attackCd = 0; a1.stun = a2.stun = 99; m.step(); near(a1.x, 45, 0.01); for (let i = 0; i < 10; i++) m.step(); assert(a1.x > 90 && a2.x > 90, 'troll arremessa em área depois do golpe');
+  tr.deploy = 0; tr.attackCd = 0; a1.stun = a2.stun = 99; run(m, 0.5); near(a1.x, 45, 0.01); for (let i = 0; i < 10; i++) m.step(); assert(a1.x > 90 && a2.x > 90, 'troll arremessa em área depois do golpe');
 });
 test('bola de fogo causa dano e congelamento paralisa', () => {
   const m = newMatch(); const t = m.spawnUnit(1, content.card('red_orc'), 1, 60, 1);

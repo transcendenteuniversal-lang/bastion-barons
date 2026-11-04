@@ -98,10 +98,11 @@
       switch (e.type) {
         case 'UnitAttack': {
           const def = m.content.cards[e.id];
-          if (v) { v.lunge = 0.22; v.atk = 0; v.atkDur = def ? Math.max(0.45, Math.min(1.1, def.attackInterval * 0.85)) : 0.6; }
+          const D = m.B.hitDelay || 0; // o dano entra D segundos depois: o impacto da animação cai junto
+          if (v) { v.lunge = 0.22; v.atk = 0; v.atkDur = def ? Math.max(0.45, Math.min(1.1, Math.max(D / 0.55, def.attackInterval * 0.7))) : 0.6; }
           if (!def || !v) break;
           const heavy = HEAVY.has(def.id) || e.value >= 140;
-          if (def.range <= 4) {
+          if (def.range <= 4) this.later(D, () => {
             const tv = e.targetId ? this.views.get(e.targetId) : null;
             if (tv) {
               this.playFx('fx_hit', tv.x, tv.y - tv.r * 0.2, heavy ? 95 : 70, 0.3);
@@ -111,8 +112,8 @@
             } else if (!e.targetId) { const c = this.castlePoint(1 - e.player); this.playFx('fx_hit', c.x, c.y + 40, 90, 0.3); this.sparks(c.x, c.y, 6); }
             this.hitstop = Math.max(this.hitstop || 0, heavy ? 0.085 : 0.035);
             if (def.ability === 'Splash' && tv) { this.fx.push({ k: 'shock', x: tv.x, y: tv.y, r: (def.abilityRadius / m.L) * laneW(e.lane) * 1.3, t: 0, d: 0.55, c: def.id === 'infernal_demon' ? '#ff6a1e' : '#ffd77a' }); this.dust(tv.x, tv.y, 6, 1.2); }
-          }
-          if (heavy) this.shake = Math.max(this.shake, 0.18);
+            if (heavy) this.shake = Math.max(this.shake, 0.18);
+          });
           if (def.range > 4) {
             const tv = e.targetId ? this.views.get(e.targetId) : null;
             const col = PROJ_COLOR[def.cls] || '#f2e3b3';
@@ -121,11 +122,12 @@
             // contra o castelo: voa reto (mesma altura) até bater na parede da rota
             const to = tv ? { x: tv.x, y: tv.y - tv.r * 0.4 - tv.lift } : { x: this.laneX(m, m.castleFront(1 - e.player), e.lane), y: y0 };
             const dist = Math.hypot(to.x - x0, to.y - y0);
-            const pd = Math.max(0.14, Math.min(0.42, dist / 1800)), pc = PROJ_TINT[def.id] || col;
-            this.fx.push({ k: 'proj', pk, x0, y0, x1: to.x, y1: to.y, t: 0, d: pd, c: pc, r: def.cls === 'Mage' ? 9 : 6, arc: 0 }); // sempre em linha reta
-            this.fx.push({ k: 'impact', x: to.x, y: to.y, c: pk === 'arrow' || pk === 'bolt' || pk === 'bullet' ? '#fff2c0' : pc, t: -pd, d: 0.3 });
-            if (pk === 'bullet') this.fx.push({ k: 'puff', x: x0, y: y0, t: 0, d: 0.3 });
-            if (def.ability === 'Splash') { const tv2 = e.targetId ? this.views.get(e.targetId) : null; this.fx.push({ k: 'shock', x: to.x, y: tv2 ? tv2.y : to.y + 40, r: (def.abilityRadius / m.L) * laneW(e.lane) * 1.3, t: -pd, d: 0.55, c: pc }); }
+            // o tiro sai no quadro de disparo da animação e chega exatamente quando o dano entra (D)
+            const pd = Math.max(0.12, Math.min(D > 0 ? D * 0.75 : 0.42, dist / 1800)), pc = PROJ_TINT[def.id] || col, rel = Math.max(0, D - pd);
+            this.fx.push({ k: 'proj', pk, x0, y0, x1: to.x, y1: to.y, t: -rel, d: pd, c: pc, r: def.cls === 'Mage' ? 9 : 6, arc: 0 }); // sempre em linha reta
+            this.fx.push({ k: 'impact', x: to.x, y: to.y, c: pk === 'arrow' || pk === 'bolt' || pk === 'bullet' ? '#fff2c0' : pc, t: -(rel + pd), d: 0.3 });
+            if (pk === 'bullet') this.fx.push({ k: 'puff', x: x0, y: y0, t: -rel, d: 0.3 });
+            if (def.ability === 'Splash') { const tv2 = e.targetId ? this.views.get(e.targetId) : null; this.fx.push({ k: 'shock', x: to.x, y: tv2 ? tv2.y : to.y + 40, r: (def.abilityRadius / m.L) * laneW(e.lane) * 1.3, t: -(rel + pd), d: 0.55, c: pc }); }
           }
           break;
         }
@@ -393,6 +395,14 @@
       return (this.crackCache[key] = c);
     }
 
+    // agenda um efeito visual para daqui a `s` segundos (sincroniza com o impacto da animação)
+    later(s, fn) { if (s <= 0) fn(); else (this.pending = this.pending || []).push({ s, fn }); }
+    runLater(dt) {
+      if (!this.pending || !this.pending.length) return;
+      const now = this.pending; this.pending = [];
+      for (const p of now) { if ((p.s -= dt) <= 0) { try { p.fn(); } catch (e) { /* view sumiu */ } } else this.pending.push(p); }
+    }
+
     // altura desenhada do corpo (a mesma conta do drawSprite)
     bodyH(u) {
       const sp = BB.SPRITES && BB.SPRITES[u.def.sprite || u.def.id], k = ARENA.lanes[u.lane].k;
@@ -479,6 +489,7 @@
     draw(m, dt, ui) {
       this.t += dt; this.lastDt = dt;
       this.applyCastleFronts(m);
+      this.runLater(dt);
       const g = this.g;
       g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
       // fundo: sobras laterais/verticais com a arte esticada e desfocada
@@ -1057,7 +1068,7 @@
       g.globalAlpha = 1;
     }
 
-    reset() { this.crack = [0, 0]; this.lastCheer = [0, 0]; this.hitstop = 0; this.slowmo = 0; this.rage = []; this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; this.endZoom = 0; }
+    reset() { this.pending = []; this.crack = [0, 0]; this.lastCheer = [0, 0]; this.hitstop = 0; this.slowmo = 0; this.rage = []; this.views.clear(); this.ghosts = []; this.fx = []; this.texts = []; this.collapse = [0, 0]; this.baronCast = [0, 0]; this.baronAnim = [-1, -1]; this.baronState = [{ name: 'idle', t: 0 }, { name: 'idle', t: 0 }]; this.castleHit = [0, 0]; this.endZoom = 0; }
   }
 
   function medallion(g, img, x, y, r, ring, lw, flip) {

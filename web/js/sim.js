@@ -318,6 +318,7 @@
       }
       const n = this.units.length;
       for (let i = 0; i < n; i++) this.updateUnit(this.units[i], dt);
+      this.processHits();
       this.applyKnocks();
       for (const p of this.players) this.castleDefense(p, dt);
       this.units = this.units.filter((u) => u.hp > 0);
@@ -351,7 +352,7 @@
       const target = this.findTarget(u);
       if (target) {
         u.state = 'Attacking'; u.targetId = target.id;
-        if (u.attackCd <= 0) { u.attackCd = Math.max(0, u.attackCd + d.attackInterval); this.attack(u, target, m.dmg); }
+        if (u.attackCd <= 0) { u.attackCd = Math.max(0, u.attackCd + d.attackInterval); this.attack(u, target, m.dmg, true); }
         return;
       }
       const front = this.castleFront(1 - u.owner);
@@ -363,7 +364,7 @@
           u.attackCd = Math.max(0, u.attackCd + d.attackInterval);
           const dmg = u.damage * m.dmg;
           this.emit('UnitAttack', u.owner, { unitId: u.id, targetId: 0, lane: u.lane, x: front, value: dmg, id: d.id });
-          this.damageCastle(1 - u.owner, dmg, u.owner, u.lane);
+          this.queueHit({ castle: true, u, dmg, owner: u.owner, victim: 1 - u.owner, lane: u.lane });
         }
         return;
       }
@@ -399,10 +400,32 @@
       return best;
     }
 
-    attack(u, target, dmgMult) {
+    // o golpe começa agora (animação) e o dano entra no momento do impacto da animação (B.hitDelay)
+    queueHit(h) { h.wait = this.B.hitDelay || 0; (this.hits = this.hits || []).push(h); }
+    processHits() {
+      if (!this.hits || !this.hits.length) return;
+      const keep = [];
+      for (const h of this.hits) {
+        if ((h.wait -= this.dt) > 0) { keep.push(h); continue; }
+        if (h.u.hp <= 0) continue; // atacante morreu antes do impacto
+        if (h.castle) { this.damageCastle(h.victim, h.dmg, h.owner, h.lane); continue; }
+        if (h.target.hp <= 0 || h.target.lane !== h.u.lane) continue;
+        this.doHit(h.u, h.target, h.mult);
+      }
+      this.hits = keep;
+    }
+
+    attack(u, target, dmgMult, delayed) {
+      const d = u.def;
+      this.emit('UnitAttack', u.owner, { unitId: u.id, targetId: target.id, lane: u.lane, x: target.x, value: u.damage * dmgMult, id: d.id });
+      if (delayed && (this.B.hitDelay || 0) > 0) { this.queueHit({ u, target, mult: dmgMult }); return; }
+      this.doHit(u, target, dmgMult);
+    }
+
+    doHit(u, target, dmgMult) {
       const dmg = u.damage * dmgMult;
       const d = u.def;
-      this.emit('UnitAttack', u.owner, { unitId: u.id, targetId: target.id, lane: u.lane, x: target.x, value: dmg, id: d.id });
+      this.emit('UnitHit', u.owner, { unitId: u.id, targetId: target.id, lane: u.lane, x: target.x, value: dmg, id: d.id });
       if (d.ability === 'Splash' && d.abilityRadius > 0) {
         const cx = target.x;
         for (const e of this.units) {

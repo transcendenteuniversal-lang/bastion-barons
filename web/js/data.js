@@ -24,6 +24,7 @@ BB.CONTENT = {
   "laneLength": 100,
   "spawnOffset": 4,
   "castleFront": 6,
+  "hitDelay": 0.4,
   "castleHp": 6000,
   "wallHp": 0,
   "castleAttackDamage": 0,
