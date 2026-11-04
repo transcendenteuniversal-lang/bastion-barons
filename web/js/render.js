@@ -359,6 +359,37 @@
       for (let i = 0; i < n; i++) { const a = Math.random() * TAU, sp = 160 + Math.random() * 260; this.fx.push({ k: 'spark', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, t: 0, d: 0.25 + Math.random() * 0.15 }); }
     }
 
+    // rachaduras desenhadas sobre a própria arte do castelo (só onde há pedra), em 3 etapas
+    crackLayer(im, art, stage) {
+      this.crackCache = this.crackCache || {};
+      const key = art.src + ':' + stage;
+      if (this.crackCache[key]) return this.crackCache[key];
+      const W = Math.round(art.w), H = Math.round(art.h), c = document.createElement('canvas'); c.width = W; c.height = H;
+      const g = c.getContext('2d');
+      let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      // pontos de partida na parede da frente (abaixo da sacada), proporcionais ao tamanho da arte
+      const starts = [[0.42, 0.56], [0.28, 0.72], [0.55, 0.7], [0.2, 0.5], [0.48, 0.84], [0.33, 0.62]];
+      const crack = (x, y, ang, len, w, depth) => {
+        let px = x, py = y;
+        const pts = [[px, py]];
+        const n = 6 + Math.floor(rnd() * 4);
+        for (let i = 0; i < n; i++) { ang += (rnd() - 0.5) * 0.9; px += Math.cos(ang) * len / n; py += Math.sin(ang) * len / n; pts.push([px, py]); }
+        for (const [col, lw, dx, dy] of [['rgba(255,235,210,.35)', w + 2, 1.5, 1.5], ['rgba(20,10,18,.9)', w, 0, 0]]) {
+          for (let i = 1; i < pts.length; i++) { // fica mais fina na ponta
+            g.strokeStyle = col; g.lineCap = 'round'; g.lineWidth = Math.max(0.8, lw * (1 - i / pts.length));
+            g.beginPath(); g.moveTo(pts[i - 1][0] + dx, pts[i - 1][1] + dy); g.lineTo(pts[i][0] + dx, pts[i][1] + dy); g.stroke();
+          }
+        }
+        if (depth > 0) for (let k = 0; k < 2; k++) { const p = pts[2 + Math.floor(rnd() * (pts.length - 3))]; crack(p[0], p[1], ang + (rnd() < 0.5 ? -1 : 1) * (0.6 + rnd() * 0.5), len * 0.5, w * 0.6, depth - 1); }
+      };
+      const n = stage * 2;
+      for (let i = 0; i < n; i++) { const [sx, sy] = starts[i]; crack(sx * W, sy * H, Math.PI * (0.35 + rnd() * 0.5), H * (0.1 + rnd() * 0.06), 5, 2); }
+      // escurecido leve (fuligem) nas etapas mais graves
+      if (stage >= 2) { const gr = g.createRadialGradient(W * 0.4, H * 0.65, 0, W * 0.4, H * 0.65, W * 0.5); gr.addColorStop(0, 'rgba(30,20,25,' + 0.12 * stage + ')'); gr.addColorStop(1, 'rgba(30,20,25,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(im, 0, 0, W, H); // só dentro do castelo
+      return (this.crackCache[key] = c);
+    }
+
     // silhueta branca do quadro atual (piscada de dano)
     whiteFrame(sheet, sx, sy, w, h) {
       if (!this.tint) { this.tint = document.createElement('canvas'); }
@@ -515,21 +546,16 @@
         const im = BB.art.image(art.src);
         if (im.complete && im.naturalWidth) {
           g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
-          g.drawImage(im, art.x, art.y, art.w, art.h); g.restore();
+          g.drawImage(im, art.x, art.y, art.w, art.h);
+          const st = (this.crack && this.crack[owner]) || 0;
+          if (st > 0) { const cv = this.crackLayer(im, art, st); if (cv) g.drawImage(cv, art.x, art.y, art.w, art.h); }
+          g.restore();
         }
         const gx = art.x + art.gate[0], gy = art.y + art.gate[1];
         c.gx = owner === 1 ? AW - gx : gx; c.gy = gy;
       }
       const w = c.x1 - c.x0, h = c.y1 - c.y0, cx = (c.x0 + c.x1) / 2;
       const crack = (this.crack && this.crack[owner]) || 0;
-      if (crack > 0) { // rachaduras na parede do castelo
-        g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
-        g.strokeStyle = 'rgba(25,15,20,.85)'; g.lineWidth = 4; g.lineCap = 'round';
-        const C = [[[170, 420], [195, 470], [180, 520], [210, 575]], [[90, 560], [130, 600], [115, 650], [150, 700]], [[250, 300], [230, 350], [262, 395], [240, 440]],
-          [[60, 380], [95, 420], [80, 470]], [[300, 520], [280, 570], [305, 610]], [[140, 250], [165, 290], [150, 330]]];
-        for (let i = 0; i < Math.min(C.length, crack * 2); i++) { g.beginPath(); C[i].forEach(([x, y], j) => (j ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke(); }
-        g.restore();
-      }
       if (this.castleHit[owner] > 0) { // pisca em vermelho/branco ao ser atingido
         g.save(); g.globalCompositeOperation = 'lighter';
         const gr = g.createRadialGradient(c.gx, c.gy - 60, 10, c.gx, c.gy - 60, 220);
@@ -858,8 +884,14 @@
       g.save(); g.globalAlpha = alpha;
       if (u.def.ability === 'ShieldDome' && v.dying < 0) { // cúpula do Paladino no chão
         const l = ARENA.lanes[u.lane], rr = ((u.def.abilityRadius || 6) / 100) * (l.xR - l.xL);
-        g.fillStyle = 'rgba(255,230,138,.12)'; g.strokeStyle = 'rgba(255,230,138,.55)'; g.lineWidth = 2;
-        g.beginPath(); g.ellipse(v.x, v.y, rr, rr * 0.28, 0, 0, TAU); g.fill(); g.stroke();
+        const pulse = 0.85 + 0.15 * Math.sin(this.t * 3);
+        g.save(); g.fillStyle = 'rgba(255,224,120,' + 0.16 * pulse + ')'; g.strokeStyle = 'rgba(255,224,120,' + 0.85 * pulse + ')'; g.lineWidth = 3; g.setLineDash([12, 8]);
+        g.beginPath(); g.ellipse(v.x, v.y, rr, rr * 0.3, 0, 0, TAU); g.fill(); g.stroke(); g.setLineDash([]);
+        // cúpula transparente
+        const dh = Math.min(rr * 1.1, bodyPx * 1.3), grd = g.createLinearGradient(0, v.y - dh, 0, v.y);
+        grd.addColorStop(0, 'rgba(255,240,170,' + 0.05 * pulse + ')'); grd.addColorStop(1, 'rgba(255,224,120,' + 0.18 * pulse + ')');
+        g.fillStyle = grd; g.beginPath(); g.ellipse(v.x, v.y, rr, dh, 0, Math.PI, TAU); g.fill();
+        g.strokeStyle = 'rgba(255,240,170,' + 0.5 * pulse + ')'; g.lineWidth = 2; g.stroke(); g.restore();
       }
       // sombra e marca do time no chão
       g.save();

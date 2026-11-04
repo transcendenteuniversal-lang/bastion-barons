@@ -186,10 +186,14 @@
       const key = me.deck.hand.join(',');
       if (key === this.handKey) return;
       this.handKey = key;
+      const prevIds = this.prevHand || null; this.prevHand = me.deck.hand.slice();
+      this.lastHand = prevIds;
       this.el.slots.forEach((slot, i) => {
         const id = me.deck.hand[i];
         if (!id) { slot.innerHTML = '<div class="hb-empty"></div>'; return; }
+        const isNew = this.lastHand && !this.lastHand.includes(id + '#' + i) && this.lastHand.indexOf(id) < 0;
         slot.innerHTML = BB.ui.cardHtml(BB.content.card(id), BB.Progress.owned(BB.profile, id), { level: true, attrs: 'data-i="' + i + '"' });
+        if (isNew) slot.firstElementChild.classList.add('drawn'); // carta comprada: sobe um pouco e assenta no lugar
         slot.firstElementChild.addEventListener('pointerdown', (e) => { e.preventDefault(); this.selectCard(i, e); });
       });
     }

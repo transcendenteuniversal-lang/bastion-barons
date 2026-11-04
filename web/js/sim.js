@@ -265,12 +265,16 @@
         x: Math.min(this.L - Math.min(B.spawnOffset, B.castleFront), Math.max(Math.min(B.spawnOffset, B.castleFront), x)), // nasce atrás da linha de ataque
         maxHp: def.hp * mult, hp: def.hp * mult, damage: def.damage * mult,
         abilityPower: (def.abilityValue || 0) * (def.ability === 'HealAura' || def.ability === 'Regen' ? mult : 1),
-        attackCd: def.attackInterval * 0.5, abilityTimer: 0, deploy: B.deployDelay, life: def.lifetime || 0,
+        attackCd: 0, abilityTimer: 0, deploy: B.deployDelay, life: def.lifetime || 0,
         shield: 0, shieldTime: 0, stun: 0, slowTime: 0, slow: 1, poisonDps: 0, poisonTime: 0,
         rebirthUsed: false, expired: false, state: 'Deploying', targetId: 0,
         get alive() { return this.hp > 0; }, get flying() { return !!this.def.flying; }, get dir() { return dirOf(this.owner); },
       };
       u.baseDamage = u.damage; u.size = 1;
+      { // golpes sincronizados: o primeiro ataque cai na próxima "batida" do relógio da partida (todos batem juntos)
+        const I = def.attackInterval || 1, tEnd = this.time + B.deployDelay;
+        u.attackCd = Math.ceil(tEnd / I - 1e-6) * I - tEnd;
+      }
       this.units.push(u);
       this.emit('UnitSpawned', owner, { unitId: u.id, lane, x: u.x, id: def.id });
       if (def.ability === 'Hex') this.hexLane(u);
@@ -350,7 +354,7 @@
       }
       const front = this.castleFront(1 - u.owner);
       const dist = (front - u.x) * u.dir;
-      const reach = Math.min(d.range, this.B.castleReach || 99); // castelo: todos chegam até a divisa para atacar
+      const reach = d.range; // cada tropa ataca o castelo de acordo com o próprio alcance (a divisa é a frente do castelo)
       if (dist <= reach + 0.01) {
         u.state = 'AttackingCastle'; u.targetId = 0;
         if (u.attackCd <= 0) {
@@ -361,7 +365,7 @@
         }
         return;
       }
-      if (u.attackCd < 0) u.attackCd = 0;
+      if (u.attackCd < 0) { const I = d.attackInterval || 1; u.attackCd += Math.ceil(-u.attackCd / I) * I; } // sem alvo: segue no ritmo da batida
       if (d.moveSpeed <= 0) { u.state = 'Idle'; return; }
       u.state = 'Moving';
       u.x += u.dir * Math.min(d.moveSpeed * (this.B.moveSpeedScale || 1) * moveMult * dt, Math.max(0, dist - reach));

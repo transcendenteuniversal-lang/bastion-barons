@@ -304,3 +304,7 @@ img { -webkit-user-drag: none; pointer-events: none; }
 .ci-row small { display: block; color: #e9e3ff; font-weight: 800; font-size: .9rem; }
 .ci-row b { font-size: 1.3rem; }
 .ci-desc { margin-top: 1rem; background: rgba(0,0,0,.2); border-radius: .6rem; padding: .8rem; text-align: center; font-weight: 800; }
+
+/* carta comprada: sobe e assenta */
+@keyframes cardDraw { 0% { transform: translateY(60%) scale(.7); opacity: 0; } 45% { transform: translateY(-28%) scale(1.08); opacity: 1; } 75% { transform: translateY(4%) scale(.98); } 100% { transform: none; } }
+.hb-slot .card.drawn { animation: cardDraw .55s cubic-bezier(.2,.8,.3,1.2); }

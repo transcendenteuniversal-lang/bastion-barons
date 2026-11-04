@@ -33,6 +33,31 @@ def key(a):
     return np.dstack([r, g, b, al * 255]).clip(0, 255).astype(np.uint8)
 
 
+# troca de cor: (faixa de matiz de origem, matiz destino) — ex.: Orc Vermelho com a pele toda vermelha
+RECOLOR = {'red_orc': ((0.115, 0.47), 0.005)}
+
+
+def recolor(img, rng, hue):
+    """Troca a matiz das cores da faixa `rng` por `hue` com transição suave (sem manchas)."""
+    a = np.asarray(img.convert('RGBA')).astype(np.float32) / 255
+    rgb = a[..., :3]
+    mx, mn = rgb.max(axis=2), rgb.min(axis=2); d = mx - mn + 1e-6
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    h = np.where(mx == r, ((g - b) / d) % 6, np.where(mx == g, (b - r) / d + 2, (r - g) / d + 4)) / 6
+    s = d / (mx + 1e-6)
+    lo, hi = rng
+    w = np.clip((h - (lo - 0.03)) / 0.03, 0, 1) * np.clip(((hi + 0.03) - h) / 0.03, 0, 1) * np.clip((s - 0.08) / 0.12, 0, 1)
+    v = mx
+    hh = np.full_like(h, hue) % 1.0
+    i = np.floor(hh * 6); f = hh * 6 - i; ss = np.clip(s * 1.05, 0, 1)
+    p_ = v * (1 - ss); q = v * (1 - f * ss); t = v * (1 - (1 - f) * ss)
+    i = i.astype(int) % 6
+    nr = np.choose(i, [v, q, p_, p_, t, v]); ng = np.choose(i, [t, v, v, q, p_, p_]); nb = np.choose(i, [p_, p_, t, v, v, q])
+    out = rgb.copy()
+    out[..., 0] = r * (1 - w) + nr * w; out[..., 1] = g * (1 - w) + ng * w; out[..., 2] = b * (1 - w) + nb * w
+    return Image.fromarray((np.dstack([out, a[..., 3:]]) * 255).clip(0, 255).astype(np.uint8))
+
+
 def fx_mask(c):
     m = c[..., 3] > 40
     lab, n = ndimage.label(ndimage.binary_dilation(m, iterations=2))
@@ -165,6 +190,8 @@ def main():
         for row, fr in enumerate((walk, atk)):
             for i, (f, ax, ay) in enumerate(fr):
                 sheet.alpha_composite(f, (int(i * fw + L - ax), int(row * fh + T - ay)))
+        if uid in RECOLOR:
+            sheet = recolor(sheet, *RECOLOR[uid])
         sheet.save(os.path.join(OUT, uid + '_g.webp'), 'WEBP', quality=90, method=6)
         wb = [-int(max(ax for _, ax, _ in walk)), -int(max(ay for _, _, ay in walk)), int(max(f.width - ax for f, ax, _ in walk)), int(max(f.height - ay for f, _, ay in walk))]
         sprites[uid] = {'w': fw, 'h': fh, 'ax': L, 'ay': T, 'body': BODY, 'walk': len(walk), 'attack': len(atk), 'fps': 8, 'wb': wb, 'blend': 1, 'scale': SCALE.get(uid, 1),
