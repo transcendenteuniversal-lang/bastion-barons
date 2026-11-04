@@ -756,11 +756,46 @@
           if (dmg >= 8) this.texts.push({ x: v.x + (Math.random() - 0.5) * 30, y: v.y - v.r * 2.2 - v.lift, s: String(Math.round(dmg)), t: 0, d: 0.75,
             c: dmg >= 120 ? '#ffd34d' : '#ffffff', size: dmg >= 120 ? 46 : 30, pop: true });
         }
+        // cura (Ent, Clérigo, magias, roubo de vida...): brilho verde enquanto a vida sobe
+        if (u.hp > v.lastHp + 0.05 && v.dying < 0) {
+          const h = u.hp - v.lastHp;
+          v.heal = 0.7; v.healAcc = (v.healAcc || 0) + h;
+          if (v.healAcc >= 30) {
+            this.texts.push({ x: v.x + (Math.random() - 0.5) * 24, y: v.y - v.r * 2.2 - v.lift, s: '+' + Math.round(v.healAcc), t: 0, d: 0.8, c: '#7dff8a', size: 28, pop: true });
+            v.healAcc = 0;
+          }
+        }
         if (u.state === 'Moving' && !u.flying && (v.dustT = (v.dustT || 0) - dt) <= 0) { v.dustT = 0.22 + Math.random() * 0.1; this.dust(v.x - (u.owner === 0 ? 1 : -1) * v.r * 0.5, v.y, 1, 0.5); }
         v.lastHp = u.hp;
       }
       for (const [id, v] of this.views) if (!seen.has(id)) { this.views.delete(id); v.dying = 0; this.ghosts.push(v); }
       this.ghosts = this.ghosts.filter((v) => (v.dying += dt) < 0.4);
+    }
+
+    // efeito de cura: aura verde no chão, brilho no corpo e cruzinhas verdes subindo
+    drawHeal(v, cx, cy, foot, w, h, dt) {
+      if (!(v.heal > 0) || v.dying >= 0) { v.healP = null; return; }
+      const g = this.g, a = Math.min(1, v.heal / 0.35);
+      v.heal -= dt;
+      v.healP = v.healP || [];
+      if ((v.healSpawn = (v.healSpawn || 0) - dt) <= 0) {
+        v.healSpawn = 0.07;
+        v.healP.push({ x: (Math.random() - 0.5) * w * 0.8, y: (Math.random() - 0.2) * h * 0.5, t: 0, d: 0.7 + Math.random() * 0.3, s: 6 + Math.random() * 6 });
+      }
+      g.save();
+      g.globalCompositeOperation = 'lighter';
+      g.fillStyle = 'rgba(90,255,120,' + 0.28 * a + ')';
+      g.beginPath(); g.ellipse(cx, foot, w * 0.55, w * 0.16, 0, 0, TAU); g.fill();
+      const gr = g.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.6);
+      gr.addColorStop(0, 'rgba(120,255,140,' + 0.42 * a + ')'); gr.addColorStop(1, 'rgba(60,255,100,0)');
+      g.fillStyle = gr; g.beginPath(); g.ellipse(cx, cy, w * 0.62, h * 0.62, 0, 0, TAU); g.fill();
+      v.healP = v.healP.filter((p) => (p.t += dt) < p.d);
+      for (const p of v.healP) {
+        const k = p.t / p.d, px = cx + p.x, py = cy + p.y - k * h * 0.7, s = p.s * (1 - k * 0.3);
+        g.fillStyle = 'rgba(120,255,140,' + (1 - k) * 0.95 + ')';
+        g.fillRect(px - s / 2, py - s / 6, s, s / 3); g.fillRect(px - s / 6, py - s / 2, s / 3, s);
+      }
+      g.restore();
     }
 
     drawUnit(v, dt) {
@@ -793,6 +828,7 @@
       medallion(g, v.img, x, cy, r, v.owner === 0 ? '#2f7bff' : '#e0323a', Math.max(4, r * 0.16), dir < 0);
       if (v.flash > 0) { g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.arc(x, cy, r, 0, TAU); g.fill(); }
       if (u.state === 'Stunned') { g.fillStyle = 'rgba(160,230,255,.5)'; g.beginPath(); g.arc(x, cy, r, 0, TAU); g.fill(); }
+      this.drawHeal(v, x, cy, y + v.r * 0.75, r * 2, r * 2, dt);
       if (u.poisonTime > 0) { g.fillStyle = 'rgba(124,211,43,.3)'; g.beginPath(); g.arc(x, cy, r, 0, TAU); g.fill(); }
       if (u.shield > 0) { g.strokeStyle = '#8fe3ff'; g.lineWidth = 5; g.beginPath(); g.arc(x, cy, r + 8, 0, TAU); g.stroke(); }
       if (u.slow < 1) { g.strokeStyle = '#bfefff'; g.lineWidth = 3; g.setLineDash([7, 5]); g.beginPath(); g.arc(x, cy, r + 5, 0, TAU); g.stroke(); g.setLineDash([]); }
@@ -859,6 +895,7 @@
       }
       g.restore();
       const top = foot - lift + bob - bodyPx * scale;
+      this.drawHeal(v, v.x, top + bodyPx * scale * 0.5, foot, bodyPx * 0.7, bodyPx * scale, dt);
       if (u.shield > 0) { g.strokeStyle = '#8fe3ff'; g.lineWidth = 4; g.beginPath(); g.ellipse(v.x, top + bodyPx * 0.5, bodyPx * 0.42, bodyPx * 0.58, 0, 0, TAU); g.stroke(); }
       if (u.slow < 1) { g.strokeStyle = '#bfefff'; g.lineWidth = 3; g.setLineDash([7, 5]); g.beginPath(); g.ellipse(v.x, foot, bodyPx * 0.36, bodyPx * 0.11, 0, 0, TAU); g.stroke(); g.setLineDash([]); }
       // vida e nível: discretos, acima da cabeça

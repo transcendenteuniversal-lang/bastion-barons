@@ -350,7 +350,9 @@
       }
       const front = this.castleFront(1 - u.owner);
       const dist = (front - u.x) * u.dir;
-      if (dist <= d.range + 0.01) {
+      // todas as tropas (inclusive as de longo alcance) andam até a divisa do piso antes de atacar o castelo
+      const reach = Math.min(d.range, this.B.castleReach || 1.5);
+      if (dist <= reach + 0.01) {
         u.state = 'AttackingCastle'; u.targetId = 0;
         if (u.attackCd <= 0) {
           u.attackCd = Math.max(0, u.attackCd + d.attackInterval);
@@ -363,7 +365,7 @@
       if (u.attackCd < 0) u.attackCd = 0;
       if (d.moveSpeed <= 0) { u.state = 'Idle'; return; }
       u.state = 'Moving';
-      u.x += u.dir * Math.min(d.moveSpeed * (this.B.moveSpeedScale || 1) * moveMult * dt, Math.max(0, dist - d.range));
+      u.x += u.dir * Math.min(d.moveSpeed * (this.B.moveSpeedScale || 1) * moveMult * dt, Math.max(0, dist - reach));
     }
 
     modifiers(u) {
