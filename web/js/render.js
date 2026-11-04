@@ -884,17 +884,17 @@
       const top = foot - lift + bob - bodyPx * scale;
       if (u.shield > 0) { g.strokeStyle = '#8fe3ff'; g.lineWidth = 4; g.beginPath(); g.ellipse(v.x, top + bodyPx * 0.5, bodyPx * 0.42, bodyPx * 0.58, 0, 0, TAU); g.stroke(); }
       if (u.slow < 1) { g.strokeStyle = '#bfefff'; g.lineWidth = 3; g.setLineDash([7, 5]); g.beginPath(); g.ellipse(v.x, foot, bodyPx * 0.36, bodyPx * 0.11, 0, 0, TAU); g.stroke(); g.setLineDash([]); }
-      // vida e nível: discretos, acima da cabeça
+      // barra de vida: só aparece depois do primeiro dano; a parte perdida fica clara e vai diminuindo devagar
       const pct = Math.max(0, u.hp / u.maxHp);
-      if (v.dying < 0) {
-        const bw = Math.max(46, bodyPx * 0.42), bh = 6, bx = v.x - bw / 2 + 7, by = top - 12;
+      if (v.shown == null) v.shown = pct;
+      v.shown = v.shown > pct ? Math.max(pct, v.shown - dt * 0.6) : pct;
+      if (pct < 0.999 || u.shield > 0) v.hurtSeen = true;
+      if (v.dying < 0 && v.hurtSeen) {
+        const bw = Math.max(46, bodyPx * 0.42), bh = 6, bx = v.x - bw / 2, by = top - 12;
         g.fillStyle = 'rgba(0,0,0,.7)'; g.fillRect(bx - 1.5, by - 1.5, bw + 3, bh + 3);
+        g.fillStyle = 'rgba(255,240,200,.9)'; g.fillRect(bx, by, bw * v.shown, bh);
         g.fillStyle = v.owner === 0 ? '#3f8bff' : '#ff4a4a'; g.fillRect(bx, by, bw * pct, bh);
         if (u.shield > 0) { g.fillStyle = '#bff1ff'; g.fillRect(bx, by - 3, bw * Math.min(1, u.shield / u.maxHp), 2); }
-        const cx = bx - 9, cy = by + bh / 2;
-        g.fillStyle = v.owner === 0 ? '#1d3f9a' : '#8a1a20'; g.beginPath(); g.arc(cx, cy, 9, 0, TAU); g.fill();
-        g.strokeStyle = '#f2c14e'; g.lineWidth = 1.5; g.stroke();
-        g.fillStyle = '#fff'; g.font = 'bold 12px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(u.level, cx, cy + 0.5);
       }
       g.restore();
     }
