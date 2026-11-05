@@ -16,6 +16,10 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
 // Abre o jogo (HTML5 em assets/) em tela cheia numa WebView.
 public class MainActivity extends Activity {
     private WebView web;
@@ -44,6 +48,33 @@ public class MainActivity extends Activity {
         setContentView(web);
         web.loadUrl("file:///android_asset/index.html");
         hideSystemUI();
+        registerBackCallback();
+    }
+
+    // Android 13+: o botão/gesto Voltar chega por OnBackInvokedCallback (no Android 16 o onBackPressed
+    // deixa de ser chamado). Registrado por reflexão para continuar compilando com o SDK antigo.
+    private void registerBackCallback() {
+        if (Build.VERSION.SDK_INT < 33) return;
+        try {
+            Object dispatcher = getClass().getMethod("getOnBackInvokedDispatcher").invoke(this);
+            final Class<?> cb = Class.forName("android.window.OnBackInvokedCallback");
+            Object callback = Proxy.newProxyInstance(cb.getClassLoader(), new Class<?>[]{cb}, new InvocationHandler() {
+                @Override
+                public Object invoke(Object proxy, Method m, Object[] args) {
+                    if ("onBackInvoked".equals(m.getName())) goBack();
+                    else if ("hashCode".equals(m.getName())) return System.identityHashCode(proxy);
+                    else if ("equals".equals(m.getName())) return proxy == args[0];
+                    else if ("toString".equals(m.getName())) return "BackCallback";
+                    return null;
+                }
+            });
+            dispatcher.getClass().getMethod("registerOnBackInvokedCallback", int.class, cb).invoke(dispatcher, 0, callback);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void goBack() {
+        web.evaluateJavascript("window.BB && BB.ui && BB.ui.onBack()", null);
     }
 
     // Usa a área do entalhe da câmera (API 28+), via reflexão para compilar com SDK antigo
@@ -75,7 +106,7 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        web.evaluateJavascript("window.BB && BB.ui && BB.ui.onBack()", null);
+        goBack();
     }
 
     @Override

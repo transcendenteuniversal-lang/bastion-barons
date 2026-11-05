@@ -1,0 +1,49 @@
+# Gera o Android App Bundle (AAB) assinado com a chave de upload, para enviar à Google Play.
+# Rode manualmente em Actions → Play Store → Run workflow. O AAB fica nos artefatos da execução.
+name: Play Store
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  aab:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Testes das regras do jogo
+        run: node tools/sim-test.js
+
+      - name: Android SDK 36 e bundletool
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null
+          gh release download -R google/bundletool --pattern 'bundletool-all-*.jar' -O "$RUNNER_TEMP/bundletool.jar"
+
+      - name: Gerar AAB
+        env:
+          BUNDLETOOL: ${{ runner.temp }}/bundletool.jar
+          UPLOAD_KS_B64: ${{ secrets.UPLOAD_KEYSTORE_B64 }}
+          UPLOAD_KS_PASS: ${{ secrets.UPLOAD_KS_PASS }}
+        run: |
+          export BUILD_TOOLS="$ANDROID_HOME/build-tools/36.0.0"
+          if [ -n "$UPLOAD_KS_B64" ]; then
+            echo "$UPLOAD_KS_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            export UPLOAD_KEYSTORE="$RUNNER_TEMP/upload.jks"
+          fi
+          ./tools/build-aab.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BastionBarons-aab
+          path: release/BastionBarons.aab
