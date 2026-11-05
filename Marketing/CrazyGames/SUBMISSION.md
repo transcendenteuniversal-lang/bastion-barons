@@ -16,7 +16,7 @@ Features:
 - 3 lanes, fast decisions: read the battlefield and answer every attack in the right lane.
 - 5 legendary Barons, each with a unique power: Royal Command, Elven Rain, Orc Fury, Army of the Dead and Arcane Storm.
 - 5 castles with their own powers, like Imperial Shield, Ice Storm, Dragon Breath and Soul Drain.
-- 42 cards to collect and upgrade, from cheap skeletons to mythic dragons and phoenixes.
+- 42 cards to collect and upgrade, from cheap skeletons to legendary dragons and the mythic Phoenix.
 - Progress that rewards you: earn gold, XP and new cards with every win, and level up to unlock new Barons and castles.
 - Daily rewards that grow every day you come back, plus double rewards for your first win of the day.
 - A quick tutorial teaches you everything in your first battle.
