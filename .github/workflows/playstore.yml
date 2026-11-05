@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   aab:
@@ -43,7 +43,24 @@ jobs:
           fi
           ./tools/build-aab.sh
 
+      - name: Validar o bundle
+        run: |
+          java -jar "$RUNNER_TEMP/bundletool.jar" validate --bundle=release/BastionBarons.aab | head -5
+          java -jar "$RUNNER_TEMP/bundletool.jar" dump manifest --bundle=release/BastionBarons.aab | grep -E "versionCode|uses-sdk|targetSdk|property" || true
+
       - uses: actions/upload-artifact@v4
         with:
           name: BastionBarons-aab
           path: release/BastionBarons.aab
+
+      # também num Release de pré-lançamento (o atualizador do APK ignora, pois não é o "latest")
+      - name: Release play-store
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view play-store > /dev/null 2>&1; then
+            gh release upload play-store release/BastionBarons.aab --clobber
+          else
+            gh release create play-store release/BastionBarons.aab --prerelease --latest=false \
+              --title "Google Play (AAB)" --notes "Android App Bundle para a Google Play. Assine com a chave de upload antes de enviar, se ainda não estiver assinado."
+          fi
