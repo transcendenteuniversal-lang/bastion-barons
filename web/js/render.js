@@ -246,8 +246,9 @@
           }
           const castle = ARENA.castle[e.player];
           if (e.id === 'royal_fortress' && this.fxSheet('fx_imperial_shield')) { // escudo sobre o castelo: forma e fica pulsando (loop) enquanto durar
-            const b = ARENA.baron[e.player], cx = b.x + (e.player === 0 ? 30 : -30);
-            this.fx.push({ k: 'anim', key: 'fx_imperial_shield', x: cx, y: 790, h: 720, alpha: 0.85, t: 0, d: (m.players[e.player].castle.duration || 10), loopFrom: 6, loopDur: 0.9, intro: 0.9, castleShield: e.player });
+            // cúpula com a base na rota do meio: cobre a sacada, o Barão e a frente do castelo
+            const l2 = ARENA.lanes[1], fx0 = ARENA.seam ? ARENA.seam(l2.y) : l2.xL, cx = e.player === 0 ? fx0 - 110 : AW - fx0 + 110;
+            this.fx.push({ k: 'anim', key: 'fx_imperial_shield', x: cx, y: l2.y1 + 30, h: 560, alpha: 0.85, t: 0, d: (m.players[e.player].castle.duration || 10), loopFrom: 6, loopDur: 0.9, intro: 0.9, castleShield: e.player });
             break;
           }
           if (e.id === 'sylvan_sanctuary' && this.fxSheet('fx_sylvan_heal')) { // cura em cada tropa + no castelo
