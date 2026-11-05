@@ -65,6 +65,22 @@
         <div class="name">${esc(BB.cardName(def.id))}</div></div>`;
     },
 
+    // recompensa diária (sequência de 7 dias)
+    dailyReward() {
+      const p = BB.profile, C = BB.content;
+      if (!BB.Progress.dailyAvailable(p)) return;
+      const r = BB.Progress.claimDaily(p, C, new BB.Rng(Date.now() & 0x7fffffff)); BB.save();
+      const days = BB.Progress.DAILY.map((d, i) => `<div class="day ${i + 1 < r.day ? 'got' : i + 1 === r.day ? 'now' : ''}"><small>${T('daily.day', i + 1)}</small>
+        <b>🪙${d.gold}</b>${d.crystals ? '<span>💎' + d.crystals + '</span>' : ''}${d.card ? '<span>🃏' + d.card + '</span>' : ''}</div>`).join('');
+      const cards = r.cards.map((id) => `<div class="dr-card">${ui.cardHtml(C.card(id), BB.Progress.owned(p, id), { level: true })}</div>`).join('');
+      const ov = document.getElementById('overlay'), m = document.createElement('div');
+      m.className = 'modal';
+      m.innerHTML = `<div class="panel daily"><h2 class="title">${T('daily.title')}</h2><p class="muted">${T('daily.text')}</p><div class="days">${days}</div>
+        ${cards ? '<div class="dr-cards">' + cards + '</div>' : ''}<button class="btn gold">${T('daily.claim')}</button></div>`;
+      m.querySelector('.btn').onclick = () => { BB.audio.play('click'); m.remove(); ui.show('menu'); };
+      ov.appendChild(m); BB.audio.jingle('reward');
+    },
+
     // menu pequeno sobre a carta tocada
     cardMenu(el, id, extra) {
       ui.closeCardMenu(); BB.audio.play('click');
@@ -126,14 +142,21 @@
     splash() {
       screen('splash', `<img class="logo" src="img/logo.webp" alt="Bastion Barons"><div class="loadbar"><i id="lb"></i></div>
         <div class="center muted" id="lt">${T('ui.loading')}</div><div class="version">v${BB.VERSION.name} • ${BB.content.version}</div>`);
-      let k = 0;
+      // carregamento rápido: espera só o essencial (arena, castelos e o logo); o resto carrega em segundo plano
+      const p = BB.profile, need = ['img/logo.webp', 'img/arena_bg.webp', 'img/corner_wall.webp'];
+      for (const id of [p.selectedCastle]) { const a = BB.CASTLES_ART && (BB.CASTLES_ART[id] || BB.CASTLES_ART.royal_fortress); if (a && a.src) need.push(a.src); }
+      const imgs = need.map((u) => BB.art.image(u)), t0 = performance.now();
       const iv = setInterval(() => {
-        k += 0.08;
         const lb = $('#lb');
         if (!lb) return clearInterval(iv);
-        lb.style.width = Math.min(100, k * 100) + '%';
-        if (k >= 1) { clearInterval(iv); ui.show('menu'); BB.checkUpdate(); }
-      }, 90);
+        const ok = imgs.filter((im) => im.complete).length, el = performance.now() - t0;
+        lb.style.width = Math.max(ok / imgs.length, Math.min(1, el / 1500)) * 100 + '%';
+        if ((ok === imgs.length && el > 250) || el > 4000) {
+          clearInterval(iv); BB.platform.loadingStop(); BB.preloadRest();
+          if (!p.tutorialDone) { ui.show('battle', { difficulty: 'tutorial', tutorial: true }); return; } // 1ª vez: direto para o tutorial
+          ui.show('menu'); if (BB.checkUpdate) BB.checkUpdate();
+        }
+      }, 60);
     },
 
     // ------------------------------------------------------------ menu principal
@@ -141,7 +164,7 @@
       const p = BB.profile, b = BB.content.balance;
       const need = BB.Progress.xpForNext(b, p.accountLevel);
       screen('menu', `
-        <div class="topbar"><div class="profile"><div class="lvl">${p.accountLevel}</div><div><b>${esc(p.playerName)}</b> <span class="muted">(${T('ui.guest')})</span>
+        <div class="topbar"><div class="profile"><div class="lvl">${p.accountLevel}</div><div><b>${esc(BB.playerName(p))}</b> <span class="muted">(${T('ui.guest')})</span>
           <div class="xpbar"><i style="width:${(p.xp / need) * 100}%"></i></div><small class="muted">${p.xp}/${need} XP</small></div></div><h1></h1>
           <div class="wallet"><span>🪙 ${p.gold}</span><span>💎 ${p.crystals}</span></div></div>
         <div class="main">
@@ -153,6 +176,7 @@
         </div>`);
       BB.audio.music('menu');
       back.menu = null;
+      if (BB.Progress.dailyAvailable(p)) setTimeout(() => ui.dailyReward(), 350);
     },
 
     // ------------------------------------------------------------ modos
@@ -174,7 +198,7 @@
 
     battle(args) {
       app().innerHTML = '';
-      BB.battle = new BB.Battle(args.difficulty);
+      BB.battle = new BB.Battle(args.difficulty, { tutorial: !!args.tutorial });
       BB.battle.start();
     },
 
@@ -376,7 +400,7 @@
       const p = BB.profile;
       const pct = (v) => Math.round(v * 100) + '%';
       screen('settings', topbar(T('ui.settings'), true) + `<div class="content"><div class="settings">
-        <div class="setrow">${T('settings.name')}<input id="nm" maxlength="16" value="${esc(p.playerName)}"></div>
+        <div class="setrow">${T('settings.name')}<input id="nm" maxlength="16" value="${esc(BB.playerName(p))}"></div>
         <div class="setrow">${T('settings.music')}: ${pct(p.music)}<span><button class="btn small" data-v="music:-1">−</button> <button class="btn small" data-v="music:1">+</button></span></div>
         <div class="setrow">${T('settings.sfx')}: ${pct(p.sfx)}<span><button class="btn small" data-v="sfx:-1">−</button> <button class="btn small" data-v="sfx:1">+</button></span></div>
         <div class="setrow">${T('settings.vibration')}<button class="btn small" id="vib">${p.vibration ? T('ui.on') : T('ui.off')}</button></div>
@@ -423,7 +447,7 @@
           <div>${T('result.castle_left', Math.round(a.myPct * 100), Math.round(a.foePct * 100))}</div>
           <div>${T('result.cards_played', a.stats.cardsPlayed)}</div><div>${T('result.castle_damage', Math.round(a.stats.damageToCastle))}</div>
           <div>${T('result.units_destroyed', a.stats.unitsDestroyed)}</div></div>
-        <div class="panel"><h3 class="title">${T('result.rewards')}</h3><div style="color:var(--gold);font-weight:800">${T('result.gold', r.gold)}</div>
+        <div class="panel"><h3 class="title">${T('result.rewards')}</h3><div style="color:var(--gold);font-weight:800">${T('result.gold', r.gold)}</div>${r.firstWin ? '<div style="color:#5fd06d;font-weight:900">' + T('result.first_win') + '</div>' : ''}
           <div style="color:#8fc8ff;font-weight:800">${T('result.xp', r.xp)}</div>${r.levels ? `<div style="color:#5fd06d;font-weight:800">${T('result.level_up', BB.profile.accountLevel)}</div>` : ''}${unl}${card}
           <div class="odds">${T('result.odds', ...odds, b.pityThreshold)}</div></div></div>
         <div class="actions"><button class="btn green" data-go="menu">${T('result.continue')}</button><button class="btn gold" id="again">⚔ ${T('result.again')}</button></div>`);

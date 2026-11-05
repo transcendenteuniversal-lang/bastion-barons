@@ -2,6 +2,11 @@
 (function (BB) {
   'use strict';
   const KEY = 'bb_profile_v1';
+  // armazenamento: Data Module da CrazyGames quando disponível, senão localStorage (testes no Node: memória)
+  const mem = {};
+  const st = () => (typeof window !== 'undefined' && window.BB && window.BB.platform ? window.BB.platform.storage
+    : (typeof localStorage !== 'undefined' ? { get: (k) => localStorage.getItem(k), set: (k, v) => localStorage.setItem(k, v), remove: (k) => localStorage.removeItem(k) }
+      : { get: (k) => (k in mem ? mem[k] : null), set: (k, v) => { mem[k] = v; }, remove: (k) => { delete mem[k]; } }));
 
   const P = {
     owned(p, id) { return p.cards.find((c) => c.id === id) || null; },
@@ -15,7 +20,7 @@
         selectedBaron: b.starterBaron, selectedCastle: b.starterCastle, activeDeck: 0,
         decks: [0, 1, 2].map(() => b.starterDeck.slice()),
         cards: b.starterCards.filter((id) => content.cards[id]).map((id) => ({ id, level: 1, copies: 0 })),
-        pity: 0, language: '', music: 0.6, sfx: 0.8, vibration: true, history: [], seenHelp: false,
+        pity: 0, language: '', music: 0.6, sfx: 0.8, vibration: true, history: [], seenHelp: false, tutorialDone: false, daily: { last: '', streak: 0 }, firstWinDay: '',
       };
       return P.repair(p, content);
     },
@@ -28,6 +33,9 @@
       num('battles', 0); num('wins', 0); num('losses', 0); num('draws', 0); num('winStreak', 0); num('bestWinStreak', 0);
       num('music', 0.6); num('sfx', 0.8);
       if (typeof p.vibration !== 'boolean') p.vibration = true;
+      if (typeof p.tutorialDone !== 'boolean') p.tutorialDone = p.battles > 0;
+      if (!p.daily || typeof p.daily !== 'object') p.daily = { last: '', streak: 0 };
+      if (typeof p.firstWinDay !== 'string') p.firstWinDay = '';
       if (typeof p.playerName !== 'string' || p.playerName.trim().length < 2) p.playerName = 'Barão';
       if (!Array.isArray(p.cards)) p.cards = [];
       if (!Array.isArray(p.decks)) p.decks = [];
@@ -48,17 +56,17 @@
 
     load(content) {
       try {
-        const raw = localStorage.getItem(KEY);
+        const raw = st().get(KEY);
         if (raw) { const p = JSON.parse(raw); if (p && p.playerId) return P.repair(p, content); }
       } catch (e) {
-        try { localStorage.setItem(KEY + '_corrupt', localStorage.getItem(KEY) || ''); } catch (e2) { /* sem armazenamento */ }
+        try { st().set(KEY + '_corrupt', st().get(KEY) || ''); } catch (e2) { /* sem armazenamento */ }
       }
       const p = P.create(content);
       P.save(p);
       return p;
     },
-    save(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) { /* armazenamento indisponível */ } },
-    wipe() { try { localStorage.removeItem(KEY); } catch (e) { /* nada */ } },
+    save(p) { try { st().set(KEY, JSON.stringify(p)); } catch (e) { /* armazenamento indisponível */ } },
+    wipe() { try { st().remove(KEY); } catch (e) { /* nada */ } },
 
     baronUnlocked(p, b) { return !!(BB.content && BB.content.balance.testUnlockAll) || p.accountLevel >= (b.unlockLevel || 1); },
     castleUnlocked(p, c) { return !!(BB.content && BB.content.balance.testUnlockAll) || p.accountLevel >= (c.unlockLevel || 1); },
@@ -110,6 +118,22 @@
       return chosen.id;
     },
 
+    today() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); },
+    // recompensa diária: volta todo dia e a sequência aumenta (7 dias); pular um dia reinicia
+    DAILY: [{ gold: 50 }, { gold: 80 }, { gold: 120, card: 1 }, { gold: 150 }, { gold: 200, crystals: 5 }, { gold: 250, card: 2 }, { gold: 400, crystals: 15, card: 3 }],
+    dailyAvailable(p) { return p.tutorialDone && p.daily.last !== P.today(); },
+    claimDaily(p, content, rng) {
+      if (!P.dailyAvailable(p)) return null;
+      const y = new Date(); y.setDate(y.getDate() - 1);
+      const yesterday = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate();
+      p.daily.streak = p.daily.last === yesterday ? (p.daily.streak % 7) + 1 : 1;
+      p.daily.last = P.today();
+      const r = Object.assign({ day: p.daily.streak, cards: [] }, P.DAILY[p.daily.streak - 1]);
+      p.gold += r.gold || 0; p.crystals += r.crystals || 0;
+      for (let i = 0; i < (r.card || 0); i++) { const id = P.rollCard(p, content, rng), o = P.owned(p, id); if (o) o.copies++; else p.cards.push({ id, level: 1, copies: 0 }); r.cards.push(id); }
+      return r;
+    },
+
     applyResult(p, content, result, rng, record) {
       const b = content.balance;
       const r = { gold: 0, xp: 0, cardId: null, newCard: false, levels: 0, unlocked: [] };
@@ -117,6 +141,7 @@
       if (result > 0) { p.wins++; p.winStreak++; p.bestWinStreak = Math.max(p.bestWinStreak, p.winStreak); r.gold = b.winGold; r.xp = b.winXp; }
       else if (result === 0) { p.draws++; p.winStreak = 0; r.gold = b.drawGold; r.xp = b.drawXp; }
       else { p.losses++; p.winStreak = 0; r.gold = b.lossGold; r.xp = b.lossXp; }
+      if (result > 0 && p.firstWinDay !== P.today()) { p.firstWinDay = P.today(); r.firstWin = true; r.gold *= 2; r.xp *= 2; } // 1ª vitória do dia vale o dobro
       p.gold += r.gold;
       if (result > 0) {
         r.cardId = P.rollCard(p, content, rng);

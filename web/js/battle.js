@@ -5,8 +5,8 @@
   const $ = (s, r) => (r || document).querySelector(s);
 
   class Battle {
-    constructor(difficulty) {
-      this.difficulty = difficulty;
+    constructor(difficulty, opts) {
+      this.difficulty = difficulty; opts = opts || {};
       const content = BB.content, p = BB.profile;
       const seed = (Date.now() & 0x7fffffff) ^ 0x5bd1e995;
       const rng = new BB.Rng(seed);
@@ -16,7 +16,7 @@
       for (const id of deck) { const o = BB.Progress.owned(p, id); levels[id] = o ? o.level : 1; sum += levels[id]; }
       // IA justa: mesmo nível médio de cartas do jogador, sem bônus de atributos
       const aiLevel = Math.max(1, Math.round(sum / deck.length));
-      const aiDeck = Battle.aiDeck(content, rng);
+      const aiDeck = opts.tutorial ? Battle.tutorialDeck(content) : Battle.aiDeck(content, rng);
       const aiLevels = {};
       for (const id of aiDeck) aiLevels[id] = aiLevel;
       this.match = new BB.Match(content, {
@@ -29,6 +29,17 @@
       this.ai = new BB.AI(this.match, 1, difficulty, seed + 17);
       this.acc = 0; this.paused = false; this.armed = null; this.sel = -1; this.hoverLane = -1; this.endT = 0; this.finished = false; this.last = 0;
       this.handKey = '';
+      if (opts.tutorial && BB.Tutorial) this.tut = new BB.Tutorial(this);
+      // carrega primeiro as animações das cartas desta partida
+      for (const pl of this.match.players) for (const id of pl.deck.hand.concat(pl.deck.queue)) { const sp = BB.SPRITES && BB.SPRITES[id]; if (sp) BB.art.image(BB.unitSrc(id)); }
+    }
+
+    // baralho da IA no tutorial: só tropas fracas
+    static tutorialDeck(content) {
+      const pref = ['skeleton_trio', 'goblin_gunner', 'royal_archer', 'royal_knight', 'barbarian', 'royal_lancer', 'bat_swarm', 'war_wolf', 'elven_archer', 'dwarf_warrior', 'royal_cleric', 'arrow_rain', 'spark', 'skeleton_summon', 'poison', 'fireball'];
+      const ids = pref.filter((id) => content.cards[id] && !content.cards[id].token);
+      for (const c of content.collectible) if (ids.length < content.balance.deckSize && !ids.includes(c.id)) ids.push(c.id);
+      return ids.slice(0, content.balance.deckSize);
     }
 
     static aiDeck(content, rng) {
@@ -48,6 +59,8 @@
       document.addEventListener('pointermove', this.onMove);
       document.addEventListener('pointerup', this.onUp);
       this.raf = requestAnimationFrame((t) => this.frame(t));
+      BB.platform.gameplayStart();
+      if (this.tut) { BB.profile.seenHelp = true; this.tut.start(); return; }
       if (!BB.profile.seenHelp) {
         this.paused = true;
         BB.ui.modal(T('help.title'), T('help.text'), [{ label: T('help.ok'), cls: 'gold', fn: () => { BB.profile.seenHelp = true; BB.save(); this.paused = false; } }]);
@@ -55,7 +68,8 @@
     }
 
     stop() {
-      cancelAnimationFrame(this.raf);
+      cancelAnimationFrame(this.raf); BB.platform.gameplayStop();
+      if (this.tut && this.tut.el) { this.tut.el.remove(); this.tut.el = null; }
       document.removeEventListener('pointermove', this.onMove);
       document.removeEventListener('pointerup', this.onUp);
       BB.renderer.onLayout = null;
@@ -76,7 +90,7 @@
         <div class="hb-panel me" data-r="40,6,420,112"></div>
         <img class="hb-portrait me" data-r="45,9,141,109" src="${BB.art.baronUrl(me.baron.id)}">
         <div class="hb-lvl me" data-r="30,72,74,118">${p.accountLevel}</div>
-        <div class="hb-name" data-r="150,10,412,40">${esc(p.playerName)}</div>
+        <div class="hb-name" data-r="150,10,412,40">${esc(BB.playerName(p))}</div>
         <div class="hb-sub" data-r="150,40,412,68">${BB.baronName(me.baron.id)} • 🏆 ${p.wins}</div>
         <div class="hb-hp me" data-r="150,72,412,104"><i id="hpMe"></i><span id="hpMeT"></span></div>
 
@@ -382,9 +396,9 @@
     // ---------------------------------------------------------- pausa / fim
     pause() {
       if (this.match.over || this.paused) return;
-      this.paused = true; this.disarm();
+      this.paused = true; this.disarm(); BB.platform.gameplayStop();
       BB.ui.modal(T('battle.paused'), '', [
-        { label: T('battle.resume'), cls: 'green', fn: () => { this.paused = false; } },
+        { label: T('battle.resume'), cls: 'green', fn: () => { this.paused = false; BB.platform.gameplayStart(); } },
         { label: T('ui.settings'), cls: 'dark', fn: () => { this.paused = false; this.openSettings(); } },
         { label: T('battle.surrender'), cls: 'red', fn: () => BB.ui.modal(T('battle.surrender'), T('battle.confirm_surrender'), [
           { label: T('battle.yes'), cls: 'red', fn: () => { this.paused = false; this.match.surrender(0); } },
@@ -420,10 +434,11 @@
       if (!this.paused && !m.over) {
         this.acc += simDt;
         let steps = 0;
-        while (this.acc >= m.dt && steps < 8) { this.ai.tick(); if (this.auto) this.auto.tick(); m.step(); this.acc -= m.dt; steps++; }
+        while (this.acc >= m.dt && steps < 8) { if (!this.tut || this.tut.aiOn) this.ai.tick(); if (this.auto) this.auto.tick(); m.step(); this.acc -= m.dt; steps++; }
         if (steps >= 8) this.acc = 0;
       }
-      for (const e of m.drainEvents()) this.onEvent(e);
+      for (const e of m.drainEvents()) { this.onEvent(e); if (this.tut) this.tut.onEvent(e); }
+      if (this.tut && !this.paused) this.tut.update(dt);
       let ghost = null;
       if (this.armed === 'card' && this.hoverLane >= 0 && this.sel >= 0) {
         const def = BB.content.cards[m.players[0].deck.hand[this.sel]];
@@ -440,6 +455,9 @@
 
     showEnd() {
       const m = this.match;
+      BB.platform.gameplayStop();
+      if (m.winner === 0) BB.platform.happytime();
+      if (this.tut) this.tut.end();
       this.disarm();
       document.getElementById('toast').innerHTML = '';
       BB.audio.stopMusic();

@@ -11,7 +11,7 @@
       this.issued = 0; this.rejected = 0;
     }
 
-    get reaction() { return this.diff === 'easy' ? 2.4 : this.diff === 'normal' ? 1.2 : 0.6; }
+    get reaction() { return this.diff === 'tutorial' ? 5 : this.diff === 'easy' ? 2.4 : this.diff === 'normal' ? 1.2 : 0.6; }
 
     tick() {
       const m = this.m;
@@ -45,7 +45,7 @@
     decide() {
       const p = this.m.players[this.me];
       const lanes = this.analyze();
-      if (this.diff === 'easy') return this.decideEasy(p, lanes);
+      if (this.diff === 'easy' || this.diff === 'tutorial') return this.decideEasy(p, lanes);
       const hard = this.diff === 'hard';
       const threatLane = argMax(lanes, (x) => x.threat);
       this.tryCastle(p, lanes, threatLane);

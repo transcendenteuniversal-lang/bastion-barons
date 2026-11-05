@@ -308,3 +308,23 @@ img { -webkit-user-drag: none; pointer-events: none; }
 /* carta comprada: sobe e assenta */
 @keyframes cardDraw { 0% { transform: translateY(60%) scale(.7); opacity: 0; } 45% { transform: translateY(-28%) scale(1.08); opacity: 1; } 75% { transform: translateY(4%) scale(.98); } 100% { transform: none; } }
 .hb-slot .card.drawn { animation: cardDraw .55s cubic-bezier(.2,.8,.3,1.2); }
+
+/* tutorial guiado */
+#coach { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+#coach.dim { background: rgba(0,0,0,.45); pointer-events: auto; }
+.coach-box { position: absolute; left: 50%; top: 16%; transform: translateX(-50%); width: min(40rem, 86vw); padding: 1rem 1.3rem; text-align: center;
+  background: linear-gradient(#1d3270, #0b1638); border: .2rem solid #f2c14e; border-radius: 1rem; box-shadow: 0 .6rem 1.6rem rgba(0,0,0,.6); pointer-events: auto; }
+.coach-box.pop { animation: coachPop .35s cubic-bezier(.2,.9,.3,1.3); }
+@keyframes coachPop { from { transform: translateX(-50%) scale(.6); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
+.coach-text { font-size: 1.3rem; font-weight: 700; line-height: 1.35; color: #fff; }
+.coach-text b { color: #ffd77a; }
+.coach-ok { margin-top: .8rem; }
+.coach-hand { position: fixed; display: none; font-size: 3.2rem; transform: translate(-30%, -10%); filter: drop-shadow(0 .2rem .3rem #000); pointer-events: none; }
+/* recompensa diária */
+.daily { text-align: center; }
+.daily .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: .4rem; margin: .8rem 0; }
+.daily .day { background: rgba(255,255,255,.07); border: .12rem solid rgba(255,255,255,.18); border-radius: .6rem; padding: .4rem .2rem; display: flex; flex-direction: column; gap: .1rem; font-size: .95rem; }
+.daily .day.got { opacity: .5; }
+.daily .day.now { border-color: #f2c14e; background: rgba(242,193,78,.2); transform: scale(1.06); }
+.daily .dr-cards { display: flex; gap: .6rem; justify-content: center; margin-bottom: .8rem; }
+.daily .dr-card .card { width: 6rem; font-size: .55rem; }

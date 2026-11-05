@@ -300,8 +300,16 @@ test('evoluir consome cópias e ouro', () => {
 test('recompensa de vitória e desbloqueio por nível', () => {
   const p = BB.Progress.create(content); const g = p.gold;
   const r = BB.Progress.applyResult(p, content, 1, new BB.Rng(3), { result: 1 });
-  eq(p.gold, g + content.balance.winGold); assert(r.cardId); eq(p.wins, 1); eq(p.history.length, 1);
+  eq(p.gold, g + content.balance.winGold * 2); assert(r.firstWin, '1ª vitória do dia vale o dobro'); assert(r.cardId); eq(p.wins, 1); eq(p.history.length, 1);
+  const g2 = p.gold; BB.Progress.applyResult(p, content, 1, new BB.Rng(4), null); eq(p.gold, g2 + content.balance.winGold);
   const un = []; BB.Progress.addXp(p, content, 10000, un); assert(un.includes('baron:eldrin'));
+});
+test('recompensa diária: uma por dia, sequência de 7 dias', () => {
+  const p = BB.Progress.create(content); p.tutorialDone = true; const g = p.gold;
+  assert(BB.Progress.dailyAvailable(p)); const r = BB.Progress.claimDaily(p, content, new BB.Rng(5));
+  eq(r.day, 1); eq(p.gold, g + BB.Progress.DAILY[0].gold); assert(!BB.Progress.dailyAvailable(p)); eq(BB.Progress.claimDaily(p, content, new BB.Rng(5)), null);
+  const y = new Date(); y.setDate(y.getDate() - 1); p.daily.last = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate();
+  eq(BB.Progress.claimDaily(p, content, new BB.Rng(6)).day, 2);
 });
 test('proteção contra azar garante Épica ou melhor', () => {
   const p = BB.Progress.create(content); p.pity = content.balance.pityThreshold - 1;

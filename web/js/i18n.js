@@ -14,6 +14,7 @@
     return s;
   };
   BB.cardName = (id) => BB.T('card.' + id + '.name');
+  BB.playerName = (p) => (!p.playerName || p.playerName === 'Barão' || p.playerName === 'Baron' ? BB.T('ui.default_name') : p.playerName);
   BB.baronName = (id) => BB.T('baron.' + id + '.name');
   BB.castleName = (id) => BB.T('castle.' + id + '.name');
 })(window.BB);

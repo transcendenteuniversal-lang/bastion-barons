@@ -5,3 +5,4 @@ screenshots/
 *.apk
 *.aab
 .DS_Store
+dist/

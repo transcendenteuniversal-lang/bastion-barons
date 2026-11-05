@@ -17,8 +17,13 @@ fs.mkdirSync(out, { recursive: true });
   const wait = (ms) => page.waitForTimeout(ms);
 
   await page.goto('file://' + path.join(__dirname, '..', 'web', 'index.html'));
-  await wait(600); await shot('01-abertura');
-  await wait(1400); await shot('02-menu');
+  await page.waitForSelector('#coach', { timeout: 15000 }); await wait(400); await shot('01-tutorial');
+  // encerra o tutorial e vai ao menu (a recompensa diária abre na primeira visita)
+  await page.evaluate(() => { BB.battle.tut.end(); BB.battle.stop(); BB.profile.seenHelp = false; BB.ui.show('menu'); });
+  await wait(600); await shot('02-recompensa');
+  if (await page.$('.modal .btn')) { await page.tap('.modal .btn'); await wait(500); }
+  if (await page.$('.modal')) await page.evaluate(() => document.querySelectorAll('.modal').forEach((m) => m.remove()));
+  await shot('02-menu');
 
   await page.tap('[data-go=barons]'); await wait(300); await shot('03-baroes');
   await page.tap('#backBtn');
@@ -33,7 +38,7 @@ fs.mkdirSync(out, { recursive: true });
   // batalha
   await page.tap('[data-go=mode]'); await wait(300); await shot('08-modos');
   await page.tap('[data-d=normal]'); await wait(500); await shot('09-ajuda');
-  await page.tap('.modal .btn'); await wait(300);
+  if (await page.$('.modal .btn')) { await page.tap('.modal .btn'); await wait(300); }
 
   // centro de cada rota em pixels de tela (coordenadas da arte da arena)
   const lanes = await page.evaluate(() => BB.ARENA.lanes.map((l) => ({ x: BB.renderer.X(830), y: BB.renderer.Y(l.y) })));
