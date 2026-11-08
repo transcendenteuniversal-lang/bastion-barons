@@ -76,10 +76,13 @@
       const ov = document.getElementById('overlay'), m = document.createElement('div');
       m.className = 'modal';
       m.innerHTML = `<div class="panel daily"><h2 class="title">${T('daily.title')}</h2><p class="muted">${T('daily.text')}</p><div class="days">${days}</div>
-        ${cards ? '<div class="dr-cards">' + cards + '</div>' : ''}<button class="btn gold">${T('daily.claim')}</button></div>`;
+        ${cards ? '<div class="dr-cards">' + cards + '</div>' : ''}<p class="dr-next">${T('daily.tomorrow', ui.dailyText(BB.Progress.dailyNext(p)))}</p><button class="btn gold">${T('daily.claim')}</button></div>`;
       m.querySelector('.btn').onclick = () => { BB.audio.play('click'); m.remove(); ui.show('menu'); };
       ov.appendChild(m); BB.audio.jingle('reward');
     },
+
+    // texto curto de uma recompensa diária: Dia 2 — 🪙80 💎5 🃏1
+    dailyText(d) { return T('daily.day', d.day) + ' — 🪙' + d.gold + (d.crystals ? ' 💎' + d.crystals : '') + (d.card ? ' 🃏' + d.card : ''); },
 
     // menu pequeno sobre a carta tocada
     cardMenu(el, id, extra) {
@@ -440,6 +443,13 @@
           <b style="color:var(--${def.rarity.toLowerCase()})">${T(r.newCard ? 'result.new_card' : 'result.card', BB.cardName(def.id), T('rarity.' + def.rarity))}</b></div>`;
       }
       const unl = r.unlocked.map((u) => `<div style="color:#5fd06d;font-weight:800">${T('result.unlocked', u.startsWith('baron:') ? BB.baronName(u.slice(6)) : BB.castleName(u.slice(7)))}</div>`).join('');
+      const P = BB.Progress, pr = BB.profile, goals = [];
+      if (P.dailyAvailable(pr)) goals.push(T('result.daily_ready'));
+      else if (pr.tutorialDone) goals.push(T('result.daily_next', ui.dailyText(P.dailyNext(pr))));
+      const nu = P.nextUnlock(pr, C);
+      if (nu) goals.push(T(nu.wins === 1 ? 'result.next_unlock_1' : 'result.next_unlock_n',
+        nu.items.map((x) => (x.type === 'baron' ? BB.baronName(x.id) : BB.castleName(x.id))).join(' + '), nu.level, nu.wins));
+      const goalHtml = goals.length ? `<div class="goals">${goals.map((g) => '<span>' + g + '</span>').join('')}</div>` : '';
       const odds = [0, 1, 2, 3, 4].map((i) => (BB.Progress.rarityChance(b, i) * 100).toFixed(1).replace('.0', '') + '%');
       screen('result', `<h1 class="title big" style="${a.result < 0 ? 'filter:hue-rotate(-40deg) saturate(1.4)' : ''}">${T(key)}</h1>
         <div class="reason">${T('result.reason.' + a.reason)}</div>
@@ -450,7 +460,7 @@
         <div class="panel"><h3 class="title">${T('result.rewards')}</h3><div style="color:var(--gold);font-weight:800">${T('result.gold', r.gold)}</div>${r.firstWin ? '<div style="color:#5fd06d;font-weight:900">' + T('result.first_win') + '</div>' : ''}
           <div style="color:#8fc8ff;font-weight:800">${T('result.xp', r.xp)}</div>${r.levels ? `<div style="color:#5fd06d;font-weight:800">${T('result.level_up', BB.profile.accountLevel)}</div>` : ''}${unl}${card}
           <div class="odds">${T('result.odds', ...odds, b.pityThreshold)}</div></div></div>
-        <div class="actions"><button class="btn green" data-go="menu">${T('result.continue')}</button><button class="btn gold" id="again">⚔ ${T('result.again')}</button></div>`);
+        ${goalHtml}<div class="actions"><button class="btn green" data-go="menu">${T('result.continue')}</button><button class="btn gold" id="again">⚔ ${T('result.again')}</button></div>`);
       $('#again').onclick = () => { BB.audio.play('click'); ui.show('battle', { difficulty: a.difficulty }); };
       back.result = () => ui.show('menu');
       BB.audio.music('menu');

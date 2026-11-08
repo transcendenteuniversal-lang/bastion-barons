@@ -134,6 +134,22 @@
       return r;
     },
 
+    // próxima recompensa diária (para "volte amanhã")
+    dailyNext(p) { const day = (p.daily.streak % 7) + 1; return Object.assign({ day }, P.DAILY[day - 1]); },
+    // próximo Barão/castelo a desbloquear e quantas vitórias faltam (null se tudo já liberado)
+    nextUnlock(p, content) {
+      const b = content.balance;
+      if (b.testUnlockAll) return null;
+      const items = content.barons.map((x) => ({ type: 'baron', id: x.id, level: x.unlockLevel || 1 }))
+        .concat(content.castles.map((x) => ({ type: 'castle', id: x.id, level: x.unlockLevel || 1 })))
+        .filter((x) => x.level > p.accountLevel);
+      if (!items.length) return null;
+      const level = Math.min(...items.map((x) => x.level));
+      let xp = -p.xp;
+      for (let l = p.accountLevel; l < level; l++) xp += P.xpForNext(b, l);
+      return { level, items: items.filter((x) => x.level === level), xp: Math.max(0, xp), wins: Math.max(1, Math.ceil(Math.max(0, xp) / Math.max(1, b.winXp))) };
+    },
+
     applyResult(p, content, result, rng, record) {
       const b = content.balance;
       const r = { gold: 0, xp: 0, cardId: null, newCard: false, levels: 0, unlocked: [] };
