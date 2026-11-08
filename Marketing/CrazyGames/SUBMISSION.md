@@ -40,6 +40,14 @@ Google Play: (add the link after the app is published)
 iOS App Store / Steam: leave empty
 
 ## Cover images
-- Landscape 16:9 (1920x1080): cover_landscape_1920x1080.jpg
-- Portrait 2:3 (800x1200): cover_portrait_800x1200.jpg
-- Square 1:1 (800x800): cover_square_800x800.jpg
+Use the v3 covers (Thorg + dragon, no text):
+- Landscape 16:9 (1920x1080): v3/cover_landscape_1920x1080.jpg
+- Portrait 2:3 (800x1200): v3/cover_portrait_800x1200.jpg
+- Square 1:1 (800x800): v3/cover_square_800x800.jpg
+
+## Review videos
+- Landscape (1920x1080, 17 s): dist/videos/bastion-barons-landscape-1920x1080.mp4
+- Portrait (1080x1620, 17 s): dist/videos/bastion-barons-portrait-1080x1620.mp4
+
+## Game file
+dist/bastion-barons-crazygames.zip (build with: node tools/build-crazygames.js)
