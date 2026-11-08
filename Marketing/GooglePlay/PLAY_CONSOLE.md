@@ -130,3 +130,70 @@ Primeira versão de Bastion Barons!
 - Tutorial na primeira batalha
 - Recompensa diária e vitória do dia em dobro
 ```
+
+## 8. Ficha em inglês (Ficha principal → Gerenciar traduções → inglês en-US)
+O mesmo AAB serve: o jogo abre em inglês em todo celular que não está em português. Também dá para trocar o idioma em Configurações.
+
+**Title (até 30):**
+```
+Bastion Barons
+```
+
+**Short description (até 80):**
+```
+Lead a Baron, build your deck and destroy the enemy castle across 3 lanes!
+```
+
+**Full description (até 4000):**
+```
+Defend your castle and destroy your enemy's in fast real-time strategy battles!
+
+Bastion Barons mixes card collecting with 3-lane strategy. Pick your Baron, build your deck and send knights, elven archers, necromancers, dragons and powerful spells onto the battlefield. Your troops march and fight on their own, but you decide where and when to play each card.
+
+⚔️ THREE LANES, FAST DECISIONS
+Read the battlefield and answer every attack in the right lane.
+
+👑 FIVE LEGENDARY BARONS
+Rei Bastion, Elara, Thorg, Malachar and Eldrin command from the castle balcony, each with a unique power: Royal Command, Elven Rain, Orc Fury, Army of the Dead and Arcane Storm.
+
+🏰 FIVE CASTLES WITH POWERS
+Imperial Shield, Ice Storm, Dragon Breath, Forest Blessing and Soul Drain.
+
+🃏 42 CARDS TO COLLECT AND UPGRADE
+From cheap skeletons to legendary dragons and the mythic Phoenix, across 5 rarities.
+
+📈 PROGRESS THAT REWARDS YOU
+Earn gold, XP and new cards with every win, and level up to unlock new Barons and castles. The odds of each rarity are shown in the game.
+
+🎁 DAILY REWARDS
+Rewards grow every day you come back, and your first win of the day pays double.
+
+🎓 LEARN BY PLAYING
+A quick tutorial teaches you everything in your first battle.
+
+🤖 PLAY OFFLINE
+Train against the AI on Easy, Normal and Hard. No ads and no purchases.
+```
+
+**Screenshots (en-US):** pasta `en/` (`screenshot_1_battle.jpg` … `screenshot_6_victory.jpg`).
+O ícone e a imagem de destaque são os mesmos das duas línguas.
+
+## 9. Notas da versão (pt-BR e en-US juntas)
+```
+<pt-BR>
+Primeira versão de Bastion Barons!
+- Batalhas de estratégia em tempo real em 3 rotas
+- 5 Barões, 5 castelos com poderes e 42 cartas para colecionar
+- Tutorial rápido na primeira batalha
+- Recompensa diária e primeira vitória do dia em dobro
+- Jogue offline contra a IA em 3 dificuldades
+</pt-BR>
+<en-US>
+The first release of Bastion Barons!
+- Real-time strategy battles across 3 lanes
+- 5 Barons, 5 castles with powers and 42 cards to collect
+- Quick tutorial in your first battle
+- Daily rewards and double rewards for your first win of the day
+- Play offline against the AI on 3 difficulty levels
+</en-US>
+```
