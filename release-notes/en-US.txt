@@ -1,0 +1,5 @@
+New: RANKED mode!
+- Climb 6 leagues, from the Palisade to the Barons' Throne
+- Monthly seasons with rewards and trophies for the Top 10
+- Sign in with Google or e-mail and compete on the leaderboard
+- Faster start and daily reward reminders

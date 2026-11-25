@@ -1,9 +1,21 @@
-# Gera o Android App Bundle (AAB) assinado com a chave de upload, para enviar à Google Play.
-# Rode manualmente em Actions → Play Store → Run workflow. O AAB fica nos artefatos da execução.
+# A cada mudança no jogo: gera o AAB assinado com a chave de upload e envia para o TESTE INTERNO da Google Play.
+# Para levar a versão testada para a produção, use o workflow "Play Store - Produção".
+# Segredos: UPLOAD_KEYSTORE_B64, UPLOAD_KS_PASS e PLAY_SERVICE_ACCOUNT_JSON (veja docs/PLAY_AUTOMATICO.md).
 name: Play Store
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'android/**'
+      - 'tools/build-aab.sh'
+      - 'release-notes/**'
   workflow_dispatch:
+
+concurrency:
+  group: play
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -47,6 +59,18 @@ jobs:
         run: |
           java -jar "$RUNNER_TEMP/bundletool.jar" validate --bundle=release/BastionBarons.aab | head -5
           java -jar "$RUNNER_TEMP/bundletool.jar" dump manifest --bundle=release/BastionBarons.aab | grep -E "versionCode|uses-sdk|targetSdk|property" || true
+
+      - name: Enviar para o teste interno
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          UPLOAD_KS_B64: ${{ secrets.UPLOAD_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$PLAY_SERVICE_ACCOUNT_JSON" ] || [ -z "$UPLOAD_KS_B64" ]; then
+            echo "::warning::Segredos da Google Play ainda não configurados: o AAB foi gerado mas não enviado."
+            exit 0
+          fi
+          pip install -q google-auth requests
+          python3 tools/play-publish.py upload release/BastionBarons.aab
 
       - uses: actions/upload-artifact@v4
         with:

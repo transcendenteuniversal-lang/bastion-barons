@@ -1,0 +1,28 @@
+# Leva a última versão do TESTE INTERNO para a PRODUÇÃO da Google Play (passa pela revisão do Google).
+# Rode quando a versão já foi testada: Actions -> "Play Store - Produção" -> Run workflow,
+# ou envie uma tag que comece com "producao-" (ex.: producao-1.0.140).
+name: Play Store - Produção
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['producao-*']
+
+concurrency:
+  group: play
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  promote:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Promover para produção
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          pip install -q google-auth requests
+          python3 tools/play-publish.py promote
