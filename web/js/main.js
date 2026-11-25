@@ -25,7 +25,7 @@
 
   // chamados pelo app Android (MainActivity)
   BB.onAppPause = () => { BB.save(); if (BB.battle) BB.battle.onAppPause(); BB.audio.suspend(); };
-  BB.onAppResume = () => BB.audio.resume();
+  BB.onAppResume = () => { BB.audio.resume(); if (BB.cloud && BB.cloud.configured()) BB.cloud.checkRedirect(); };
   document.addEventListener('visibilitychange', () => (document.hidden ? BB.onAppPause() : BB.onAppResume()));
 
   BB.onAppPause = ((f) => () => { f(); BB.platform.gameplayStop(); })(BB.onAppPause);

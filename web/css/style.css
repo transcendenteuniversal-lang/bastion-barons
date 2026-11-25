@@ -331,3 +331,63 @@ img { -webkit-user-drag: none; pointer-events: none; }
 .daily .day.now { border-color: #f2c14e; background: rgba(242,193,78,.2); transform: scale(1.06); }
 .daily .dr-cards { display: flex; gap: .6rem; justify-content: center; margin-bottom: .8rem; }
 .daily .dr-card .card { width: 6rem; font-size: .55rem; }
+
+/* ---------------------------------------------------------------- Ranqueada */
+.ranked-btn { display: flex; flex-direction: column; margin: 1.4rem auto 0; padding: .8rem 3rem; font-size: 2rem; letter-spacing: .06em; }
+.ranked-btn small { font-size: 1rem; letter-spacing: 0; font-weight: 700; opacity: .85; }
+.rk-sub { text-align: center; color: #ffe39a; font-weight: 800; font-size: 1.25rem; padding: .4rem 0 0; }
+.rk { flex: 1; min-height: 0; display: flex; gap: 1.2rem; padding: .8rem 1.4rem 1rem; padding-left: calc(1.4rem + var(--sa-l)); padding-right: calc(1.4rem + var(--sa-r)); }
+.rk-left { width: 21rem; flex: none; padding: 1rem 1.2rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: .45rem; overflow: auto; }
+.rk-emblem { font-size: 4.6rem; line-height: 1; filter: drop-shadow(0 .3rem .4rem rgba(0,0,0,.6)); }
+.rk-left h2 { margin: 0; font-size: 1.7rem; }
+.rk-big { font-size: 1.6rem; font-weight: 900; } .rk-big span { opacity: .5; }
+.rk-bar { width: 100%; height: .9rem; border-radius: 1rem; background: #08102a; border: .12rem solid var(--gold-d); overflow: hidden; }
+.rk-bar i { display: block; height: 100%; background: linear-gradient(90deg, #f7c548, #ffe39a); }
+.rk-next { font-size: 1.05rem; color: #b8c4e8; } .rk-rec { font-size: 1.15rem; font-weight: 800; }
+.rk-play { width: 100%; font-size: 1.6rem; margin-top: .3rem; }
+.rk-status { font-size: .95rem; color: #ffb38a; min-height: 1.1rem; }
+.rk-acc { font-size: .95rem; color: #b8c4e8; } .rk-acc a { color: #8fc8ff; text-decoration: underline; cursor: pointer; }
+.rk-right { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: .5rem; }
+.rk-list { flex: 1; overflow-y: auto; touch-action: pan-y; }
+.rk-row { display: flex; align-items: center; gap: .7rem; padding: .35rem .7rem; border-radius: .6rem; font-size: 1.2rem; }
+.rk-row:nth-child(odd) { background: rgba(255,255,255,.04); }
+.rk-row.me { background: linear-gradient(90deg, rgba(247,197,72,.35), rgba(247,197,72,.12)); outline: .12rem solid var(--gold); }
+.rk-row img { width: 2.2rem; height: 2.2rem; border-radius: 50%; object-fit: cover; border: .12rem solid var(--gold-d); flex: none; }
+.rk-pos { width: 3.6rem; flex: none; font-weight: 900; text-align: center; }
+.rk-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+.rk-tro { color: #ffd24a; font-weight: 900; } .rk-lg { width: 1.8rem; text-align: center; } .rk-row b { width: 4.2rem; text-align: right; color: #ffe39a; }
+.rk-mine:not(:empty) { border-top: .12rem solid var(--gold-d); margin-top: .3rem; padding-top: .3rem; }
+.rk-login .panel, .rk-modal .panel { position: relative; }
+.rk-acts { display: flex; flex-direction: column; gap: .8rem; align-items: center; margin-top: 1rem; }
+.rk-acts .btn { min-width: 20rem; }
+.rk-google { background: #fff; color: #222; } .rk-google b { color: #4285f4; font-size: 1.5rem; }
+.rk-in { width: min(24rem, 90%); font-size: 1.5rem; padding: .6rem .9rem; border-radius: .6rem; border: .15rem solid var(--gold); background: #0b1638; color: #fff; text-align: center;
+  user-select: text; -webkit-user-select: text; }
+.rk-in.code { letter-spacing: .4em; font-weight: 900; }
+.rk-res { display: flex; gap: 1.4rem; justify-content: center; align-items: center; flex-wrap: wrap; padding: .7rem 2rem 0; font-size: 1.4rem; font-weight: 800; }
+.rk-delta { font-size: 2.2rem; font-weight: 900; } .rk-delta.up { color: #5fd06d; } .rk-delta.down { color: #ff6b6b; }
+.rk-promo { color: #ffe39a; background: rgba(20,30,70,.85); border: .12rem solid var(--gold); border-radius: 2rem; padding: .3rem 1rem; animation: pop .5s; }
+/* busca de adversário */
+.mm { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem; }
+.mm h2 { margin: 0; font-size: 2.4rem; text-align: center; } .mm-name { color: #ffe39a; font-size: 3rem; }
+.mm-radar { width: 16rem; height: 16rem; border-radius: 50%; position: relative; overflow: hidden; border: .25rem solid var(--gold);
+  background: radial-gradient(circle, rgba(36,80,184,.5) 0 30%, transparent 31% 33%, rgba(36,80,184,.35) 34% 63%, transparent 64% 66%, rgba(36,80,184,.25) 67%); box-shadow: 0 0 2rem rgba(80,160,255,.5); }
+.mm-radar i { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(rgba(120,220,255,.75), transparent 25%); animation: spin 1.2s linear infinite; }
+.mm-radar b { position: absolute; left: 50%; top: 50%; width: .8rem; height: .8rem; margin: -.4rem; border-radius: 50%; background: #ffe39a; box-shadow: 0 0 1rem #ffe39a; }
+.mm-radar.found { border-color: #5fd06d; box-shadow: 0 0 3rem rgba(95,208,109,.8); } .mm-radar.found i { animation-duration: .4s; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.vs { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 3rem; }
+.vs-side { display: flex; flex-direction: column; align-items: center; gap: .3rem; font-size: 1.4rem; font-weight: 800; animation: vsin .5s ease-out both; }
+.vs-side.foe { animation-name: vsin2; }
+.vs-side img { width: 13rem; height: 13rem; object-fit: cover; border-radius: 1.2rem; border: .3rem solid var(--gold); box-shadow: 0 .6rem 1.5rem rgba(0,0,0,.6); }
+.vs-side h2 { margin: .3rem 0 0; font-size: 2.2rem; } .vs-side b { color: #ffe39a; } .vs-side small { color: #b8c4e8; }
+.vs-mid { font-size: 6rem; color: #ffd24a; animation: pop .6s .3s both; }
+@keyframes vsin { from { transform: translateX(-40vw); opacity: 0; } } @keyframes vsin2 { from { transform: translateX(40vw); opacity: 0; } }
+/* ranking também em pé */
+html.rk-free #rotate { display: none !important; }
+@media (orientation: portrait) {
+  html.rk-free { font-size: min(2.3vh, 3.4vw); }
+  html.rk-free .rk { flex-direction: column; }
+  html.rk-free .rk-left { width: auto; flex: none; }
+  html.rk-free .rk-right { flex: 1; min-height: 0; }
+}

@@ -2,7 +2,7 @@
 // Uso: node tools/sim-test.js
 global.window = global;
 const path = require('path');
-for (const f of ['data', 'strings', 'sim', 'ai', 'progress']) require(path.join(__dirname, '..', 'web', 'js', f + '.js'));
+for (const f of ['data', 'strings', 'sim', 'ai', 'progress', 'ranked']) require(path.join(__dirname, '..', 'web', 'js', f + '.js'));
 const BB = global.BB;
 const content = new BB.Content(BB.CONTENT);
 content.balance.testUnlockAll = false; // os testes conferem as regras normais de desbloqueio
@@ -324,6 +324,87 @@ test('save corrompido é reparado', () => {
   BB.Progress.repair(p, content);
   eq(BB.DeckRules.validate(p.decks[0], content, p), 'Ok'); eq(p.selectedBaron, 'rei_bastion'); assert(!BB.Progress.owned(p, 'skeleton'));
 });
+
+console.log('Ranqueada');
+{
+  const R = BB.Ranked;
+  const T0 = Date.UTC(2026, 11, 10, 12);
+  test('pontos: vitória +20, bônus por adversário mais forte (máx. +10), derrota -12, empate +3', () => {
+    eq(R.matchDelta(1, 500, 500, 0), 20);
+    eq(R.matchDelta(1, 500, 620, 0), 26);
+    eq(R.matchDelta(1, 500, 539, 0), 21);
+    eq(R.matchDelta(1, 500, 2000, 0), 30);
+    eq(R.matchDelta(1, 500, 300, 0), 20);
+    eq(R.matchDelta(-1, 500, 900, 5), -12);
+    eq(R.matchDelta(0, 500, 500, 2), 3);
+  });
+  test('sequência: +5 a partir da 3ª vitória seguida; derrota zera', () => {
+    const st = R.newState('2026-12');
+    eq(R.applyMatch(st, 1, 0).delta, 20); eq(R.applyMatch(st, 1, 0).delta, 20); eq(R.applyMatch(st, 1, 0).delta, 25);
+    eq(st.streak, 3); R.applyMatch(st, -1, 0); eq(st.streak, 0); eq(R.applyMatch(st, 1, 0).delta, 20);
+    eq(st.wins, 4); eq(st.losses, 1);
+  });
+  test('ligas: pisos 0/300/700/1200/1800/2500 e textos em pt e en', () => {
+    eq(R.league(0), 0); eq(R.league(299), 0); eq(R.league(300), 1); eq(R.league(1199), 2); eq(R.league(2500), 5); eq(R.league(9000), 5);
+    for (const lang of ['pt', 'en']) for (const l of R.LEAGUES) assert(BB.STRINGS[lang]['league.' + l.id], lang + ' ' + l.id);
+  });
+  test('proteção de liga: quem alcança a liga não cai abaixo do piso', () => {
+    const st = Object.assign(R.newState('2026-12'), { points: 295, streak: 0 });
+    const r = R.applyMatch(st, 1, 295); assert(r.promoted, 'subiu'); eq(st.maxLeague, 1); eq(st.points, 315);
+    R.applyMatch(st, -1, 0); eq(st.points, 303); R.applyMatch(st, -1, 0); eq(st.points, 300); R.applyMatch(st, -1, 0); eq(st.points, 300);
+    const z = R.newState('2026-12'); R.applyMatch(z, -1, 0); eq(z.points, 0);
+  });
+  test('temporada mensal em UTC', () => {
+    eq(R.seasonId(Date.UTC(2026, 11, 31, 23, 59)), '2026-12'); eq(R.seasonId(Date.UTC(2027, 0, 1, 0, 0)), '2027-01');
+    eq(R.seasonEnd('2026-12'), Date.UTC(2027, 0, 1)); eq(R.prevSeason('2027-01'), '2026-12');
+    eq(R.daysLeft(Date.UTC(2026, 11, 30, 12)), 2);
+  });
+  test('virada: pontos pela metade, prêmio pela maior liga, Top 10 ganha troféu', () => {
+    const st = Object.assign(R.newState('2026-12'), { points: 1250, maxLeague: 4, wins: 30, losses: 10, trophies: 1 });
+    const rw = R.rollover(st, Date.UTC(2027, 0, 2), () => 7);
+    eq(rw.season, '2026-12'); eq(rw.league, 4); assert(rw.top10); eq(rw.gold, R.REWARDS[4].gold + R.TOP10.gold); eq(rw.crystals, R.REWARDS[4].crystals + R.TOP10.crystals);
+    eq(st.season, '2027-01'); eq(st.points, 625); eq(st.maxLeague, 1); eq(st.trophies, 2); eq(st.prevPoints, 1250); eq(st.prevSeason, '2026-12'); eq(st.wins, 0);
+    eq(R.rollover(st, Date.UTC(2027, 0, 3), () => 1), null, 'mesma temporada');
+    const idle = R.newState('2026-11'); idle.points = 400; eq(R.rollover(idle, Date.UTC(2027, 0, 2)), null, 'sem partidas: sem prêmio'); eq(idle.points, 100);
+  });
+  test('bots: 100 nomes únicos e pontos iguais em qualquer aparelho (determinísticos)', () => {
+    eq(R.BOT_NAMES.length, 100); eq(new Set(R.BOT_NAMES).size, 100);
+    const a = R.bots(T0).map((b) => b.points).join(), b = R.bots(T0).map((x) => x.points).join(); eq(a, b);
+    assert(R.botPoints(3, T0) !== R.botPoints(3, T0 + 2 * 3600000) || R.botPoints(5, T0) !== R.botPoints(5, T0 + 2 * 3600000), 'oscila com o tempo');
+  });
+  test('bots: fim da temporada ~2.800 no 1º e ~700 no 100º; começam perto da metade', () => {
+    const end = R.bots(R.seasonEnd('2026-12') - 1).map((b) => b.points).sort((x, y) => y - x);
+    near(end[0], 2800, 60); near(end[99], 700, 60);
+    const start = R.bots(R.seasonStart('2026-12') + 3600000).map((b) => b.points).sort((x, y) => y - x);
+    assert(start[0] > 1100 && start[0] < 1800, 'topo no começo ' + start[0]);
+  });
+  test('bots: a ordem muda entre temporadas e alguns têm troféus', () => {
+    const top = (s) => R.bots(R.seasonEnd(s) - 1).sort((x, y) => y.points - x.points).slice(0, 10).map((b) => b.name).join();
+    assert(top('2026-12') !== top('2027-01'));
+    assert(R.bots(T0).some((b) => b.trophies > 0));
+  });
+  test('multidão: 0 pontos fica bem abaixo do Top 100; acima do corte não há multidão acima', () => {
+    const b0 = R.board(T0, [], { id: 'me', name: 'Eu', points: 0 });
+    assert(b0.position > 1000, 'posição ' + b0.position); assert(!b0.inTop);
+    eq(R.crowdAbove(900, 700, 1400), 0); eq(R.crowdAbove(0, 700, 1400), 1400); eq(R.crowdAbove(350, 700, 1400), Math.round(1400 * Math.pow(0.5, 2.5)));
+    const hi = R.board(T0, [], { id: 'me', name: 'Eu', points: 5000 }); eq(hi.position, 1); assert(hi.inTop); eq(hi.top[0].me, true);
+  });
+  test('ranking junta jogadores reais e conta quem está acima de você', () => {
+    const reals = [{ id: 'r1', name: 'Real1', points: 99999 }, { id: 'me', name: 'Eu', points: 1 }];
+    const b = R.board(T0, reals, { id: 'me', name: 'Eu', points: 4000 });
+    eq(b.position, 2); eq(b.top[0].name, 'Real1'); eq(b.top.filter((e) => e.me).length, 1); eq(b.top.length, 100);
+  });
+  test('adversário: multidão quando longe do Top 100; um dos 6 bots mais próximos quando perto', () => {
+    let k = 0; const rnd = () => ((k = (k * 9301 + 49297) % 233280) / 233280);
+    const far = R.pickOpponent(50, T0, rnd); assert(far.crowd && far.name); assert(Math.abs(far.points - 50) <= 40);
+    const near6 = R.bots(T0).sort((a, b) => Math.abs(a.points - 1500) - Math.abs(b.points - 1500)).slice(0, 6).map((b) => b.name);
+    for (let i = 0; i < 20; i++) { const o = R.pickOpponent(1500, T0, rnd); assert(o.bot && near6.includes(o.name), o.name); }
+  });
+  test('dificuldade acompanha a liga do adversário e o nível do jogador', () => {
+    eq(R.aiFor(100, 1, 9).difficulty, 'easy'); eq(R.aiFor(800, 2, 9).difficulty, 'normal'); eq(R.aiFor(1900, 3, 9).difficulty, 'hard');
+    const top = R.aiFor(2600, 3, 9); eq(top.level, 4); assert(top.strongDeck); eq(R.aiFor(2600, 9, 9).level, 9);
+  });
+}
 
 console.log('\n' + passed + ' passaram, ' + failed + ' falharam');
 process.exit(failed ? 1 : 0);

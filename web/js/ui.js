@@ -14,6 +14,7 @@
     show(name, args) {
       if (BB.battle) { BB.battle.stop(); BB.battle = null; }
       current = name; currentArgs = args;
+      document.documentElement.classList.toggle('rk-free', name === 'ranking'); // o ranking funciona também em pé
       document.getElementById('overlay').innerHTML = '';
       app().innerHTML = '';
       SCREENS[name](args);
@@ -140,6 +141,10 @@
   }
   const screen = (id, html, bg) => { app().innerHTML = `<div class="screen" id="${id}"><div class="bg" style="background-image:url(${bg || 'img/menu_bg.webp'})"></div>${html}</div>`; };
 
+  // outros módulos (ex.: Ranqueada) registram telas e usam os mesmos ajudantes
+  ui.addScreen = (name, fn) => { SCREENS[name] = fn; };
+  ui.h = { screen: (...a) => screen(...a), topbar: (...a) => topbar(...a), bindBack: (...a) => bindBack(...a) };
+
   const SCREENS = {
     // ------------------------------------------------------------ abertura
     splash() {
@@ -180,6 +185,7 @@
       BB.audio.music('menu');
       back.menu = null;
       if (BB.Progress.dailyAvailable(p)) setTimeout(() => ui.dailyReward(), 350);
+      if (BB.RankedUI) BB.RankedUI.onMenu();
     },
 
     // ------------------------------------------------------------ modos
@@ -189,7 +195,9 @@
           <button class="btn green diff" data-d="easy">${T('ui.easy')}<small>${T('mode.easy')}</small></button>
           <button class="btn diff" data-d="normal">${T('ui.normal')}<small>${T('mode.normal')}</small></button>
           <button class="btn red diff" data-d="hard">${T('ui.hard')}<small>${T('mode.hard')}</small></button></div>
-        <p class="center muted" style="margin-top:2rem;font-size:1.15rem">${T('ui.pvp_soon')}</p></div>`);
+        ${BB.RankedUI && BB.RankedUI.available() ? `<button class="btn gold ranked-btn" id="rankedBtn">🏆 ${T('rk.mode')}<small>${T('rk.mode_sub')}</small></button>` : ''}
+        <p class="center muted" style="margin-top:1.2rem;font-size:1.15rem">${T('ui.pvp_soon')}</p></div>`);
+      const rb = $('#rankedBtn'); if (rb) rb.onclick = () => { BB.audio.play('click'); ui.show('ranking'); };
       bindBack('mode', () => ui.show('menu'));
       app().querySelectorAll('[data-d]').forEach((b) => b.onclick = () => {
         BB.audio.play('click');
@@ -201,7 +209,7 @@
 
     battle(args) {
       app().innerHTML = '';
-      BB.battle = new BB.Battle(args.difficulty, { tutorial: !!args.tutorial });
+      BB.battle = new BB.Battle(args.difficulty, { tutorial: !!args.tutorial, ranked: args.ranked || null });
       BB.battle.start();
     },
 
@@ -460,9 +468,12 @@
         <div class="panel"><h3 class="title">${T('result.rewards')}</h3><div style="color:var(--gold);font-weight:800">${T('result.gold', r.gold)}</div>${r.firstWin ? '<div style="color:#5fd06d;font-weight:900">' + T('result.first_win') + '</div>' : ''}
           <div style="color:#8fc8ff;font-weight:800">${T('result.xp', r.xp)}</div>${r.levels ? `<div style="color:#5fd06d;font-weight:800">${T('result.level_up', BB.profile.accountLevel)}</div>` : ''}${unl}${card}
           <div class="odds">${T('result.odds', ...odds, b.pityThreshold)}</div></div></div>
-        ${goalHtml}<div class="actions"><button class="btn green" data-go="menu">${T('result.continue')}</button><button class="btn gold" id="again">⚔ ${T('result.again')}</button></div>`);
-      $('#again').onclick = () => { BB.audio.play('click'); ui.show('battle', { difficulty: a.difficulty }); };
-      back.result = () => ui.show('menu');
+        ${a.ranked ? BB.RankedUI.resultHtml(a.ranked) : goalHtml}<div class="actions">${a.ranked
+          ? `<button class="btn green" id="rkBoard">🏆 ${T('rk.ranking')}</button><button class="btn gold" id="again">⚔ ${T('rk.next_match')}</button>`
+          : `<button class="btn green" data-go="menu">${T('result.continue')}</button><button class="btn gold" id="again">⚔ ${T('result.again')}</button>`}</div>`);
+      $('#again').onclick = () => { BB.audio.play('click'); if (a.ranked) ui.show('matchmaking'); else ui.show('battle', { difficulty: a.difficulty }); };
+      if (a.ranked) $('#rkBoard').onclick = () => { BB.audio.play('click'); ui.show('ranking'); };
+      back.result = () => ui.show(a.ranked ? 'ranking' : 'menu');
       BB.audio.music('menu');
       if (r.cardId || (r.unlocked && r.unlocked.length)) setTimeout(() => BB.audio.jingle('reward'), 400); // recompensa: brilho mágico
     },

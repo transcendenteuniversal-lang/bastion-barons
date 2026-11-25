@@ -15,15 +15,19 @@
       let sum = 0;
       for (const id of deck) { const o = BB.Progress.owned(p, id); levels[id] = o ? o.level : 1; sum += levels[id]; }
       // IA justa: mesmo nível médio de cartas do jogador, sem bônus de atributos
-      const aiLevel = Math.max(1, Math.round(sum / deck.length));
-      const aiDeck = opts.tutorial ? Battle.tutorialDeck(content) : Battle.aiDeck(content, rng);
+      let aiLevel = Math.max(1, Math.round(sum / deck.length));
+      // Ranqueada: adversário com nome, Barão e dificuldade pela liga dele (e pelo nível das suas cartas)
+      this.ranked = opts.ranked || null;
+      if (this.ranked) aiLevel = this.ranked.ai.level;
+      const aiDeck = opts.tutorial ? Battle.tutorialDeck(content) : this.ranked && this.ranked.ai.strongDeck ? Battle.strongDeck(content, rng) : Battle.aiDeck(content, rng);
+      const foeBaron = this.ranked && content.baronById[this.ranked.opp.baron] ? this.ranked.opp.baron : content.barons[rng.range(0, content.barons.length)].id;
       const aiLevels = {};
       for (const id of aiDeck) aiLevels[id] = aiLevel;
       this.match = new BB.Match(content, {
         seed,
         players: [
           { baronId: p.selectedBaron, castleId: p.selectedCastle, deck, levels },
-          { baronId: content.barons[rng.range(0, content.barons.length)].id, castleId: content.castles[rng.range(0, content.castles.length)].id, deck: aiDeck, levels: aiLevels },
+          { baronId: foeBaron, castleId: content.castles[rng.range(0, content.castles.length)].id, deck: aiDeck, levels: aiLevels },
         ],
       });
       this.ai = new BB.AI(this.match, 1, difficulty, seed + 17);
@@ -40,6 +44,13 @@
       const ids = pref.filter((id) => content.cards[id] && !content.cards[id].token);
       for (const c of content.collectible) if (ids.length < content.balance.deckSize && !ids.includes(c.id)) ids.push(c.id);
       return ids.slice(0, content.balance.deckSize);
+    }
+
+    // liga máxima: baralho com as cartas mais raras
+    static strongDeck(content, rng) {
+      const best = (list) => rng.shuffle(list.slice().sort((a, b) => b.rarityIndex - a.rarityIndex).slice(0, Math.ceil(list.length * 0.6))).map((c) => c.id);
+      const spells = best(content.collectible.filter((c) => c.isSpell)), troops = best(content.collectible.filter((c) => !c.isSpell));
+      return spells.slice(0, 4).concat(troops.slice(0, content.balance.deckSize - 4));
     }
 
     static aiDeck(content, rng) {
@@ -60,6 +71,7 @@
       document.addEventListener('pointerup', this.onUp);
       this.raf = requestAnimationFrame((t) => this.frame(t));
       BB.platform.gameplayStart();
+      if (this.ranked && BB.RankedUI) BB.RankedUI.markStart(this.ranked.opp); // fechar o app no meio = derrota
       if (this.tut) { BB.profile.seenHelp = true; this.tut.start(); return; }
       if (!BB.profile.seenHelp) {
         this.paused = true;
@@ -97,8 +109,8 @@
         <div class="hb-panel foe" data-r="1252,6,1632,112"></div>
         <img class="hb-portrait foe" data-r="1531,9,1627,109" src="${BB.art.baronUrl(foe.baron.id)}">
         <div class="hb-lvl foe" data-r="1598,72,1642,118">${aiLevel}</div>
-        <div class="hb-name foe" data-r="1260,10,1522,40">${T('battle.ai', diffName)}</div>
-        <div class="hb-sub foe" data-r="1260,40,1522,68">${BB.baronName(foe.baron.id)} • ${T('battle.offline_short')}</div>
+        <div class="hb-name foe" data-r="1260,10,1522,40">${this.ranked ? esc(this.ranked.opp.name) : T('battle.ai', diffName)}</div>
+        <div class="hb-sub foe" data-r="1260,40,1522,68">${BB.baronName(foe.baron.id)} • ${this.ranked ? BB.Ranked.LEAGUES[this.ranked.opp.league].icon + ' ' + this.ranked.opp.points : T('battle.offline_short')}</div>
         <div class="hb-hp foe" data-r="1260,72,1522,104"><i id="hpFoe"></i><span id="hpFoeT"></span></div>
 
         <button class="hb-btn tap" data-r="436,14,494,70" id="pauseBtn">❚❚</button>
@@ -414,11 +426,12 @@
       this.finished = true;
       const m = this.match, me = m.players[0], foe = m.players[1];
       const result = m.winner === 0 ? 1 : m.winner === 1 ? -1 : 0;
-      const record = { date: new Date().toISOString(), mode: 'training_' + this.difficulty, result, baron: me.baron.id, opponentBaron: foe.baron.id,
+      const record = { date: new Date().toISOString(), mode: this.ranked ? 'ranked' : 'training_' + this.difficulty, result, baron: me.baron.id, opponentBaron: foe.baron.id,
         myPct: m.hpPct(me), foePct: m.hpPct(foe), seconds: Math.round(m.time) };
       const rewards = BB.Progress.applyResult(BB.profile, BB.content, result, new BB.Rng(Date.now() & 0x7fffffff), record);
+      const ranked = this.ranked && BB.RankedUI ? BB.RankedUI.matchEnded(result, this.ranked.opp) : null;
       BB.save();
-      BB.ui.show('result', { result, reason: m.endReason, stats: me.stats, myPct: m.hpPct(me), foePct: m.hpPct(foe), rewards, difficulty: this.difficulty });
+      BB.ui.show('result', { result, reason: m.endReason, stats: me.stats, myPct: m.hpPct(me), foePct: m.hpPct(foe), rewards, difficulty: this.difficulty, ranked });
     }
 
     // ---------------------------------------------------------- laço

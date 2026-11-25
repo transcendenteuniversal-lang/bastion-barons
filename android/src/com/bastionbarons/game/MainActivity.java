@@ -23,6 +23,7 @@ import java.lang.reflect.Proxy;
 // Abre o jogo (HTML5 em assets/) em tela cheia numa WebView.
 public class MainActivity extends Activity {
     private WebView web;
+    private volatile String authRedirect; // endereço de volta do login do Google, entregue ao jogo pelo takeAuthRedirect()
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +50,21 @@ public class MainActivity extends Activity {
         web.loadUrl("file:///android_asset/index.html");
         hideSystemUI();
         registerBackCallback();
+        keepAuthRedirect(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        keepAuthRedirect(intent);
+        if (authRedirect != null) web.evaluateJavascript("window.BB && BB.cloud && BB.cloud.checkRedirect()", null);
+    }
+
+    private void keepAuthRedirect(Intent intent) {
+        if (intent == null || intent.getData() == null) return;
+        Uri u = intent.getData();
+        if ("com.bastionbarons.game".equals(u.getScheme()) && "auth".equals(u.getHost())) authRedirect = u.toString();
     }
 
     // Android 13+: o botão/gesto Voltar chega por OnBackInvokedCallback (no Android 16 o onBackPressed
@@ -150,6 +166,13 @@ public class MainActivity extends Activity {
                     }
                 }
             });
+        }
+
+        @JavascriptInterface
+        public String takeAuthRedirect() {
+            String u = authRedirect;
+            authRedirect = null;
+            return u;
         }
 
         @JavascriptInterface
