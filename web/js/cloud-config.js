@@ -2,6 +2,6 @@
 // A chave "anon public" é pública por natureza: a segurança fica nas regras do banco (supabase/ranked.sql).
 window.BB = window.BB || {};
 BB.CLOUD_CONFIG = BB.CLOUD_CONFIG || {
-  url: '',      // ex.: 'https://abcdefghijk.supabase.co'
-  anonKey: '',  // ex.: 'eyJhbGciOi...'
+  url: 'https://qdntcsezdvktdhkrcsul.supabase.co',
+  anonKey: 'sb_publishable_qvQQ3uyOdnVXDNuMEmF9HA_85GzdoTI', // chave publishable (pública); nunca a secret/service_role
 };
