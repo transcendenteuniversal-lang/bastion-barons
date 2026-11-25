@@ -168,6 +168,13 @@ async function handle(route) {
   await page.setViewportSize({ width: 412, height: 860 }); await wait(700); await shot('12-ranking-em-pe');
   ok(await ev(() => getComputedStyle(document.getElementById('rotate')).display === 'none'), 'ranking funciona com o celular em pé');
 
+  // link do e-mail (ou volta do Google): o endereço chega com #access_token e a conta entra
+  await ev(() => BB.cloud.signOut());
+  ok(!(await ev(() => BB.cloud.loggedIn())), 'saiu da conta');
+  const okLink = await ev((uid) => BB.cloud.handleRedirect('com.bastionbarons.game://auth#access_token=tok-' + uid + '&refresh_token=r&expires_in=3600&token_type=bearer'), UID);
+  ok(okLink && (await ev(() => BB.cloud.userId())) === UID, 'link de login do e-mail entra na conta');
+  ok(db.log.some((l) => l === 'POST /auth/v1/otp'), 'pedido de e-mail de login enviado');
+
   console.log(errors.length ? 'ERROS:\n' + errors.join('\n') : 'sem erros no console');
   await browser.close();
   process.exit(errors.length ? 1 : 0);

@@ -65,17 +65,17 @@
       });
     },
     // e-mail: envia um código de 6 dígitos (o modelo de e-mail do Supabase precisa mostrar {{ .Token }})
-    async emailStart(email) { await C.req('/auth/v1/otp', { method: 'POST', auth: false, body: { email, create_user: true } }); },
+    // o e-mail padrão do Supabase traz um link de login: ele volta para o jogo pelo mesmo caminho do Google
+    async emailStart(email) { await C.req('/auth/v1/otp?redirect_to=' + encodeURIComponent(C.backUrl()), { method: 'POST', auth: false, body: { email, create_user: true } }); },
     async emailVerify(email, code) {
       const { data } = await C.req('/auth/v1/verify', { method: 'POST', auth: false, body: { type: 'email', email, token: String(code).trim() } });
       C.store(data);
       return C.loggedIn();
     },
     // Google: abre a página de login do Google; ela volta para o jogo com o acesso no endereço (#access_token=...)
+    backUrl() { return window.AndroidBridge && window.AndroidBridge.openUrl ? NATIVE_REDIRECT : location.href.split('#')[0]; },
     googleUrl() {
-      const native = !!(window.AndroidBridge && window.AndroidBridge.openUrl);
-      const back = native ? NATIVE_REDIRECT : location.href.split('#')[0];
-      return cfg().url.replace(/\/$/, '') + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(back);
+      return cfg().url.replace(/\/$/, '') + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(C.backUrl());
     },
     googleStart() {
       const url = C.googleUrl();
