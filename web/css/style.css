@@ -475,3 +475,27 @@ html.rk-free #rotate { display: none !important; }
 .mbattle { width: min(42vw, 85vh); }
 .mbattle span { left: 28%; font-size: calc(min(42vw, 85vh) * .09); letter-spacing: .04em; }
 .mbtn.long span { font-size: calc(var(--bw) * .066); }
+/* símbolo de skin disponível (carta e pedestal do baralho) */
+.card .skb, .ped .skb { position: absolute; right: .3em; top: 2.1em; width: 1.7em; height: 1.7em; display: grid; place-items: center; font-size: .9em;
+  border-radius: 50%; background: radial-gradient(#7a3fd1, #3a1580); border: .12em solid #ffd24a; box-shadow: 0 0 .4em rgba(166,77,255,.8); z-index: 2; }
+.ped .skb { top: auto; bottom: 2.6em; right: 1.2em; font-size: 1rem; }
+/* sala de espera da Ranqueada */
+.lb { flex: 1; min-height: 0; display: flex; gap: 1.2rem; padding: .6rem 1.4rem .4rem; padding-left: calc(1.4rem + var(--sa-l)); padding-right: calc(1.4rem + var(--sa-r)); }
+.lb-prof { width: 24rem; flex: none; padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: .5rem; overflow: auto; }
+.lb-head { display: flex; align-items: center; gap: .9rem; } .lb-head h2 { margin: 0; font-size: 1.7rem; }
+.lb-avatar { width: 5.2rem; height: 5.2rem; border-radius: 50%; object-fit: cover; border: .22rem solid var(--gold); }
+.lb-league { display: flex; align-items: center; gap: .8rem; } .lb-league .rk-emblem { font-size: 3.4rem; } .lb-league b { font-size: 1.4rem; color: #ffe39a; }
+.lb-prof .btn { align-self: center; }
+.lb-army { flex: 1; min-width: 0; padding: .9rem 1.1rem; display: flex; flex-direction: column; gap: .7rem; overflow: auto; }
+.lb-sel { display: flex; gap: 1rem; }
+.lb-pick { flex: 1; display: flex; align-items: center; gap: .8rem; padding: .5rem .7rem; border-radius: .8rem; background: rgba(255,255,255,.05); border: .12rem solid rgba(247,197,72,.4); cursor: pointer; }
+.lb-pick img { width: 4.6rem; height: 4.6rem; object-fit: cover; border-radius: .6rem; border: .15rem solid var(--gold-d); }
+.lb-pick small { display: block; color: #b8c4e8; } .lb-pick b { display: block; font-size: 1.3rem; } .lb-pick em { font-style: normal; color: #8fc8ff; font-size: .95rem; }
+.lb-decks { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+.lb-cards { display: grid; grid-template-columns: repeat(7, 1fr); gap: .45rem; }
+.lb-cards .card { width: 100%; font-size: .62rem; }
+.lb-go { display: flex; justify-content: center; padding: .2rem 0 .9rem; }
+.lb-search { font-size: 2rem; padding: .7rem 4rem; letter-spacing: .05em; animation: lbpulse 1.6s ease-in-out infinite; }
+@keyframes lbpulse { 50% { box-shadow: 0 0 1.6rem rgba(255,210,74,.8); } }
+.deckinfo .tabs .btn { max-width: 11rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (orientation: portrait) { html.rk-free .lb { flex-direction: column; } html.rk-free .lb-prof { width: auto; } }

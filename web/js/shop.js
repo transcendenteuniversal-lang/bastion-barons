@@ -21,7 +21,7 @@
     { id: 'castle_sylvan_autumn', type: 'castle', target: 'sylvan_sanctuary', tier: 'common', name: N('Santuário Outonal', 'Autumn Sanctuary'), filter: 'sepia(.55) hue-rotate(-25deg) saturate(1.7)' },
     { id: 'castle_necropolis_gold', type: 'castle', target: 'shadow_necropolis', tier: 'legendary', name: N('Necrópole Dourada', 'Golden Necropolis'), filter: 'sepia(.7) saturate(1.6) brightness(1.15)' },
     // ---- Tropas (boneco na batalha + arte da carta)
-    { id: 'troop_knight_gold', type: 'troop', target: 'royal_knight', tier: 'common', name: N('Cavaleiro Dourado', 'Golden Knight'), filter: 'sepia(.6) saturate(1.7) brightness(1.1)' },
+    { id: 'troop_knight_gold', type: 'troop', target: 'royal_knight', tier: 'common', name: N('Cavaleiro Dourado', 'Golden Knight'), filter: 'sepia(1) saturate(2.6) hue-rotate(-12deg) brightness(1.12)' },
     { id: 'troop_orc_forest', type: 'troop', target: 'red_orc', tier: 'common', name: N('Orc da Floresta', 'Forest Orc'), filter: 'hue-rotate(100deg)' },
     { id: 'troop_archer_night', type: 'troop', target: 'elven_archer', tier: 'epic', name: N('Arqueira Noturna', 'Night Archer'), filter: 'hue-rotate(220deg) brightness(.9)' },
     { id: 'troop_golem_crystal', type: 'troop', target: 'stone_golem', tier: 'epic', name: N('Golem de Cristal', 'Crystal Golem'), filter: 'hue-rotate(180deg) saturate(2) brightness(1.15)' },

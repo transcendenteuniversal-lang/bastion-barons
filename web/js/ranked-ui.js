@@ -222,10 +222,10 @@
         { label: T('battle.no'), cls: 'dark' },
       ]);
     },
-    async load() {
+    // lê o ranking da nuvem (depois de enviar o que estava pendente) e devolve o quadro com a sua posição
+    me() { const d = RU.data(); return { id: d.uid || 'me', name: BB.playerName(BB.profile), baron: BB.profile.selectedBaron, points: d.st.points, trophies: d.st.trophies }; },
+    async fetchBoard() {
       const d = RU.data(), t = now(), season = R().seasonId(t);
-      const me = () => ({ id: d.uid || 'me', name: BB.playerName(BB.profile), baron: BB.profile.selectedBaron, points: d.st.points, trophies: d.st.trophies });
-      RU.render(R().board(t, [], me()), C().loggedIn() ? T('rk.loading') : '');
       let reals = [], above, status = '';
       if (C().configured()) {
         try {
@@ -235,11 +235,72 @@
           if (C().loggedIn() && reals.length >= 200 && d.st.points < reals[reals.length - 1].points) above = await C().countAbove(season, d.st.points);
         } catch (e) { lastErr = e; }
       } else RU.checkSeason();
-      if (BB.ui.current() !== 'ranking') return;
       if (RU.data().pending && C().loggedIn()) status = lastErr && lastErr.status === 0 ? T('rk.offline') : T('rk.pending');
       else if (lastErr && lastErr.status === 0) status = T('rk.offline_short');
-      RU.render(R().board(t, reals, me(), above), status);
+      return { board: R().board(t, reals, RU.me(), above), status };
     },
+    async load() {
+      RU.render(R().board(now(), [], RU.me()), C().loggedIn() ? T('rk.loading') : '');
+      const r = await RU.fetchBoard();
+      if (BB.ui.current() !== 'ranking') return;
+      RU.render(r.board, r.status);
+    },
+
+    // ------------------------------------------------------------ sala de espera da Ranqueada
+    lobby() {
+      const t = now(), season = R().seasonId(t), days = R().daysLeft(t), p = BB.profile;
+      BB.ui.h.screen('rkLobby', BB.ui.h.topbar(T('rk.title'), true) + `
+        <div class="rk-sub">${T('rk.season', R().seasonNumber(season))} · ${days <= 1 ? T('rk.ends_today') : T('rk.ends', days)}</div>
+        <div class="lb"><div class="panel lb-prof" id="lbProf"></div>
+          <div class="panel lb-army" id="lbArmy"></div></div>
+        <div class="lb-go" id="lbGo"></div>`);
+      BB.ui.h.bindBack('rkLobby', () => BB.ui.show('menu'));
+      BB.audio.music('menu');
+      const a = RU.checkAbandon(); if (a) RU.showAbandon(a);
+      RU.lobbyArmy();
+      RU.lobbyProfile(null, C().loggedIn() ? T('rk.loading') : '');
+      if (C().configured()) RU.fetchBoard().then((r) => { if (BB.ui.current() === 'rkLobby') RU.lobbyProfile(r.board, r.status); });
+    },
+    lobbyProfile(board, status) {
+      const el = $('#lbProf'), go = $('#lbGo');
+      if (!el) return;
+      const d = RU.data(), st = d.st, li = R().league(st.points), nx = R().nextLeague(st.points), p = BB.profile;
+      const lo = R().LEAGUES[li].floor, hi = nx ? R().LEAGUES[nx.index].floor : lo;
+      const pct = nx ? Math.round(((st.points - lo) / (hi - lo)) * 100) : 100, logged = C().configured() && C().loggedIn();
+      el.innerHTML = `<div class="lb-head">${BB.Shop.img(BB.Shop.avatarPic(p), 'lb-avatar')}<div><h2 class="title">${esc(BB.playerName(p))}</h2>
+          <div class="muted">${T('profile.level', p.accountLevel)}${st.trophies ? ' · 🏆 ' + st.trophies : ''}</div></div></div>
+        <div class="lb-league"><span class="rk-emblem">${R().LEAGUES[li].icon}</span><div><b>${RU.leagueName(li)}</b>
+          <div class="rk-big">${board && board.position ? '#' + board.position.toLocaleString() : '—'} <span>·</span> ${T('rk.points', st.points)}</div></div></div>
+        <div class="rk-bar"><i style="width:${pct}%"></i></div><div class="rk-next">${nx ? T('rk.next', nx.need, RU.leagueName(nx.index)) : T('rk.max')}</div>
+        <div class="rk-rec">${T('rk.record', st.wins, st.losses, st.draws)}${st.streak >= 2 ? ' · ' + T('rk.streak', st.streak) : ''}</div>
+        <div class="rk-status">${status || ''}</div>
+        <button class="btn small dark" id="lbBoard">🏆 ${T('rk.ranking')}</button>`;
+      go.innerHTML = logged ? `<button class="btn gold lb-search" id="lbSearch">⚔ ${T('rk.search')}</button>`
+        : `<button class="btn gold lb-search" id="lbLogin">${T('rk.login')}</button>`;
+      $('#lbBoard').onclick = () => { BB.audio.play('click'); BB.ui.returnTo = 'rkLobby'; BB.ui.show('ranking'); };
+      const s1 = $('#lbSearch'); if (s1) s1.onclick = () => RU.play();
+      const s2 = $('#lbLogin'); if (s2) s2.onclick = () => { BB.audio.play('click'); if (!C().configured()) { BB.ui.toast(T('rk.not_configured')); return; } RU.loginModal(() => BB.ui.show('rkLobby')); };
+    },
+    lobbyArmy() {
+      const el = $('#lbArmy'), p = BB.profile, C2 = BB.content, deck = p.decks[p.activeDeck];
+      const cs = BB.Shop.equipped(p, 'castle', p.selectedCastle);
+      el.innerHTML = `<div class="lb-sel">
+          <div class="lb-pick" id="lbBaron">${BB.Shop.img(BB.Shop.baronPic(p, p.selectedBaron))}<div><small>${T('ui.barons')}</small><b>${BB.baronName(p.selectedBaron)}</b><em>${T('rk.change')}</em></div></div>
+          <div class="lb-pick" id="lbCastle"><img src="img/castle_cards/${p.selectedCastle}.webp" style="${cs && cs.filter ? 'filter:' + cs.filter : ''}" alt=""><div><small>${T('ui.castles')}</small><b>${BB.castleName(p.selectedCastle)}</b><em>${T('rk.change')}</em></div></div></div>
+        <div class="lb-decks">${[0, 1, 2].map((i) => `<button class="btn small ${i === p.activeDeck ? 'gold' : 'dark'}" data-dk="${i}">${esc(BB.deckName(i))}</button>`).join('')}
+          <button class="btn small" id="lbEdit">✏️ ${T('rk.edit_deck')}</button></div>
+        <div class="lb-cards">${deck.map((id) => BB.ui.cardHtml(C2.card(id), BB.Progress.owned(p, id), { level: true })).join('')}</div>`;
+      const ret = (scr) => { BB.audio.play('click'); BB.ui.returnTo = 'rkLobby'; BB.ui.show(scr); };
+      $('#lbBaron').onclick = () => ret('barons');
+      $('#lbCastle').onclick = () => ret('castles');
+      $('#lbEdit').onclick = () => ret('deck');
+      el.querySelectorAll('[data-dk]').forEach((b) => b.onclick = () => {
+        const i = +b.dataset.dk;
+        if (BB.DeckRules.validate(p.decks[i], C2, p) !== 'Ok') { BB.ui.toast(T('ui.deck_invalid', C2.balance.deckSize)); return; }
+        BB.audio.play('click'); p.activeDeck = i; BB.save(); RU.lobbyArmy();
+      });
+    },
+
     screen() {
       const t = now(), season = R().seasonId(t), days = R().daysLeft(t);
       RU._scrolled = false;
@@ -247,7 +308,7 @@
         <div class="rk-sub">${T('rk.season', R().seasonNumber(season))} · ${days <= 1 ? T('rk.ends_today') : T('rk.ends', days)}</div>
         <div class="rk"><div class="panel rk-left" id="rkLeft"></div>
           <div class="panel rk-right"><div class="rk-list" id="rkList"></div><div class="rk-mine" id="rkMine"></div></div></div>`);
-      BB.ui.h.bindBack('ranking', () => BB.ui.show('menu'));
+      BB.ui.h.bindBack('ranking', () => BB.ui.show(BB.ui.backTarget()));
       BB.audio.music('menu');
       const a = RU.checkAbandon(); if (a) RU.showAbandon(a);
       RU.load();
@@ -271,7 +332,7 @@
       BB.ui.h.screen('matchmaking', `<div class="mm"><div class="mm-radar"><i></i><b></b></div><h2 class="title" id="mmTxt">${T('rk.searching')}</h2>
         <button class="btn dark small" id="mmCancel">${T('rk.cancel')}</button></div>`);
       const alive = () => BB.ui.current() === 'matchmaking';
-      const cancel = () => BB.ui.show('ranking');
+      const cancel = () => BB.ui.show('rkLobby');
       BB.ui.h.bindBack('matchmaking', cancel);
       $('#mmCancel').onclick = () => { BB.audio.play('click'); cancel(); };
       BB.audio.music('menu');
@@ -305,6 +366,7 @@
   if (BB.ui && BB.ui.addScreen) {
     BB.ui.addScreen('ranking', () => RU.screen());
     BB.ui.addScreen('matchmaking', () => RU.matchmaking());
+    BB.ui.addScreen('rkLobby', () => RU.lobby());
   }
   // volta do login do Google
   if (BB.cloud) BB.cloud.onLogin = () => RU.afterLogin(() => BB.ui.show('ranking'));

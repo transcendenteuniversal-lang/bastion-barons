@@ -21,6 +21,9 @@
       app().querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { BB.audio.play('click'); ui.show(b.dataset.go); }));
     },
     refresh() { ui.show(current, currentArgs); },
+    // telas abertas a partir da sala da Ranqueada voltam para ela
+    returnTo: null,
+    backTarget() { const r = ui.returnTo; ui.returnTo = null; return r || 'menu'; },
 
     onBack() {
       const ov = document.getElementById('overlay');
@@ -62,7 +65,7 @@
         <img class="art" src="${BB.art.cardUrl(def)}" alt=""${BB.Shop && BB.profile && BB.Shop.cardFilter(BB.profile, def.id) ? ' style="filter:' + BB.Shop.cardFilter(BB.profile, def.id) + '"' : ''}>
         <div class="cost">${def.cost}</div>
         ${o.level && owned ? '<div class="lv">' + T('ui.level', owned.level) + '</div>' : ''}
-        ${o.up ? '<div class="up">▲</div>' : ''}
+        ${o.up ? '<div class="up">▲</div>' : ''}${BB.Shop && BB.Shop.forTarget('troop', def.id).length ? '<div class="skb">🎨</div>' : ''}
         <div class="name">${esc(BB.cardName(def.id))}</div></div>`;
     },
 
@@ -84,6 +87,22 @@
 
     // texto curto de uma recompensa diária: Dia 2 — 🪙80 💎5 🃏1
     dailyText(d) { return T('daily.day', d.day) + ' — 🪙' + d.gold + (d.crystals ? ' 💎' + d.crystals : '') + (d.card ? ' 🃏' + d.card : ''); },
+
+    // dar nome a um dos 3 baralhos
+    renameDeck(i, after) {
+      const ov = document.getElementById('overlay'), m = document.createElement('div');
+      m.className = 'modal';
+      m.innerHTML = `<div class="panel"><h2 class="title">${T('ui.deck_rename')}</h2>
+        <input class="rk-in" id="deckNameIn" maxlength="18" value="${esc(BB.profile.deckNames[i] || '')}" placeholder="${esc(T('ui.deck_default', i + 1))}">
+        <div class="acts"><button class="btn gold" id="deckNameOk">${T('ui.save')}</button><button class="btn dark" data-cancel="1">${T('shop.cancel')}</button></div></div>`;
+      ov.appendChild(m);
+      const inp = m.querySelector('#deckNameIn'); inp.focus();
+      m.querySelector('[data-cancel]').onclick = () => { BB.audio.play('click'); m.remove(); };
+      m.querySelector('#deckNameOk').onclick = () => {
+        BB.audio.play('click');
+        BB.profile.deckNames[i] = inp.value.trim().replace(/\s+/g, ' ').slice(0, 18); BB.save(); m.remove(); if (after) after();
+      };
+    },
 
     // menu pequeno sobre a carta tocada
     cardMenu(el, id, extra) {
@@ -127,7 +146,7 @@
       if (BB.ShopUI) BB.ShopUI.bindPickers(m, () => {
         // troca só a arte dessa carta na tela (sem redesenhar: o baralho não muda de ordem)
         const f = BB.Shop.cardFilter(BB.profile, id);
-        document.querySelectorAll('#app .card[data-id="' + id + '"] .art').forEach((im) => { im.style.filter = f; });
+        document.querySelectorAll('#app .card[data-id="' + id + '"] .art, #app canvas[data-unit="' + id + '"]').forEach((im) => { im.style.filter = f; });
         close(); ui.cardInfo(id);
       });
       ov.appendChild(m);
@@ -181,9 +200,9 @@
       // botões com a arte do menu (img/menu/btn_*.webp): ícone à esquerda, texto escrito pelo jogo
       const mb = (img, label, go, gold) => `<button class="mbtn ${gold ? 'gold' : ''} ${label.length > 11 ? 'long' : ''}" data-m="${go}"><img src="img/menu/${img}.webp" alt=""><span>${label}</span></button>`;
       const left = (ranked ? mb('btn_ranked', T('ui.ranked'), 'ranked', true) : '') + mb('btn_barons', T('ui.barons'), 'barons') + mb('btn_castles', T('ui.castles'), 'castles')
-        + mb('btn_history', T('ui.history'), 'history') + mb('btn_deck', T('profile.title'), 'profile');
+        + mb('btn_history', T('ui.history'), 'history');
       const right = mb('btn_store', T('shop.title'), 'shop', true) + mb('btn_collection', T('ui.collection'), 'collection') + mb('btn_cards', T('ui.deck'), 'deck')
-        + (ranked ? mb('btn_ranking', T('ui.leaderboard'), 'ranking') : '') + mb('btn_settings', T('ui.settings'), 'settings');
+        + (ranked ? mb('btn_ranking', T('ui.leaderboard'), 'ranking') : '');
       screen('menu', `
         <div class="mtop"><div class="profile tap" id="profileBtn">${BB.Shop.img(BB.Shop.avatarPic(p), 'avatar')}<div class="mlvl">${p.accountLevel}</div>
             <div><b>${esc(BB.playerName(p))}</b> <span class="guest">(${T('ui.guest')})</span>
@@ -205,7 +224,7 @@
         BB.audio.play('click');
         const go = el.dataset.m;
         // Ranqueada: entra direto na busca de adversário (ou no ranking, para entrar na conta)
-        if (go === 'ranked') { if (BB.cloud && BB.cloud.loggedIn()) BB.RankedUI.play(); else ui.show('ranking'); return; }
+        if (go === 'ranked') { ui.show('rkLobby'); return; } // sala de espera da Ranqueada
         ui.show(go);
       });
       app().querySelectorAll('[data-plus]').forEach((el) => el.onclick = () => { BB.audio.play('click'); ui.show('shop', { tab: el.dataset.plus }); });
@@ -250,7 +269,7 @@
           ${!un ? `<div class="lock">${T('ui.locked_level', b.unlockLevel)}</div>` : sel ? `<b style="color:#5fd06d">${T('ui.selected')}</b>` : `<button class="btn green small" data-pick="${b.id}">${T('ui.select')}</button>`}</div>`;
       }).join('');
       screen('barons', topbar(T('ui.barons'), true) + `<div class="content"><div class="choices">${items}</div></div>`);
-      bindBack('barons', () => ui.show('menu'));
+      bindBack('barons', () => ui.show(ui.backTarget()));
       app().querySelectorAll('[data-pick]').forEach((b) => b.onclick = () => { BB.audio.play('click'); p.selectedBaron = b.dataset.pick; BB.save(); ui.refresh(); });
       if (BB.ShopUI) BB.ShopUI.bindPickers(app(), () => ui.refresh());
     },
@@ -266,7 +285,7 @@
           ${!un ? `<div class="lock">${T('ui.locked_level', c.unlockLevel)}</div>` : sel ? `<b style="color:#5fd06d">${T('ui.selected')}</b>` : `<button class="btn green small" data-pick="${c.id}">${T('ui.select')}</button>`}</div>`;
       }).join('');
       screen('castles', topbar(T('ui.castles'), true) + `<div class="content"><div class="choices">${items}</div></div>`);
-      bindBack('castles', () => ui.show('menu'));
+      bindBack('castles', () => ui.show(ui.backTarget()));
       app().querySelectorAll('[data-castle]').forEach((cv) => { drawCastlePreview(cv, BB.content.castle(cv.dataset.castle)); const sk = BB.Shop.equipped(BB.profile, 'castle', cv.dataset.castle); cv.style.filter = sk && sk.filter ? sk.filter : ''; });
       app().querySelectorAll('[data-pick]').forEach((b) => b.onclick = () => { BB.audio.play('click'); p.selectedCastle = b.dataset.pick; BB.save(); ui.refresh(); });
       if (BB.ShopUI) BB.ShopUI.bindPickers(app(), () => ui.refresh());
@@ -350,17 +369,19 @@
       // baralho: cada criatura aparece já invocada, andando sobre um pedestal (feitiços mostram o efeito)
       const slots = s.work.map((id) => {
         const def = C.card(id), o = BB.Progress.owned(p, id);
-        return `<div class="ped ${def.rarity}" data-deck="${id}"><canvas width="180" height="150" data-unit="${id}"></canvas><div class="ped-base"></div>
+        const f = BB.Shop.cardFilter(p, id), has = BB.Shop.forTarget('troop', id).length;
+        return `<div class="ped ${def.rarity}" data-deck="${id}"><canvas width="180" height="150" data-unit="${id}"${f ? ' style="filter:' + f + '"' : ''}></canvas><div class="ped-base"></div>${has ? '<div class="skb" title="skin">🎨</div>' : ''}
           <div class="cost">${def.cost}</div><div class="ped-lv">${T('ui.level', o ? o.level : 1)}</div><div class="ped-name">${esc(BB.cardName(id))}</div></div>`;
       }).join('') + '<div class="ped empty" data-empty="1"></div>'.repeat(Math.max(0, size - s.work.length));
       const avail = C.collectible.filter((c) => BB.Progress.owned(p, c.id) && !s.work.includes(c.id)).sort((a, b) => byCost(a.id, b.id));
-      screen('deck', topbar(T('ui.deck_title', s.idx + 1), true) + `
-        <div class="deckinfo"><div class="tabs">${[0, 1, 2].map((i) => `<button class="btn small ${i === s.idx ? 'on' : ''}" data-tab="${i}">${i + 1}</button>`).join('')}</div>
+      screen('deck', topbar(BB.deckName(s.idx), true) + `
+        <div class="deckinfo"><div class="tabs">${[0, 1, 2].map((i) => `<button class="btn small ${i === s.idx ? 'on' : ''}" data-tab="${i}">${esc(BB.deckName(i))}</button>`).join('')}
+          <button class="btn small dark" id="renameDeck" title="${esc(T('ui.deck_rename'))}">✏️</button></div>
           <b style="flex:1">${T('ui.deck_count', s.work.length, size, BB.DeckRules.averageCost(s.work, C).toFixed(1))}</b>
           <button class="btn green small" id="saveDeck" ${valid ? '' : 'disabled'}>${T('ui.save')}</button></div>
         <div class="deckzone">${slots}</div>
         <div class="content deckcoll"><p class="muted center" style="margin:0 0 .6rem">${T('ui.deck_drag_swap')}</p><div class="grid row1" id="collRow">${avail.map((c) => ui.cardHtml(c, BB.Progress.owned(p, c.id), { level: true, attrs: 'data-coll="' + c.id + '"' })).join('')}</div></div>`);
-      bindBack('deck', () => { ui.closeCardMenu(); ui.show('menu'); });
+      bindBack('deck', () => { ui.closeCardMenu(); ui.show(ui.backTarget()); });
       BB.art.animatePreviews(app());
       const row = $('#collRow');
       if (s.scroll) row.scrollLeft = s.scroll; // a coleção continua no mesmo lugar depois da troca
@@ -373,6 +394,7 @@
         BB.audio.play('card'); redraw();
       };
       app().querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { BB.audio.play('click'); const i = +b.dataset.tab; ui.closeCardMenu(); ui.show('deck', { idx: i, work: p.decks[i].slice() }); });
+      $('#renameDeck').onclick = () => { BB.audio.play('click'); ui.renameDeck(s.idx, () => { s.scroll = $('#collRow').scrollLeft; s.keep = true; ui.show('deck', s); }); };
       // tocar = menu (Informações / Remover / Adicionar); arrastar a carta da coleção para um pedestal = trocar
       const bindDrag = (el, id, fromDeck) => {
         let st = null, ghost = null;
@@ -549,5 +571,6 @@
   }
 
   ui.drawCastlePreview = drawCastlePreview;
+  BB.deckName = (i) => (BB.profile.deckNames && BB.profile.deckNames[i]) || T('ui.deck_default', i + 1);
   BB.ui = ui;
 })(window.BB);

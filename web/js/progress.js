@@ -40,6 +40,8 @@
       if (!Array.isArray(p.cards)) p.cards = [];
       if (!Array.isArray(p.decks)) p.decks = [];
       if (!Array.isArray(p.history)) p.history = [];
+      if (!Array.isArray(p.deckNames)) p.deckNames = ['', '', ''];
+      p.deckNames = [0, 1, 2].map((i) => (typeof p.deckNames[i] === 'string' ? p.deckNames[i].slice(0, 18) : ''));
       p.cards = p.cards.filter((o) => o && content.cards[o.id] && !content.cards[o.id].token);
       for (const o of p.cards) o.level = Math.max(1, Math.min(b.maxCardLevel, o.level | 0));
       for (const id of b.starterCards) if (!P.owned(p, id)) p.cards.push({ id, level: 1, copies: 0 });
