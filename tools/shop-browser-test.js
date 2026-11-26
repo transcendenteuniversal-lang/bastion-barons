@@ -16,8 +16,8 @@ fs.mkdirSync(out, { recursive: true });
   await page.waitForSelector('#coach', { timeout: 15000 });
   await ev(() => { BB.battle.tut.end(); BB.battle.stop(); const p = BB.profile; p.gold = 3000; p.crystals = 5000; p.daily.last = BB.Progress.today(); BB.ui.show('menu'); });
   await page.waitForTimeout(500);
-  ok(await page.$('[data-go=shop]'), 'botão Loja no menu');
-  await page.click('[data-go=shop]'); await page.waitForTimeout(500); await shot('01-ofertas');
+  ok(await page.$('[data-m=shop]'), 'botão Loja no menu');
+  await page.click('[data-m=shop]'); await page.waitForTimeout(500); await shot('01-ofertas');
   const g0 = await ev(() => BB.profile.gold);
   await page.click('[data-offer="0"]'); await page.waitForTimeout(400);
   ok((await ev(() => BB.profile.gold)) < g0, 'comprou a oferta do dia com ouro');
@@ -35,7 +35,7 @@ fs.mkdirSync(out, { recursive: true });
   }
   await page.click('[data-tab=gems]'); await page.waitForTimeout(400); await shot('06-cristais');
   await ev(() => BB.ui.show('menu')); await page.waitForTimeout(500); await shot('07-menu-avatar');
-  ok((await ev(() => document.querySelector('.topbar .avatar').getAttribute('src'))).includes('fire_dragon'), 'foto de perfil no menu');
+  ok((await ev(() => document.querySelector('#profileBtn .avatar').getAttribute('src'))).includes('fire_dragon'), 'foto de perfil no menu');
   // batalha com as skins (Fortaleza Real + Rei Bastion são os iniciais)
   await ev(() => BB.ui.show('battle', { difficulty: 'easy' })); await page.waitForTimeout(1200);
   const sk = await ev(() => { const s = BB.renderer.skinSet; return { baron: s.baron[0] && s.baron[0].id, castle: s.castle[0] && s.castle[0].id, knight: !!s.unit[0].royal_knight, foe: s.baron[1] }; });

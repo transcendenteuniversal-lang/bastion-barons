@@ -177,20 +177,38 @@
     menu() {
       const p = BB.profile, b = BB.content.balance;
       const need = BB.Progress.xpForNext(b, p.accountLevel);
+      const ranked = BB.RankedUI && BB.RankedUI.available();
+      // botões com a arte do menu (img/menu/btn_*.webp): ícone à esquerda, texto escrito pelo jogo
+      const mb = (img, label, go, gold) => `<button class="mbtn ${gold ? 'gold' : ''} ${label.length > 11 ? 'long' : ''}" data-m="${go}"><img src="img/menu/${img}.webp" alt=""><span>${label}</span></button>`;
+      const left = (ranked ? mb('btn_ranked', T('ui.ranked'), 'ranked', true) : '') + mb('btn_barons', T('ui.barons'), 'barons') + mb('btn_castles', T('ui.castles'), 'castles')
+        + mb('btn_history', T('ui.history'), 'history') + mb('btn_deck', T('profile.title'), 'profile');
+      const right = mb('btn_store', T('shop.title'), 'shop', true) + mb('btn_collection', T('ui.collection'), 'collection') + mb('btn_cards', T('ui.deck'), 'deck')
+        + (ranked ? mb('btn_ranking', T('ui.leaderboard'), 'ranking') : '') + mb('btn_settings', T('ui.settings'), 'settings');
       screen('menu', `
-        <div class="topbar"><div class="profile tap" id="profileBtn">${BB.Shop.img(BB.Shop.avatarPic(p), 'avatar')}<div class="lvl">${p.accountLevel}</div><div><b>${esc(BB.playerName(p))}</b> <span class="muted">(${T('ui.guest')})</span>
-          <div class="xpbar"><i style="width:${(p.xp / need) * 100}%"></i></div><small class="muted">${p.xp}/${need} XP</small></div></div><h1></h1>
-          <div class="wallet"><span>🪙 ${p.gold}</span><span>💎 ${p.crystals}</span></div></div>
-        <div class="main">
-          <div class="col">${BB.RankedUI && BB.RankedUI.available() ? `<button class="btn gold" data-go="ranking">🏆 ${T('ui.ranked')}</button>` : ''}<button class="btn" data-go="barons">${T('ui.barons')}</button><button class="btn" data-go="castles">${T('ui.castles')}</button><button class="btn" data-go="history">${T('ui.history')}</button></div>
-          <div class="mid"><img class="logo" src="img/logo.webp" alt="">
+        <div class="mtop"><div class="profile tap" id="profileBtn">${BB.Shop.img(BB.Shop.avatarPic(p), 'avatar')}<div class="mlvl">${p.accountLevel}</div>
+            <div><b>${esc(BB.playerName(p))}</b> <span class="guest">(${T('ui.guest')})</span>
+            <div class="xpbar"><i style="width:${(p.xp / need) * 100}%"></i><em>${p.xp}/${need} XP</em></div></div></div>
+          <div class="mwallet"><span class="cur"><i>🪙</i><b>${p.gold}</b><button class="plus" data-plus="gems">+</button></span>
+            <span class="cur"><i>💎</i><b>${p.crystals}</b><button class="plus" data-plus="gems">+</button></span>
+            <button class="gear" data-m="settings" aria-label="${esc(T('ui.settings'))}">⚙</button></div></div>
+        <div class="mmain">
+          <div class="mcol">${left}</div>
+          <div class="mmid"><img class="logo" src="img/logo.webp" alt="">
             <div class="lineup">${BB.Shop.img(BB.Shop.baronPic(p, p.selectedBaron))}<div><b>${BB.baronName(p.selectedBaron)}</b><div class="muted">${BB.castleName(p.selectedCastle)}</div></div></div>
-            <button class="btn gold battle-btn" data-go="mode">⚔ ${T('ui.battle')}</button></div>
-          <div class="col"><button class="btn gold" data-go="shop">🛒 ${T('shop.title')}</button><button class="btn" data-go="collection">${T('ui.collection')}</button><button class="btn" data-go="deck">${T('ui.deck')}</button><button class="btn dark" data-go="settings">${T('ui.settings')}</button></div>
-        </div>`);
+            <button class="mbtn mbattle" data-m="mode"><img src="img/menu/btn_battle.webp" alt=""><span>${T('ui.battle')}</span></button></div>
+          <div class="mcol">${right}</div>
+        </div>`, 'img/menu/menu_bg2.webp');
       BB.audio.music('menu');
       back.menu = null;
       $('#profileBtn').onclick = () => { BB.audio.play('click'); ui.show('profile'); };
+      app().querySelectorAll('[data-m]').forEach((el) => el.onclick = () => {
+        BB.audio.play('click');
+        const go = el.dataset.m;
+        // Ranqueada: entra direto na busca de adversário (ou no ranking, para entrar na conta)
+        if (go === 'ranked') { if (BB.cloud && BB.cloud.loggedIn()) BB.RankedUI.play(); else ui.show('ranking'); return; }
+        ui.show(go);
+      });
+      app().querySelectorAll('[data-plus]').forEach((el) => el.onclick = () => { BB.audio.play('click'); ui.show('shop', { tab: el.dataset.plus }); });
       if (BB.Progress.dailyAvailable(p)) setTimeout(() => ui.dailyReward(), 350);
       if (BB.RankedUI) BB.RankedUI.onMenu();
     },

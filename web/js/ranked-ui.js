@@ -247,7 +247,7 @@
         <div class="rk-sub">${T('rk.season', R().seasonNumber(season))} · ${days <= 1 ? T('rk.ends_today') : T('rk.ends', days)}</div>
         <div class="rk"><div class="panel rk-left" id="rkLeft"></div>
           <div class="panel rk-right"><div class="rk-list" id="rkList"></div><div class="rk-mine" id="rkMine"></div></div></div>`);
-      BB.ui.h.bindBack('ranking', () => BB.ui.show('mode'));
+      BB.ui.h.bindBack('ranking', () => BB.ui.show('menu'));
       BB.audio.music('menu');
       const a = RU.checkAbandon(); if (a) RU.showAbandon(a);
       RU.load();
