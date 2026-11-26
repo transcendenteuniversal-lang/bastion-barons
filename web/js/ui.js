@@ -450,10 +450,15 @@
         card = `<div class="reward-card">${ui.cardHtml(def, BB.Progress.owned(BB.profile, def.id), { level: true })}
           <b style="color:var(--${def.rarity.toLowerCase()})">${T(r.newCard ? 'result.new_card' : 'result.card', BB.cardName(def.id), T('rarity.' + def.rarity))}</b></div>`;
       }
+      const names = (ids) => ids.map((id) => BB.cardName(id)).join(', ');
+      const lvl = (r.levelRewards || []).map((x) => `<div style="color:#ffe39a;font-weight:800">${T('result.level_reward', x.level, x.gold, x.crystals ? ' · 💎' + x.crystals : '', x.ids && x.ids.length ? ' · 🃏 ' + names(x.ids) : '')}</div>`).join('');
+      const chest = r.chest ? `<div style="color:#5fd06d;font-weight:900">${T('result.chest', names(r.chest))}</div>` : '';
       const unl = r.unlocked.map((u) => `<div style="color:#5fd06d;font-weight:800">${T('result.unlocked', u.startsWith('baron:') ? BB.baronName(u.slice(6)) : BB.castleName(u.slice(7)))}</div>`).join('');
       const P = BB.Progress, pr = BB.profile, goals = [];
       if (P.dailyAvailable(pr)) goals.push(T('result.daily_ready'));
       else if (pr.tutorialDone) goals.push(T('result.daily_next', ui.dailyText(P.dailyNext(pr))));
+      const every = C.balance.winChestEvery;
+      if (every && !r.chest) goals.push(T('result.chest_left', every - (pr.chestWins || 0)));
       const nu = P.nextUnlock(pr, C);
       if (nu) goals.push(T(nu.wins === 1 ? 'result.next_unlock_1' : 'result.next_unlock_n',
         nu.items.map((x) => (x.type === 'baron' ? BB.baronName(x.id) : BB.castleName(x.id))).join(' + '), nu.level, nu.wins));
@@ -466,7 +471,7 @@
           <div>${T('result.cards_played', a.stats.cardsPlayed)}</div><div>${T('result.castle_damage', Math.round(a.stats.damageToCastle))}</div>
           <div>${T('result.units_destroyed', a.stats.unitsDestroyed)}</div></div>
         <div class="panel"><h3 class="title">${T('result.rewards')}</h3><div style="color:var(--gold);font-weight:800">${T('result.gold', r.gold)}</div>${r.firstWin ? '<div style="color:#5fd06d;font-weight:900">' + T('result.first_win') + '</div>' : ''}
-          <div style="color:#8fc8ff;font-weight:800">${T('result.xp', r.xp)}</div>${r.levels ? `<div style="color:#5fd06d;font-weight:800">${T('result.level_up', BB.profile.accountLevel)}</div>` : ''}${unl}${card}
+          <div style="color:#8fc8ff;font-weight:800">${T('result.xp', r.xp)}</div>${r.levels ? `<div style="color:#5fd06d;font-weight:800">${T('result.level_up', BB.profile.accountLevel)}</div>` : ''}${unl}${lvl}${chest}${card}
           <div class="odds">${T('result.odds', ...odds, b.pityThreshold)}</div></div></div>
         ${a.ranked ? BB.RankedUI.resultHtml(a.ranked) : goalHtml}<div class="actions">${a.ranked
           ? `<button class="btn green" id="rkBoard">🏆 ${T('rk.ranking')}</button><button class="btn gold" id="again">⚔ ${T('rk.next_match')}</button>`

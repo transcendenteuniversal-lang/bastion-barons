@@ -30,7 +30,7 @@
       // campos ausentes em saves antigos recebem o valor padrão
       const num = (k, d) => { if (typeof p[k] !== 'number' || !isFinite(p[k])) p[k] = d; };
       num('gold', 100); num('crystals', 0); num('xp', 0); num('accountLevel', 1); num('pity', 0);
-      num('battles', 0); num('wins', 0); num('losses', 0); num('draws', 0); num('winStreak', 0); num('bestWinStreak', 0);
+      num('chestWins', 0); num('battles', 0); num('wins', 0); num('losses', 0); num('draws', 0); num('winStreak', 0); num('bestWinStreak', 0);
       num('music', 0.6); num('sfx', 0.8);
       if (typeof p.vibration !== 'boolean') p.vibration = true;
       if (typeof p.tutorialDone !== 'boolean') p.tutorialDone = p.battles > 0;
@@ -72,7 +72,18 @@
     castleUnlocked(p, c) { return !!(BB.content && BB.content.balance.testUnlockAll) || p.accountLevel >= (c.unlockLevel || 1); },
     xpForNext(b, level) { return b.xpBase + b.xpPerLevel * (Math.max(1, level) - 1); },
 
-    addXp(p, content, amount, unlocked) {
+    // prêmio de cada nível (trilha até o nível 30): ouro sempre, carta a cada 3 níveis, baú e cristais a cada 5
+    levelReward(level) {
+      const r = { level, gold: 50 + 10 * level, crystals: 0, cards: level % 3 === 0 ? 1 : 0 };
+      if (level % 5 === 0) { r.cards += 3; r.crystals = level >= 30 ? 200 : level * 4; }
+      return r;
+    },
+    giveCards(p, content, rng, n) {
+      const ids = [];
+      for (let i = 0; i < n; i++) { const id = P.rollCard(p, content, rng), o = P.owned(p, id); if (o) o.copies++; else p.cards.push({ id, level: 1, copies: 0 }); ids.push(id); }
+      return ids;
+    },
+    addXp(p, content, amount, unlocked, rng, rewards) {
       const b = content.balance;
       let gained = 0;
       p.xp += Math.max(0, amount);
@@ -81,6 +92,12 @@
         p.accountLevel++; gained++;
         for (const x of content.barons) if (x.unlockLevel === p.accountLevel) unlocked.push('baron:' + x.id);
         for (const x of content.castles) if (x.unlockLevel === p.accountLevel) unlocked.push('castle:' + x.id);
+        if (rewards && p.accountLevel <= (b.levelCap || 30)) {
+          const lr = P.levelReward(p.accountLevel);
+          p.gold += lr.gold; p.crystals += lr.crystals;
+          lr.ids = rng ? P.giveCards(p, content, rng, lr.cards) : [];
+          rewards.push(lr);
+        }
       }
       return gained;
     },
@@ -164,7 +181,13 @@
         const o = P.owned(p, r.cardId);
         if (o) o.copies++; else { p.cards.push({ id: r.cardId, level: 1, copies: 0 }); r.newCard = true; }
       }
-      r.levels = P.addXp(p, content, r.xp, r.unlocked);
+      // baú de vitórias: a cada 5 vitórias, 3 cartas
+      if (result > 0 && b.winChestEvery) {
+        p.chestWins = (p.chestWins || 0) + 1;
+        if (p.chestWins >= b.winChestEvery) { p.chestWins = 0; r.chest = P.giveCards(p, content, rng, b.winChestCards || 3); }
+      }
+      r.levelRewards = [];
+      r.levels = P.addXp(p, content, r.xp, r.unlocked, rng, r.levelRewards);
       if (record) { p.history.unshift(record); p.history.length = Math.min(p.history.length, 50); }
       return r;
     },

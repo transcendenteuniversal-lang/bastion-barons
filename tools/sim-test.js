@@ -300,8 +300,9 @@ test('evoluir consome cópias e ouro', () => {
 test('recompensa de vitória e desbloqueio por nível', () => {
   const p = BB.Progress.create(content); const g = p.gold;
   const r = BB.Progress.applyResult(p, content, 1, new BB.Rng(3), { result: 1 });
-  eq(p.gold, g + content.balance.winGold * 2); assert(r.firstWin, '1ª vitória do dia vale o dobro'); assert(r.cardId); eq(p.wins, 1); eq(p.history.length, 1);
-  const g2 = p.gold; BB.Progress.applyResult(p, content, 1, new BB.Rng(4), null); eq(p.gold, g2 + content.balance.winGold);
+  const lvGold = r.levelRewards.reduce((s, x) => s + x.gold, 0);
+  eq(p.gold, g + content.balance.winGold * 2 + lvGold); assert(r.firstWin, '1ª vitória do dia vale o dobro'); assert(r.cardId); eq(p.wins, 1); eq(p.history.length, 1);
+  const g2 = p.gold; const r2 = BB.Progress.applyResult(p, content, 1, new BB.Rng(4), null); eq(p.gold, g2 + content.balance.winGold + r2.levelRewards.reduce((s, x) => s + x.gold, 0));
   const un = []; BB.Progress.addXp(p, content, 10000, un); assert(un.includes('baron:eldrin'));
 });
 test('recompensa diária: uma por dia, sequência de 7 dias', () => {
@@ -310,6 +311,19 @@ test('recompensa diária: uma por dia, sequência de 7 dias', () => {
   eq(r.day, 1); eq(p.gold, g + BB.Progress.DAILY[0].gold); assert(!BB.Progress.dailyAvailable(p)); eq(BB.Progress.claimDaily(p, content, new BB.Rng(5)), null);
   const y = new Date(); y.setDate(y.getDate() - 1); p.daily.last = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate();
   eq(BB.Progress.claimDaily(p, content, new BB.Rng(6)).day, 2);
+});
+test('trilha de níveis: ouro em todo nível, carta a cada 3, baú e cristais a cada 5', () => {
+  const p = BB.Progress.create(content); const g = p.gold, c = p.crystals, n = p.cards.reduce((s, o) => s + 1 + o.copies, 0);
+  const rw = []; BB.Progress.addXp(p, content, BB.Progress.xpForNext(content.balance, 1) + BB.Progress.xpForNext(content.balance, 2) + BB.Progress.xpForNext(content.balance, 3) + BB.Progress.xpForNext(content.balance, 4), [], new BB.Rng(9), rw);
+  eq(p.accountLevel, 5); eq(rw.length, 4); eq(p.gold - g, rw.reduce((s, x) => s + x.gold, 0)); eq(p.crystals - c, 20);
+  eq(p.cards.reduce((s, o) => s + 1 + o.copies, 0) - n, 1 + 3, 'cartas (nível 3 + baú do nível 5)');
+  eq(BB.Progress.levelReward(30).crystals, 200);
+});
+test('baú de vitórias: 3 cartas a cada 5 vitórias', () => {
+  const p = BB.Progress.create(content); let chest = null;
+  for (let i = 0; i < 5; i++) { const r = BB.Progress.applyResult(p, content, 1, new BB.Rng(20 + i), null); if (r.chest) chest = { i, n: r.chest.length }; }
+  assert(chest && chest.i === 4 && chest.n === 3, JSON.stringify(chest)); eq(p.chestWins, 0);
+  BB.Progress.applyResult(p, content, -1, new BB.Rng(1), null); eq(p.chestWins, 0, 'derrota não conta');
 });
 test('proteção contra azar garante Épica ou melhor', () => {
   const p = BB.Progress.create(content); p.pity = content.balance.pityThreshold - 1;

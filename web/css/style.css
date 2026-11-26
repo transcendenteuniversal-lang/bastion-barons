@@ -140,7 +140,7 @@ img { -webkit-user-drag: none; pointer-events: none; }
 #result .big { font-size: 6rem; text-align: center; margin: 1rem 0 0; }
 #result .reason { text-align: center; font-size: 1.4rem; margin-bottom: 1rem; }
 #result .cols { display: flex; gap: 2rem; justify-content: center; flex: 1; min-height: 0; padding: 0 2rem; }
-#result .cols .panel { flex: 1; max-width: 32rem; padding: 1rem 1.4rem; font-size: 1.35rem; }
+#result .cols .panel { flex: 1; max-width: 32rem; padding: 1rem 1.4rem; font-size: 1.35rem; overflow-y: auto; touch-action: pan-y; }
 #result .cols h3 { margin: 0 0 .6rem; font-size: 1.8rem; text-align: center; }
 #result .odds { font-size: .9rem; color: #b8c4e8; margin-top: .8rem; }
 #result .actions { display: flex; gap: 2rem; justify-content: center; padding: 1rem; }

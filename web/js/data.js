@@ -36,28 +36,8 @@ BB.CONTENT = {
   "maxUnitsPerPlayer": 40,
   "levelStatBonus": 0.08,
   "maxCardLevel": 10,
-  "upgradeCopies": [
-   2,
-   4,
-   8,
-   15,
-   25,
-   40,
-   60,
-   90,
-   130
-  ],
-  "upgradeGold": [
-   20,
-   50,
-   120,
-   250,
-   500,
-   900,
-   1500,
-   2500,
-   4000
-  ],
+  "upgradeCopies": [2, 3, 5, 8, 12, 18, 25, 35, 50],
+  "upgradeGold": [20, 50, 100, 200, 350, 600, 900, 1400, 2000],
   "rarityWeights": [
    600,
    270,
@@ -66,6 +46,9 @@ BB.CONTENT = {
    5
   ],
   "pityThreshold": 10,
+  "winChestEvery": 5,
+  "winChestCards": 3,
+  "levelCap": 30,
   "winGold": 60,
   "drawGold": 25,
   "lossGold": 15,
@@ -73,7 +56,7 @@ BB.CONTENT = {
   "drawXp": 20,
   "lossXp": 15,
   "xpBase": 100,
-  "xpPerLevel": 60,
+  "xpPerLevel": 75,
   "starterCards": [
    "royal_knight",
    "barbarian",
@@ -826,7 +809,7 @@ BB.CONTENT = {
    "value2": 0.25,
    "duration": 8,
    "requiresLane": true,
-   "unlockLevel": 2,
+   "unlockLevel": 3,
    "color": "#C8322A"
   },
   {
@@ -837,7 +820,7 @@ BB.CONTENT = {
    "count": 5,
    "summonId": "skeleton",
    "requiresLane": true,
-   "unlockLevel": 3,
+   "unlockLevel": 6,
    "color": "#7A3BC4"
   },
   {
@@ -847,7 +830,7 @@ BB.CONTENT = {
    "chargeSeconds": 40,
    "duration": 4,
    "requiresLane": true,
-   "unlockLevel": 4,
+   "unlockLevel": 9,
    "color": "#2E6FE0"
   }
  ],
@@ -884,7 +867,7 @@ BB.CONTENT = {
    "initialCooldown": 20,
    "value": 300,
    "requiresLane": true,
-   "unlockLevel": 3,
+   "unlockLevel": 4,
    "roofColor": "#9B1C1C",
    "stoneColor": "#6E6560"
   },
@@ -896,7 +879,7 @@ BB.CONTENT = {
    "value": 350,
    "value2": 0.3,
    "requiresLane": false,
-   "unlockLevel": 4,
+   "unlockLevel": 7,
    "roofColor": "#3E8E3A",
    "stoneColor": "#8C7B5E"
   },
@@ -908,7 +891,7 @@ BB.CONTENT = {
    "value": 220,
    "value2": 0.6,
    "requiresLane": true,
-   "unlockLevel": 5,
+   "unlockLevel": 10,
    "roofColor": "#5B2A86",
    "stoneColor": "#4A4552"
   }
