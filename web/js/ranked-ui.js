@@ -187,7 +187,7 @@
     // ------------------------------------------------------------ tela do ranking
     rowHtml(e) {
       const medal = e.pos === 1 ? '🥇' : e.pos === 2 ? '🥈' : e.pos === 3 ? '🥉' : '#' + e.pos;
-      return `<div class="rk-row ${e.me ? 'me' : ''}"><span class="rk-pos">${medal}</span><img src="${BB.art.baronUrl(e.baron || 'rei_bastion')}" alt="">
+      return `<div class="rk-row ${e.me ? 'me' : ''}"><span class="rk-pos">${medal}</span>${e.me ? BB.Shop.img(BB.Shop.avatarPic(BB.profile)) : `<img src="${BB.art.baronUrl(e.baron || 'rei_bastion')}" alt="">`}
         <span class="rk-name">${esc(e.me ? e.name + ' (' + T('rk.you') + ')' : e.name)}</span>${e.trophies ? `<span class="rk-tro">🏆${e.trophies > 1 ? e.trophies : ''}</span>` : ''}
         <span class="rk-lg">${R().LEAGUES[e.league].icon}</span><b>${e.points}</b></div>`;
     },
@@ -284,7 +284,7 @@
     },
     vs(opp, ai) {
       const d = RU.data(), p = BB.profile;
-      const side = (name, baron, points, me) => { const li = R().league(points); return `<div class="vs-side ${me ? 'me' : 'foe'}"><img src="${BB.art.baronUrl(baron)}" alt="">
+      const side = (name, baron, points, me) => { const li = R().league(points); return `<div class="vs-side ${me ? 'me' : 'foe'}">${me ? BB.Shop.img(BB.Shop.avatarPic(BB.profile)) : `<img src="${BB.art.baronUrl(baron)}" alt="">`}
         <h2 class="title">${esc(name)}</h2><div>${R().LEAGUES[li].icon} ${RU.leagueName(li)}</div><b>${T('rk.points', points)}</b><small>${BB.baronName(baron)}</small></div>`; };
       BB.ui.h.screen('matchmaking', `<div class="vs">${side(BB.playerName(p), p.selectedBaron, d.st.points, true)}<div class="vs-mid title">VS</div>${side(opp.name, opp.baron, opp.points, false)}</div>`);
       BB.audio.play('castle');

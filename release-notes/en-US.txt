@@ -1,5 +1,5 @@
-New: RANKED mode!
-- Climb 6 leagues, from the Palisade to the Barons' Throne
-- Monthly seasons with rewards and trophies for the Top 10
-- Sign in with Google or e-mail and compete on the leaderboard
-- Faster start and daily reward reminders
+New: SHOP and SKINS!
+- Daily offers, card chests and crystal-to-gold trades
+- Skins for Barons, castles, troops, profile pictures, celebrations and emotes
+- Level track up to 30 with rewards and a chest every 5 wins
+- Ranked mode with leagues and seasons

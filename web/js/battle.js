@@ -61,6 +61,7 @@
 
     start() {
       BB.renderer.reset();
+      BB.renderer.skinSet = BB.Shop ? BB.Shop.battleSkins(BB.profile, this.match) : null;
       BB.renderer.resize();
       document.getElementById('field').style.display = 'block';
       this.buildHud();
@@ -100,7 +101,7 @@
       const CASTLE_ICON = { ImperialShield: '🛡️', DragonBreath: '🐉', IceStorm: '❄️' };
       hud.innerHTML = `
         <div class="hb-panel me" data-r="40,6,420,112"></div>
-        <img class="hb-portrait me" data-r="45,9,141,109" src="${BB.art.baronUrl(me.baron.id)}">
+        ${BB.Shop.img(BB.Shop.avatarPic(p), 'hb-portrait me', 'data-r="45,9,141,109"')}
         <div class="hb-lvl me" data-r="30,72,74,118">${p.accountLevel}</div>
         <div class="hb-name" data-r="150,10,412,40">${esc(BB.playerName(p))}</div>
         <div class="hb-sub" data-r="150,40,412,68">${BB.baronName(me.baron.id)} • 🏆 ${p.wins}</div>
@@ -117,12 +118,12 @@
         <div class="hb-score me" data-r="598,8,766,78"><b>👑</b><span id="crownMe">0</span></div>
         <div class="hb-timer" data-r="764,8,910,78" id="timer">3:00</div>
         <div class="hb-score foe" data-r="908,8,1078,78"><span id="crownFoe">0</span><b>👑</b></div>
-        <button class="hb-orb tap" data-r="22,770,172,920" id="baronBtn"><img src="${BB.art.baronUrl(me.baron.id)}"></button>
+        <button class="hb-orb tap" data-r="22,770,172,920" id="baronBtn">${BB.Shop.img(BB.Shop.baronPic(p, me.baron.id))}</button>
         <button class="hb-orb castle tap" data-r="182,770,332,920" id="castleBtn"><img src="img/castle_icons/${me.castle.id}.webp"></button>
         <div class="hb-tip hidden" data-r="22,580,560,760" id="tip"></div>
         <button class="hb-btn big tap" data-r="1350,800,1440,880" id="emoteBtn">😃</button>
         <button class="hb-btn auto tap" data-r="1452,800,1640,880" id="autoBtn">⚔ ${T('battle.auto')}</button>
-        <div class="hb-emotes tap hidden" data-r="1290,706,1640,790" id="emotes">${['👍', '😃', '😠', '😱', '👑'].map((e) => `<button data-e="${e}">${e}</button>`).join('')}</div>
+        <div class="hb-emotes tap hidden" data-r="1290,706,1640,790" id="emotes">${BB.Shop.equipped(p, 'emotes').fx.map((e) => `<button data-e="${e}">${e}</button>`).join('')}</div>
         <div class="hb-x2 hidden" data-r="690,84,986,116" id="x2">${T('battle.double_energy')}</div>
 
         <div class="hb-tray" data-r="338,744,1334,941"></div>
@@ -469,7 +470,7 @@
     showEnd() {
       const m = this.match;
       BB.platform.gameplayStop();
-      if (m.winner === 0) BB.platform.happytime();
+      if (m.winner === 0) { BB.platform.happytime(); if (BB.ShopUI) BB.ShopUI.celebrate(); } // comemoração escolhida na loja
       if (this.tut) this.tut.end();
       this.disarm();
       document.getElementById('toast').innerHTML = '';

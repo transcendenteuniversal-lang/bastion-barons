@@ -391,3 +391,35 @@ html.rk-free #rotate { display: none !important; }
   html.rk-free .rk-left { width: auto; flex: none; }
   html.rk-free .rk-right { flex: 1; min-height: 0; }
 }
+
+/* ---------------------------------------------------------------- Loja */
+.topbar .avatar { width: 3.4rem; height: 3.4rem; border-radius: 50%; object-fit: cover; border: .18rem solid var(--gold); margin-right: .5rem; }
+.sh-tabs { display: flex; gap: .8rem; justify-content: center; padding: .7rem 1rem .2rem; }
+.sh-tabs .btn { min-width: 9rem; }
+.sh-body { flex: 1; min-height: 0; overflow-y: auto; touch-action: pan-y; padding: .6rem 1.4rem 1.2rem; padding-left: calc(1.4rem + var(--sa-l)); padding-right: calc(1.4rem + var(--sa-r)); }
+.sh-h { margin: .4rem 0 .7rem; font-size: 1.7rem; text-align: center; } .sh-h small { font-size: 1rem; color: #b8c4e8; font-family: inherit; text-transform: none; }
+.sh-row { display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; }
+.sh-item { padding: .8rem; display: flex; flex-direction: column; align-items: center; gap: .6rem; width: 11rem; }
+.sh-item .card { width: 8rem; font-size: .8rem; }
+.sh-starter { display: flex; align-items: center; gap: 1.4rem; max-width: 46rem; margin: 1.2rem auto 0; padding: 1rem 1.4rem; }
+.sh-starter h3 { margin: 0; } .sh-starter p { margin: .3rem 0 0; }
+.sh-big { font-size: 3.6rem; line-height: 1.1; }
+.sh-chest { width: 14rem; padding: 1rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+.sh-chest h3 { margin: 0; font-size: 1.5rem; } .sh-chest .btn { margin-top: .4rem; width: 100%; }
+.sh-odds { text-align: center; color: #b8c4e8; font-size: 1rem; max-width: 52rem; margin: 1rem auto 0; }
+.sh-chips { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; margin-bottom: .9rem; }
+.sh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr)); gap: 1rem; }
+.sh-skin { padding: .8rem; display: flex; flex-direction: column; align-items: center; gap: .35rem; text-align: center; }
+.sh-skin.epic { border-color: var(--epic); } .sh-skin.legendary { border-color: var(--legendary); box-shadow: 0 0 1rem rgba(255,178,30,.35); }
+.sh-skin b { font-size: 1.15rem; } .sh-skin small { color: #b8c4e8; } .sh-skin .btn { width: 100%; margin-top: .2rem; }
+.sh-pv { width: 8.5rem; height: 8.5rem; object-fit: cover; border-radius: .8rem; border: .15rem solid var(--gold-d); background: #0b1638; }
+.sh-pv.round { border-radius: 50%; }
+.sh-fx { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; font-size: 2.2rem; gap: .2rem; }
+.sh-fx.celebration span { animation: shfloat 1.6s ease-in-out infinite alternate; } .sh-fx.celebration span:nth-child(2) { animation-delay: .4s; } .sh-fx.celebration span:nth-child(3) { animation-delay: .8s; }
+@keyframes shfloat { from { transform: translateY(.4rem); } to { transform: translateY(-.4rem); } }
+.sh-reveal { width: min(60rem, 94%) !important; }
+.sh-cards { display: flex; flex-wrap: wrap; gap: .7rem; justify-content: center; margin-top: .6rem; }
+.sh-card { width: 7rem; font-size: .75rem; animation: pop .45s both; }
+.celebrate { position: fixed; inset: 0; pointer-events: none; z-index: 30; overflow: hidden; }
+.celebrate span { position: absolute; top: -10%; animation-name: celfall; animation-timing-function: linear; animation-fill-mode: both; filter: drop-shadow(0 .2rem .2rem rgba(0,0,0,.5)); }
+@keyframes celfall { from { transform: translateY(0) rotate(0); opacity: 1; } to { transform: translateY(120vh) rotate(540deg); opacity: .9; } }

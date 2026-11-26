@@ -634,6 +634,7 @@
         const im = BB.art.image(art.src);
         if (im.complete && im.naturalWidth) {
           g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
+          const csk = this.skinSet && this.skinSet.castle[owner]; if (csk && csk.filter) g.filter = csk.filter; // skin do castelo
           g.drawImage(im, art.x, art.y, art.w, art.h);
           const st = (this.crack && this.crack[owner]) || 0;
           if (st > 0) { const cv = this.crackLayer(im, art, st); if (cv) g.drawImage(cv, art.x, art.y, art.w, art.h); }
@@ -734,6 +735,7 @@
         g.save(); if (owner === 1) { g.translate(AW, 0); g.scale(-1, 1); }
         g.beginPath(); art.rail.forEach(([x, y], i) => (i ? g.lineTo(art.x + x, art.y + y) : g.moveTo(art.x + x, art.y + y)));
         g.closePath(); g.clip();
+        const csk = this.skinSet && this.skinSet.castle[owner]; if (csk && csk.filter) g.filter = csk.filter;
         g.drawImage(im, art.x, art.y, art.w, art.h); g.restore();
         return;
       }
@@ -768,7 +770,8 @@
       const win = m.over && m.winner === owner, lose = m.over && m.winner === 1 - owner;
       // folha de animações própria do Barão (espera, poder, vitória, derrota, dano, comando)
       const ba = BB.BARON_ANIM && BB.BARON_ANIM[p.baron.id];
-      const bsheet = ba ? BB.art.image('img/barons/' + p.baron.id + '_anim.webp') : null;
+      const bskin = this.skinSet && this.skinSet.baron[owner];
+      const bsheet = ba ? BB.art.image(bskin && bskin.sheet ? bskin.sheet : 'img/barons/' + p.baron.id + '_anim.webp') : null;
       if (bsheet && bsheet.complete && bsheet.naturalWidth) {
         const foot = b.y + 54;
         if (m.baronReady(p) && !m.over) {
@@ -793,6 +796,7 @@
         // a folha da Elara foi desenhada olhando para a esquerda: inverte o lado
         const faceLeft = ba.faceLeft || p.baron.id === 'elara';
         g.save(); g.translate(b.x, foot); if ((owner === 1) !== faceLeft) g.scale(-1, 1);
+        const bsk = this.skinSet && this.skinSet.baron[owner]; if (bsk && bsk.filter) g.filter = bsk.filter; // skin do Barão
         g.drawImage(bsheet, fr * ba.w, row * ba.h, ba.w, ba.h, -ba.ax * s, -ba.ay * s, ba.w * s, ba.h * s);
         g.restore();
         this.drawRailing(owner, m);
@@ -1008,6 +1012,7 @@
       if (dir < 0) g.scale(-1, 1);
       if (u.state === 'Stunned') g.filter = 'saturate(.35) brightness(1.25) hue-rotate(160deg)';
       else if (u.poisonTime > 0) g.filter = 'sepia(.4) hue-rotate(50deg) saturate(1.4)';
+      else { const tsk = this.skinSet && this.skinSet.unit[v.owner] && this.skinSet.unit[v.owner][u.def.id]; if (tsk && tsk.filter) g.filter = tsk.filter; } // skin da tropa
       const bn = row === 0 && v.blendNext; v.blendNext = null;
       if (bn && bn.a > 0.5) { // cruza os dois quadros vizinhos do andar
         const a0 = g.globalAlpha;

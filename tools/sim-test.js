@@ -2,7 +2,7 @@
 // Uso: node tools/sim-test.js
 global.window = global;
 const path = require('path');
-for (const f of ['data', 'strings', 'sim', 'ai', 'progress', 'ranked']) require(path.join(__dirname, '..', 'web', 'js', f + '.js'));
+for (const f of ['data', 'strings', 'sim', 'ai', 'progress', 'ranked', 'shop']) require(path.join(__dirname, '..', 'web', 'js', f + '.js'));
 const BB = global.BB;
 const content = new BB.Content(BB.CONTENT);
 content.balance.testUnlockAll = false; // os testes conferem as regras normais de desbloqueio
@@ -417,6 +417,54 @@ console.log('Ranqueada');
   test('dificuldade acompanha a liga do adversário e o nível do jogador', () => {
     eq(R.aiFor(100, 1, 9).difficulty, 'easy'); eq(R.aiFor(800, 2, 9).difficulty, 'normal'); eq(R.aiFor(1900, 3, 9).difficulty, 'hard');
     const top = R.aiFor(2600, 3, 9); eq(top.level, 4); assert(top.strongDeck); eq(R.aiFor(2600, 9, 9).level, 9);
+  });
+}
+
+console.log('Loja');
+{
+  const S = BB.Shop;
+  test('catálogo: 6 tipos de skin, todas com preço e nome em pt/en, alvos válidos', () => {
+    for (const t of S.TYPES) assert(S.SKINS.some((s) => s.type === t), t);
+    eq(new Set(S.SKINS.map((s) => s.id)).size, S.SKINS.length, 'ids únicos');
+    for (const s of S.SKINS) {
+      assert(s.free || s.price > 0, s.id); assert(s.name.pt && s.name.en, s.id);
+      if (s.type === 'baron') assert(content.baronById[s.target], s.id);
+      if (s.type === 'castle') assert(content.castleById[s.target], s.id);
+      if (s.type === 'troop') assert(content.cards[s.target], s.id);
+    }
+  });
+  test('comprar skin gasta cristais, equipa e não compra duas vezes', () => {
+    const p = BB.Progress.create(content); p.crystals = 1000;
+    eq(S.buySkin(p, 'baron_thorg_lava'), 'Ok'); eq(p.crystals, 1000 - S.PRICE.epic);
+    eq(S.equipped(p, 'baron', 'thorg').id, 'baron_thorg_lava'); eq(S.buySkin(p, 'baron_thorg_lava'), 'Owned');
+    eq(S.equip(p, 'baron_thorg_lava'), 'Ok'); eq(S.equipped(p, 'baron', 'thorg'), null, 'tocar de novo volta ao padrão');
+    p.crystals = 10; eq(S.buySkin(p, 'baron_eldrin_storm'), 'NoFunds'); eq(p.crystals, 10);
+    eq(S.equip(p, 'avatar_phoenix'), 'NotOwned');
+  });
+  test('comemoração e emotes têm padrão grátis', () => {
+    const p = BB.Progress.create(content);
+    eq(S.equipped(p, 'celebration').id, 'cel_confetti'); eq(S.equipped(p, 'emotes').fx.length, 5);
+    p.crystals = 500; S.buySkin(p, 'emo_dragon'); eq(S.equipped(p, 'emotes').id, 'emo_dragon');
+  });
+  test('ofertas do dia: 3 cartas fixas no dia, compra uma vez cada', () => {
+    const p = BB.Progress.create(content); p.gold = 10000;
+    const a = S.offers(p, content, '2026-11-26'), b = S.offers(p, content, '2026-11-26');
+    eq(a.length, 3); eq(JSON.stringify(a), JSON.stringify(b)); assert(JSON.stringify(a) !== JSON.stringify(S.offers(p, content, '2026-11-27')), 'muda no dia seguinte');
+    const g = p.gold; eq(S.buyOffer(p, content, '2026-11-26', 0), 'Ok'); eq(p.gold, g - a[0].price); eq(S.buyOffer(p, content, '2026-11-26', 0), 'Bought');
+    assert(BB.Progress.owned(p, a[0].id));
+  });
+  test('baús: número de cartas, preço e raridade mínima garantida', () => {
+    for (const c of S.CHESTS) for (let k = 0; k < 30; k++) {
+      const p = BB.Progress.create(content); p.gold = 5000; p.crystals = 500;
+      const ids = S.openChest(p, content, c.id, new BB.Rng(100 + k));
+      eq(ids.length, c.cards); assert(ids.some((id) => content.card(id).rarityIndex >= c.minRarity), c.id + ' sem a raridade garantida');
+      eq(p.gold, 5000 - (c.cost.gold || 0)); eq(p.crystals, 500 - (c.cost.crystals || 0));
+    }
+    const pobre = BB.Progress.create(content); pobre.gold = 0; eq(S.openChest(pobre, content, 'wood', new BB.Rng(1)), null);
+  });
+  test('trocar cristais por ouro', () => {
+    const p = BB.Progress.create(content); p.crystals = 100; const g = p.gold;
+    eq(S.buyGold(p, 'gold_s'), 'Ok'); eq(p.gold, g + 1000); eq(p.crystals, 0); eq(S.buyGold(p, 'gold_s'), 'NoFunds');
   });
 }
 

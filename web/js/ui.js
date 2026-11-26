@@ -59,7 +59,7 @@
       o = o || {};
       const lock = o.locked ? ' locked' : '';
       return `<div class="card ${def.rarity}${lock}" data-id="${def.id}" ${o.attrs || ''} data-lock="${esc(T('ui.locked'))}">
-        <img class="art" src="${BB.art.cardUrl(def)}" alt="">
+        <img class="art" src="${BB.art.cardUrl(def)}" alt=""${BB.Shop && BB.profile && BB.Shop.cardFilter(BB.profile, def.id) ? ' style="filter:' + BB.Shop.cardFilter(BB.profile, def.id) + '"' : ''}>
         <div class="cost">${def.cost}</div>
         ${o.level && owned ? '<div class="lv">' + T('ui.level', owned.level) + '</div>' : ''}
         ${o.up ? '<div class="up">▲</div>' : ''}
@@ -172,15 +172,15 @@
       const p = BB.profile, b = BB.content.balance;
       const need = BB.Progress.xpForNext(b, p.accountLevel);
       screen('menu', `
-        <div class="topbar"><div class="profile"><div class="lvl">${p.accountLevel}</div><div><b>${esc(BB.playerName(p))}</b> <span class="muted">(${T('ui.guest')})</span>
+        <div class="topbar"><div class="profile">${BB.Shop.img(BB.Shop.avatarPic(p), 'avatar')}<div class="lvl">${p.accountLevel}</div><div><b>${esc(BB.playerName(p))}</b> <span class="muted">(${T('ui.guest')})</span>
           <div class="xpbar"><i style="width:${(p.xp / need) * 100}%"></i></div><small class="muted">${p.xp}/${need} XP</small></div></div><h1></h1>
           <div class="wallet"><span>🪙 ${p.gold}</span><span>💎 ${p.crystals}</span></div></div>
         <div class="main">
           <div class="col">${BB.RankedUI && BB.RankedUI.available() ? `<button class="btn gold" data-go="ranking">🏆 ${T('ui.ranked')}</button>` : ''}<button class="btn" data-go="barons">${T('ui.barons')}</button><button class="btn" data-go="castles">${T('ui.castles')}</button><button class="btn" data-go="history">${T('ui.history')}</button></div>
           <div class="mid"><img class="logo" src="img/logo.webp" alt="">
-            <div class="lineup"><img src="${BB.art.baronUrl(p.selectedBaron)}"><div><b>${BB.baronName(p.selectedBaron)}</b><div class="muted">${BB.castleName(p.selectedCastle)}</div></div></div>
+            <div class="lineup">${BB.Shop.img(BB.Shop.baronPic(p, p.selectedBaron))}<div><b>${BB.baronName(p.selectedBaron)}</b><div class="muted">${BB.castleName(p.selectedCastle)}</div></div></div>
             <button class="btn gold battle-btn" data-go="mode">⚔ ${T('ui.battle')}</button></div>
-          <div class="col"><button class="btn" data-go="collection">${T('ui.collection')}</button><button class="btn" data-go="deck">${T('ui.deck')}</button><button class="btn dark" data-go="settings">${T('ui.settings')}</button></div>
+          <div class="col"><button class="btn gold" data-go="shop">🛒 ${T('shop.title')}</button><button class="btn" data-go="collection">${T('ui.collection')}</button><button class="btn" data-go="deck">${T('ui.deck')}</button><button class="btn dark" data-go="settings">${T('ui.settings')}</button></div>
         </div>`);
       BB.audio.music('menu');
       back.menu = null;
@@ -218,7 +218,7 @@
       const p = BB.profile;
       const items = BB.content.barons.map((b) => {
         const un = BB.Progress.baronUnlocked(p, b), sel = p.selectedBaron === b.id;
-        return `<div class="panel choice ${sel ? 'sel' : ''} ${un ? '' : 'locked'}"><img class="portrait" src="${BB.art.baronUrl(b.id)}">
+        return `<div class="panel choice ${sel ? 'sel' : ''} ${un ? '' : 'locked'}">${BB.Shop.img(BB.Shop.baronPic(p, b.id), 'portrait')}
           <h3 class="title">${BB.baronName(b.id)}</h3><div class="sub">${T('baron.' + b.id + '.title')}</div>
           <div class="ab">${T('baron.' + b.id + '.ability')}</div><div class="desc">${T('baron.' + b.id + '.desc')}</div>
           ${!un ? `<div class="lock">${T('ui.locked_level', b.unlockLevel)}</div>` : sel ? `<b style="color:#5fd06d">${T('ui.selected')}</b>` : `<button class="btn green small" data-pick="${b.id}">${T('ui.select')}</button>`}</div>`;
@@ -239,7 +239,7 @@
       }).join('');
       screen('castles', topbar(T('ui.castles'), true) + `<div class="content"><div class="choices">${items}</div></div>`);
       bindBack('castles', () => ui.show('menu'));
-      app().querySelectorAll('[data-castle]').forEach((cv) => drawCastlePreview(cv, BB.content.castle(cv.dataset.castle)));
+      app().querySelectorAll('[data-castle]').forEach((cv) => { drawCastlePreview(cv, BB.content.castle(cv.dataset.castle)); const sk = BB.Shop.equipped(BB.profile, 'castle', cv.dataset.castle); cv.style.filter = sk && sk.filter ? sk.filter : ''; });
       app().querySelectorAll('[data-pick]').forEach((b) => b.onclick = () => { BB.audio.play('click'); p.selectedCastle = b.dataset.pick; BB.save(); ui.refresh(); });
     },
 
@@ -519,5 +519,6 @@
     g.strokeStyle = '#f2b636'; g.lineWidth = 4; g.strokeRect(W * 0.44, H * 0.66, W * 0.12, H * 0.17);
   }
 
+  ui.drawCastlePreview = drawCastlePreview;
   BB.ui = ui;
 })(window.BB);
