@@ -25,6 +25,9 @@ cp -r "$ROOT/web/." "$BUILD/assets/"
 rm -f "$BUILD/assets/js/update.js"
 sed -i '/js\/update\.js/d' "$BUILD/assets/index.html"
 echo "window.BB = window.BB || {}; BB.VERSION = { code: $VERSION_CODE, name: '$VERSION_NAME', store: 'play' };" > "$BUILD/assets/js/version.js"
+# loja: progressão de verdade (cartas pelas vitórias, Barões e castelos por nível); o APK de teste continua com tudo liberado
+sed -i 's/"testUnlockAll": true/"testUnlockAll": false/' "$BUILD/assets/js/data.js"
+grep -q '"testUnlockAll": false' "$BUILD/assets/js/data.js" || { echo "! testUnlockAll não encontrado"; exit 1; }
 
 # manifesto da loja: API alvo exigida pela Play e paisagem mantida em tablets no Android 16
 sed -e "s/@VERSION_CODE@/$VERSION_CODE/" -e "s/@VERSION_NAME@/$VERSION_NAME/" \
