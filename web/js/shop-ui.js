@@ -121,6 +121,64 @@
       });
     },
 
+    // ------------------------------------------------------------ seletor de skin em cada item (Barão, castelo, carta, perfil)
+    thumb(sk, type, target) {
+      const p = BB.profile, f = sk && sk.filter && !sk.src ? ' style="filter:' + sk.filter + '"' : '';
+      if (type === 'celebration' || type === 'emotes') return `<span class="sk-emo">${sk.fx.slice(0, 3).join('')}</span>`;
+      if (type === 'avatar') { const pic = sk ? { src: sk.src, style: '' } : S().baronPic(p, p.selectedBaron); return `<img src="${pic.src}" style="${pic.style}" alt="">`; }
+      if (type === 'baron') return `<img src="${sk && sk.src ? sk.src : BB.art.baronUrl(target)}"${f} alt="">`;
+      if (type === 'castle') return `<img src="${sk && sk.src ? sk.src : 'img/castle_cards/' + target + '.webp'}"${f} alt="">`;
+      return `<img src="${sk && sk.src ? sk.src : BB.art.cardUrl(BB.content.card(target))}"${f} alt="">`;
+    },
+    pickerHtml(type, target) {
+      const p = BB.profile, list = S().forTarget(type, target);
+      if (!list.length) return '';
+      const cur = S().equipped(p, type, target);
+      const opts = (type === 'celebration' || type === 'emotes' ? [] : [null]).concat(list);
+      return `<div class="sk-pick" data-type="${type}" data-target="${target || ''}">${opts.map((sk) => {
+        const own = !sk || S().owns(p, sk.id), on = sk ? cur === sk : !cur;
+        return `<button class="sk-opt ${on ? 'on' : ''} ${own ? '' : 'locked'}" data-sk="${sk ? sk.id : ''}" title="${esc(sk ? S().name(sk) : T('shop.default'))}">
+          ${SU.thumb(sk, type, target)}<small>${own ? esc(sk ? S().name(sk) : T('shop.default')) : '💎 ' + sk.price}</small></button>`; }).join('')}</div>`;
+    },
+    // tocar numa skin que tem: usa; no "Padrão": volta ao normal; numa que não tem: abre a loja nessa categoria
+    bindPickers(root, after) {
+      (root || document).querySelectorAll('.sk-pick .sk-opt').forEach((b) => b.onclick = (e) => {
+        e.stopPropagation();
+        const box = b.closest('.sk-pick'), type = box.dataset.type, target = box.dataset.target || null, id = b.dataset.sk, p = BB.profile;
+        if (!id) { BB.audio.play('click'); S().unequip(p, type, target); BB.save(); if (after) after(); return; }
+        if (!S().owns(p, id)) { BB.audio.play('click'); skinType = type; tab = 'skins'; BB.ui.show('shop'); return; }
+        BB.audio.play('click'); S().st(p).equip[type + (target ? ':' + target : '')] = id; BB.save(); if (after) after();
+      });
+    },
+
+    // ------------------------------------------------------------ perfil (foto, números e "Minhas skins")
+    profile() {
+      const p = BB.profile, b = BB.content.balance, need = BB.Progress.xpForNext(b, p.accountLevel);
+      const owned = BB.content.collectible.filter((c) => BB.Progress.owned(p, c.id)).length;
+      const mySkins = S().SKINS.filter((sk) => !sk.free && S().owns(p, sk.id)).length;
+      const sect = (title, html) => (html ? `<h3 class="title pf-h">${title}</h3>${html}` : '');
+      const group = (type, items) => items.map((it) => { const h = SU.pickerHtml(type, it.id); return h ? `<div class="pf-tgt">${esc(it.name)}</div>${h}` : ''; }).join('');
+      BB.ui.h.screen('profile', BB.ui.h.topbar(T('profile.title'), true) + `<div class="pf">
+        <div class="panel pf-left">${S().img(S().avatarPic(p), 'pf-avatar')}<h2 class="title">${esc(BB.playerName(p))}</h2>
+          <div>${T('profile.level', p.accountLevel)}</div><div class="xpbar"><i style="width:${(p.xp / need) * 100}%"></i></div><small class="muted">${p.xp}/${need} XP</small>
+          <div class="pf-stats">${[[T('profile.battles'), p.battles], [T('profile.wins'), p.wins], [T('profile.losses'), p.losses], [T('profile.best_streak'), p.bestWinStreak],
+            [T('profile.cards'), owned + '/' + BB.content.collectible.length], [T('profile.skins'), mySkins + '/' + S().SKINS.filter((sk) => !sk.free).length]]
+            .map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('')}</div>
+          <button class="btn gold small" data-go="shop">🛒 ${T('profile.more_skins')}</button></div>
+        <div class="panel pf-right"><h2 class="title">${T('profile.my_skins')}</h2>
+          ${sect(T('shop.t_avatar'), SU.pickerHtml('avatar'))}
+          ${sect(T('shop.t_celebration'), SU.pickerHtml('celebration'))}
+          ${sect(T('shop.t_emotes'), SU.pickerHtml('emotes'))}
+          ${sect(T('shop.t_baron'), group('baron', BB.content.barons.map((x) => ({ id: x.id, name: BB.baronName(x.id) }))))}
+          ${sect(T('shop.t_castle'), group('castle', BB.content.castles.map((x) => ({ id: x.id, name: BB.castleName(x.id) }))))}
+          ${sect(T('shop.t_troop'), group('troop', [...new Set(S().SKINS.filter((sk) => sk.type === 'troop').map((sk) => sk.target))].map((id) => ({ id, name: BB.cardName(id) }))))}
+        </div></div>`);
+      BB.ui.h.bindBack('profile', () => BB.ui.show('menu'));
+      document.querySelectorAll('#profile [data-go]').forEach((x) => x.onclick = () => { BB.audio.play('click'); tab = 'skins'; BB.ui.show('shop'); });
+      const keep = () => { const sc = document.querySelector('.pf-right'), y = sc ? sc.scrollTop : 0; BB.ui.show('profile'); const n = document.querySelector('.pf-right'); if (n) n.scrollTop = y; };
+      SU.bindPickers(document.getElementById('profile'), keep);
+    },
+
     // ------------------------------------------------------------ comemoração da vitória (skin escolhida)
     celebrate() {
       const sk = S().equipped(BB.profile, 'celebration');
@@ -141,5 +199,5 @@
   };
 
   BB.ShopUI = SU;
-  if (BB.ui && BB.ui.addScreen) BB.ui.addScreen('shop', (a) => SU.screen(a));
+  if (BB.ui && BB.ui.addScreen) { BB.ui.addScreen('shop', (a) => SU.screen(a)); BB.ui.addScreen('profile', () => SU.profile()); }
 })(window.BB);

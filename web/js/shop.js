@@ -76,7 +76,37 @@
       if (!sh.offers || typeof sh.offers !== 'object') sh.offers = { day: '', bought: [] };
       return sh;
     },
-    owns(p, id) { const s = S.skin(id); return !!s && (s.free || S.st(p).owned.includes(id)); },
+    owns(p, id) { const s = S.skin(id); return !!s && (s.free || S._tester || S.st(p).owned.includes(id)); },
+    // contas de teste (todas as skins liberadas): só o código SHA-256 do e-mail fica no jogo, nunca o e-mail
+    TESTERS: ['038af17a8e8b545e9547aaac6d35d608d98f92a05bb47142805ecb58e10f2510'],
+    _tester: false,
+    checkTester() {
+      const mail = BB.cloud && BB.cloud.loggedIn() ? String(BB.cloud.email() || '').trim().toLowerCase() : '';
+      S._tester = !!mail && S.TESTERS.includes(S.sha256(mail));
+      return S._tester;
+    },
+    sha256(str) {
+      const K = [], H = [], isP = (n) => { for (let f = 2; f * f <= n; f++) if (n % f === 0) return false; return true; };
+      const fr = (x) => ((x - Math.floor(x)) * 4294967296) | 0;
+      for (let n = 2, k = 0; k < 64; n++) if (isP(n)) { if (k < 8) H[k] = fr(Math.pow(n, 1 / 2)); K[k++] = fr(Math.pow(n, 1 / 3)); }
+      const bytes = unescape(encodeURIComponent(str)).split('').map((c) => c.charCodeAt(0));
+      const l = bytes.length * 8; bytes.push(0x80); while (bytes.length % 64 !== 56) bytes.push(0);
+      for (let i = 7; i >= 0; i--) bytes.push(i > 3 ? 0 : (l >>> (i * 8)) & 255);
+      const r = (x, n) => (x >>> n) | (x << (32 - n));
+      for (let o = 0; o < bytes.length; o += 64) {
+        const w = [];
+        for (let i = 0; i < 16; i++) w[i] = (bytes[o + i * 4] << 24) | (bytes[o + i * 4 + 1] << 16) | (bytes[o + i * 4 + 2] << 8) | bytes[o + i * 4 + 3];
+        for (let i = 16; i < 64; i++) { const a = w[i - 15], b = w[i - 2]; w[i] = (w[i - 16] + (r(a, 7) ^ r(a, 18) ^ (a >>> 3)) + w[i - 7] + (r(b, 17) ^ r(b, 19) ^ (b >>> 10))) | 0; }
+        let [a, b, c, d, e, f, g, h] = H;
+        for (let i = 0; i < 64; i++) {
+          const t1 = (h + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i]) | 0;
+          const t2 = ((r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+          h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+        }
+        [a, b, c, d, e, f, g, h].forEach((v, i) => { H[i] = (H[i] + v) | 0; });
+      }
+      return H.map((v) => (v >>> 0).toString(16).padStart(8, '0')).join('');
+    },
     slot(s) { return s.type + (s.target ? ':' + s.target : ''); },
     // skin em uso para um tipo (e alvo: Barão, castelo ou carta); comemoração e emotes têm padrão grátis
     equipped(p, type, target) {
@@ -94,6 +124,8 @@
       else sh.equip[k] = id;
       return 'Ok';
     },
+    unequip(p, type, target) { delete S.st(p).equip[type + (target ? ':' + target : '')]; },
+    forTarget(type, target) { return SKINS.filter((s) => s.type === type && (!target || s.target === target)); },
     canPay(p, cost) { return (p.gold || 0) >= (cost.gold || 0) && (p.crystals || 0) >= (cost.crystals || 0); },
     pay(p, cost) { if (!S.canPay(p, cost)) return false; p.gold -= cost.gold || 0; p.crystals -= cost.crystals || 0; return true; },
     buySkin(p, id) {

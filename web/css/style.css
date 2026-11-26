@@ -423,3 +423,28 @@ html.rk-free #rotate { display: none !important; }
 .celebrate { position: fixed; inset: 0; pointer-events: none; z-index: 30; overflow: hidden; }
 .celebrate span { position: absolute; top: -10%; animation-name: celfall; animation-timing-function: linear; animation-fill-mode: both; filter: drop-shadow(0 .2rem .2rem rgba(0,0,0,.5)); }
 @keyframes celfall { from { transform: translateY(0) rotate(0); opacity: 1; } to { transform: translateY(120vh) rotate(540deg); opacity: .9; } }
+
+/* seletor de skin (Barões, castelos, cartas, perfil) */
+.sk-pick { display: flex; gap: .35rem; justify-content: center; flex-wrap: wrap; margin: .35rem 0 .1rem; }
+.sk-opt { display: flex; flex-direction: column; align-items: center; gap: .1rem; width: 4.4rem; padding: .25rem; border-radius: .6rem; border: .14rem solid rgba(247,197,72,.35);
+  background: rgba(8,16,42,.8); color: #fff; font: inherit; cursor: pointer; }
+.sk-opt img { width: 3.2rem; height: 3.2rem; object-fit: cover; border-radius: .45rem; }
+.sk-opt small { font-size: .62rem; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sk-opt.on { border-color: #5fd06d; box-shadow: 0 0 .6rem rgba(95,208,109,.6); }
+.sk-opt.locked img, .sk-opt.locked .sk-emo { filter: grayscale(1) brightness(.5) !important; }
+.sk-opt.locked small { color: #9fd0ff; }
+.sk-emo { font-size: 1rem; height: 3.2rem; display: flex; align-items: center; white-space: nowrap; letter-spacing: -.1em; }
+.choice .sk-pick .sk-opt { width: 3.8rem; } .choice .sk-pick .sk-opt img { width: 2.7rem; height: 2.7rem; }
+.card-info .sk-pick { margin-top: .8rem; }
+.topbar .profile.tap { cursor: pointer; }
+/* perfil */
+.pf { flex: 1; min-height: 0; display: flex; gap: 1.2rem; padding: .8rem 1.4rem 1rem; padding-left: calc(1.4rem + var(--sa-l)); padding-right: calc(1.4rem + var(--sa-r)); }
+.pf-left { width: 21rem; flex: none; padding: 1rem; display: flex; flex-direction: column; align-items: center; gap: .35rem; text-align: center; overflow: auto; }
+.pf-left h2 { margin: .2rem 0 0; font-size: 1.8rem; } .pf-left .xpbar { width: 80%; }
+.pf-avatar { width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover; border: .25rem solid var(--gold); }
+.pf-stats { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem .8rem; width: 100%; margin: .4rem 0; }
+.pf-stats div { background: rgba(255,255,255,.05); border-radius: .5rem; padding: .25rem; } .pf-stats small { display: block; color: #b8c4e8; font-size: .8rem; } .pf-stats b { font-size: 1.2rem; }
+.pf-right { flex: 1; min-width: 0; overflow-y: auto; touch-action: pan-y; padding: .8rem 1.2rem; }
+.pf-right > h2 { margin: 0 0 .4rem; text-align: center; } .pf-h { margin: .8rem 0 .2rem; font-size: 1.25rem; }
+.pf-tgt { font-weight: 800; color: #ffe39a; margin-top: .4rem; }
+.pf-right .sk-pick { justify-content: flex-start; }

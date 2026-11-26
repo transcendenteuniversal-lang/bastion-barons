@@ -29,5 +29,6 @@
   document.addEventListener('visibilitychange', () => (document.hidden ? BB.onAppPause() : BB.onAppResume()));
 
   BB.onAppPause = ((f) => () => { f(); BB.platform.gameplayStop(); })(BB.onAppPause);
+  if (BB.Shop) BB.Shop.checkTester(); // conta de teste com todas as skins (pelo login da Ranqueada)
   BB.ui.show('splash');
 })(window.BB);

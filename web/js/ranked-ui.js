@@ -165,6 +165,7 @@
       first(); ov.appendChild(m);
     },
     async afterLogin(after) {
+      if (BB.Shop) BB.Shop.checkTester();
       try { await RU.ensureAccount(); } catch (e) { /* tenta de novo ao abrir o ranking */ }
       const d = RU.data();
       if (!d.named) RU.nickModal(after); else if (after) after();
@@ -215,7 +216,7 @@
       }
       const play = $('#rkPlay'); if (play) play.onclick = () => RU.play();
       const lg = $('#rkLogin'); if (lg) lg.onclick = () => { BB.audio.play('click'); if (!C().configured()) { BB.ui.toast(T('rk.not_configured')); return; } RU.loginModal(() => BB.ui.show('ranking')); };
-      const out = $('#rkOut'); if (out) out.onclick = () => { C().signOut(); BB.ui.show('ranking'); };
+      const out = $('#rkOut'); if (out) out.onclick = () => { C().signOut(); if (BB.Shop) BB.Shop.checkTester(); BB.ui.show('ranking'); };
       const del = $('#rkDel'); if (del) del.onclick = () => BB.ui.modal(T('rk.delete'), T('rk.delete_confirm'), [
         { label: T('battle.yes'), cls: 'red', fn: async () => { try { await C().deleteAccount(); const dd = RU.data(); dd.uid = null; dd.st = R().newState(R().seasonId(now())); dd.named = false; BB.save(); BB.ui.show('ranking'); } catch (e) { BB.ui.toast(T('rk.error')); } } },
         { label: T('battle.no'), cls: 'dark' },

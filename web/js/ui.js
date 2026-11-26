@@ -120,10 +120,16 @@
         <h2 class="title">${esc(BB.cardName(id))} ${T('ui.level', lvl)}</h2><div class="ci-rar" style="color:var(--${c.rarity.toLowerCase()})">${T('rarity.' + c.rarity)}${c.role ? ' • ' + esc(c.role) : ''}</div>
         <div class="ci-body"><div class="ci-card">${ui.cardHtml(c, o, { level: false })}</div>
           <div class="ci-stats">${rows.map(([i, k, v]) => `<div class="ci-row"><span class="ci-i">${i}</span><div><small>${esc(k)}</small><b>${esc(String(v))}</b></div></div>`).join('')}</div></div>
-        <div class="ci-desc">${esc(T('card.' + id + '.desc'))}</div></div>`;
+        <div class="ci-desc">${esc(T('card.' + id + '.desc'))}</div>${BB.ShopUI ? BB.ShopUI.pickerHtml('troop', id) : ''}</div>`;
       const close = () => m.remove();
       m.onclick = (e) => { if (e.target === m) close(); };
       m.querySelector('.ci-x').onclick = () => { BB.audio.play('click'); close(); };
+      if (BB.ShopUI) BB.ShopUI.bindPickers(m, () => {
+        // troca só a arte dessa carta na tela (sem redesenhar: o baralho não muda de ordem)
+        const f = BB.Shop.cardFilter(BB.profile, id);
+        document.querySelectorAll('#app .card[data-id="' + id + '"] .art').forEach((im) => { im.style.filter = f; });
+        close(); ui.cardInfo(id);
+      });
       ov.appendChild(m);
     },
 
@@ -172,7 +178,7 @@
       const p = BB.profile, b = BB.content.balance;
       const need = BB.Progress.xpForNext(b, p.accountLevel);
       screen('menu', `
-        <div class="topbar"><div class="profile">${BB.Shop.img(BB.Shop.avatarPic(p), 'avatar')}<div class="lvl">${p.accountLevel}</div><div><b>${esc(BB.playerName(p))}</b> <span class="muted">(${T('ui.guest')})</span>
+        <div class="topbar"><div class="profile tap" id="profileBtn">${BB.Shop.img(BB.Shop.avatarPic(p), 'avatar')}<div class="lvl">${p.accountLevel}</div><div><b>${esc(BB.playerName(p))}</b> <span class="muted">(${T('ui.guest')})</span>
           <div class="xpbar"><i style="width:${(p.xp / need) * 100}%"></i></div><small class="muted">${p.xp}/${need} XP</small></div></div><h1></h1>
           <div class="wallet"><span>🪙 ${p.gold}</span><span>💎 ${p.crystals}</span></div></div>
         <div class="main">
@@ -184,6 +190,7 @@
         </div>`);
       BB.audio.music('menu');
       back.menu = null;
+      $('#profileBtn').onclick = () => { BB.audio.play('click'); ui.show('profile'); };
       if (BB.Progress.dailyAvailable(p)) setTimeout(() => ui.dailyReward(), 350);
       if (BB.RankedUI) BB.RankedUI.onMenu();
     },
@@ -219,6 +226,7 @@
       const items = BB.content.barons.map((b) => {
         const un = BB.Progress.baronUnlocked(p, b), sel = p.selectedBaron === b.id;
         return `<div class="panel choice ${sel ? 'sel' : ''} ${un ? '' : 'locked'}">${BB.Shop.img(BB.Shop.baronPic(p, b.id), 'portrait')}
+          ${BB.ShopUI ? BB.ShopUI.pickerHtml('baron', b.id) : ''}
           <h3 class="title">${BB.baronName(b.id)}</h3><div class="sub">${T('baron.' + b.id + '.title')}</div>
           <div class="ab">${T('baron.' + b.id + '.ability')}</div><div class="desc">${T('baron.' + b.id + '.desc')}</div>
           ${!un ? `<div class="lock">${T('ui.locked_level', b.unlockLevel)}</div>` : sel ? `<b style="color:#5fd06d">${T('ui.selected')}</b>` : `<button class="btn green small" data-pick="${b.id}">${T('ui.select')}</button>`}</div>`;
@@ -226,6 +234,7 @@
       screen('barons', topbar(T('ui.barons'), true) + `<div class="content"><div class="choices">${items}</div></div>`);
       bindBack('barons', () => ui.show('menu'));
       app().querySelectorAll('[data-pick]').forEach((b) => b.onclick = () => { BB.audio.play('click'); p.selectedBaron = b.dataset.pick; BB.save(); ui.refresh(); });
+      if (BB.ShopUI) BB.ShopUI.bindPickers(app(), () => ui.refresh());
     },
 
     // ------------------------------------------------------------ castelos
@@ -234,6 +243,7 @@
       const items = BB.content.castles.map((c) => {
         const un = BB.Progress.castleUnlocked(p, c), sel = p.selectedCastle === c.id;
         return `<div class="panel choice ${sel ? 'sel' : ''} ${un ? '' : 'locked'}"><canvas class="portrait" data-castle="${c.id}" width="320" height="320"></canvas>
+          ${BB.ShopUI ? BB.ShopUI.pickerHtml('castle', c.id) : ''}
           <h3 class="title">${BB.castleName(c.id)}</h3><div class="ab">${T('castle.' + c.id + '.ability')}</div><div class="desc">${T('castle.' + c.id + '.desc')}</div>
           ${!un ? `<div class="lock">${T('ui.locked_level', c.unlockLevel)}</div>` : sel ? `<b style="color:#5fd06d">${T('ui.selected')}</b>` : `<button class="btn green small" data-pick="${c.id}">${T('ui.select')}</button>`}</div>`;
       }).join('');
@@ -241,6 +251,7 @@
       bindBack('castles', () => ui.show('menu'));
       app().querySelectorAll('[data-castle]').forEach((cv) => { drawCastlePreview(cv, BB.content.castle(cv.dataset.castle)); const sk = BB.Shop.equipped(BB.profile, 'castle', cv.dataset.castle); cv.style.filter = sk && sk.filter ? sk.filter : ''; });
       app().querySelectorAll('[data-pick]').forEach((b) => b.onclick = () => { BB.audio.play('click'); p.selectedCastle = b.dataset.pick; BB.save(); ui.refresh(); });
+      if (BB.ShopUI) BB.ShopUI.bindPickers(app(), () => ui.refresh());
     },
 
     // ------------------------------------------------------------ coleção
