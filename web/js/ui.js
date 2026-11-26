@@ -176,7 +176,7 @@
           <div class="xpbar"><i style="width:${(p.xp / need) * 100}%"></i></div><small class="muted">${p.xp}/${need} XP</small></div></div><h1></h1>
           <div class="wallet"><span>🪙 ${p.gold}</span><span>💎 ${p.crystals}</span></div></div>
         <div class="main">
-          <div class="col"><button class="btn" data-go="barons">${T('ui.barons')}</button><button class="btn" data-go="castles">${T('ui.castles')}</button><button class="btn" data-go="history">${T('ui.history')}</button></div>
+          <div class="col">${BB.RankedUI && BB.RankedUI.available() ? `<button class="btn gold" data-go="ranking">🏆 ${T('ui.ranked')}</button>` : ''}<button class="btn" data-go="barons">${T('ui.barons')}</button><button class="btn" data-go="castles">${T('ui.castles')}</button><button class="btn" data-go="history">${T('ui.history')}</button></div>
           <div class="mid"><img class="logo" src="img/logo.webp" alt="">
             <div class="lineup"><img src="${BB.art.baronUrl(p.selectedBaron)}"><div><b>${BB.baronName(p.selectedBaron)}</b><div class="muted">${BB.castleName(p.selectedCastle)}</div></div></div>
             <button class="btn gold battle-btn" data-go="mode">⚔ ${T('ui.battle')}</button></div>
