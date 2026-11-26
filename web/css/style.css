@@ -458,7 +458,7 @@ html.rk-free #rotate { display: none !important; }
 .mtop .xpbar em { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-size: .85rem; font-weight: 800; text-shadow: 0 .08rem .15rem #000; }
 .mwallet { display: flex; align-items: center; gap: .8rem; }
 .mwallet .cur { display: flex; align-items: center; gap: .5rem; background: rgba(0,0,0,.55); border: .14rem solid rgba(247,197,72,.65); border-radius: 2rem; padding: .15rem .25rem .15rem .4rem; }
-.mwallet .cur i { font-style: normal; font-size: 1.7rem; } .mwallet .cur b { font-size: 1.5rem; min-width: 3.5rem; }
+.mwallet .cur img { width: 2.3rem; height: 2.3rem; object-fit: contain; } .mwallet .cur b { font-size: 1.5rem; min-width: 3.5rem; }
 .mwallet .plus { width: 2.4rem; height: 2.4rem; border-radius: .5rem; border: .12rem solid #fff3c0; background: linear-gradient(#ffd75a, #e09a14); color: #3a2400; font-size: 1.7rem; font-weight: 900; line-height: 1; cursor: pointer; }
 .mwallet .gear { width: 3.3rem; height: 3.3rem; border-radius: 50%; border: .18rem solid var(--gold); background: radial-gradient(#2c4da8, #0d1d52); color: #fff; font-size: 1.9rem; cursor: pointer; }
 .mmain { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: space-between; padding: .4rem 1.4rem .8rem; padding-left: calc(1.4rem + var(--sa-l)); padding-right: calc(1.4rem + var(--sa-r)); }
@@ -476,29 +476,9 @@ html.rk-free #rotate { display: none !important; }
 .mbattle span { left: 28%; font-size: calc(min(42vw, 85vh) * .09); letter-spacing: .04em; }
 .mbtn.long span { font-size: calc(var(--bw) * .066); }
 /* símbolo de skin disponível (carta e pedestal do baralho) */
-.card .skb, .ped .skb { position: absolute; right: .3em; top: 2.1em; width: 1.7em; height: 1.7em; display: grid; place-items: center; font-size: .9em;
-  border-radius: 50%; background: radial-gradient(#7a3fd1, #3a1580); border: .12em solid #ffd24a; box-shadow: 0 0 .4em rgba(166,77,255,.8); z-index: 2; }
-.ped .skb { top: auto; bottom: 2.6em; right: 1.2em; font-size: 1rem; }
-/* sala de espera da Ranqueada */
-.lb { flex: 1; min-height: 0; display: flex; gap: 1.2rem; padding: .6rem 1.4rem .4rem; padding-left: calc(1.4rem + var(--sa-l)); padding-right: calc(1.4rem + var(--sa-r)); }
-.lb-prof { width: 24rem; flex: none; padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: .5rem; overflow: auto; }
-.lb-head { display: flex; align-items: center; gap: .9rem; } .lb-head h2 { margin: 0; font-size: 1.7rem; }
-.lb-avatar { width: 5.2rem; height: 5.2rem; border-radius: 50%; object-fit: cover; border: .22rem solid var(--gold); }
-.lb-league { display: flex; align-items: center; gap: .8rem; } .lb-league .rk-emblem { font-size: 3.4rem; } .lb-league b { font-size: 1.4rem; color: #ffe39a; }
-.lb-prof .btn { align-self: center; }
-.lb-army { flex: 1; min-width: 0; padding: .9rem 1.1rem; display: flex; flex-direction: column; gap: .7rem; overflow: auto; }
-.lb-sel { display: flex; gap: 1rem; }
-.lb-pick { flex: 1; display: flex; align-items: center; gap: .8rem; padding: .5rem .7rem; border-radius: .8rem; background: rgba(255,255,255,.05); border: .12rem solid rgba(247,197,72,.4); cursor: pointer; }
-.lb-pick img { width: 4.6rem; height: 4.6rem; object-fit: cover; border-radius: .6rem; border: .15rem solid var(--gold-d); }
-.lb-pick small { display: block; color: #b8c4e8; } .lb-pick b { display: block; font-size: 1.3rem; } .lb-pick em { font-style: normal; color: #8fc8ff; font-size: .95rem; }
-.lb-decks { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
-.lb-cards { display: grid; grid-template-columns: repeat(7, 1fr); gap: .45rem; }
-.lb-cards .card { width: 100%; font-size: .62rem; }
-.lb-go { display: flex; justify-content: center; padding: .2rem 0 .9rem; }
-.lb-search { font-size: 2rem; padding: .7rem 4rem; letter-spacing: .05em; animation: lbpulse 1.6s ease-in-out infinite; }
-@keyframes lbpulse { 50% { box-shadow: 0 0 1.6rem rgba(255,210,74,.8); } }
-.deckinfo .tabs .btn { max-width: 11rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@media (orientation: portrait) { html.rk-free .lb { flex-direction: column; } html.rk-free .lb-prof { width: auto; } }
+.card .skb, .ped .skb { position: absolute; z-index: 2; width: 1.9em; height: auto; pointer-events: none; filter: drop-shadow(0 .1em .15em rgba(0,0,0,.85)); }
+.card .skb { right: .3em; bottom: 2.4em; }
+.ped .skb { width: 1.8rem; right: 22%; bottom: 3.2rem; }
 /* botões "em breve" (Campeonato, Temporada) e engrenagem */
 .mbtn.soon img { filter: grayscale(.55) brightness(.75); }
 .mbtn.soon span { opacity: .75; }
@@ -507,3 +487,84 @@ html.rk-free #rotate { display: none !important; }
 .mwallet .gear { display: grid; place-items: center; padding: .35rem; }
 .mwallet .gear img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 .1rem .15rem rgba(0,0,0,.6)); }
 .hb-btn.surr { font-size: 1.2em; }
+
+/* ================================================================ padrão visual (cabeçalho, painéis, botões) */
+.topbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; padding: .45rem 1.2rem;
+  padding-left: calc(1.2rem + var(--sa-l)); padding-right: calc(1.2rem + var(--sa-r)); background: linear-gradient(rgba(4,8,30,.92), rgba(4,8,30,.55)); border-bottom: .14rem solid rgba(247,197,72,.55); }
+.topbar h1 { display: flex; align-items: center; justify-content: center; gap: .5rem; font-size: 2.4rem; text-shadow: 0 .15rem .3rem rgba(0,0,0,.8); white-space: nowrap; }
+.topbar.fancy h1 { font-size: 2.9rem; }
+.topbar .tb-lau { height: 3.1rem; } .topbar .tb-pen { height: 4.2rem; margin: -.9rem .4rem -1.3rem; filter: drop-shadow(0 .2rem .3rem rgba(0,0,0,.6)); }
+.gback { justify-self: start; display: inline-flex; align-items: center; gap: .5rem; height: 3.2rem; padding: 0 1.3rem 0 .8rem; border-radius: .9rem; cursor: pointer;
+  font: inherit; font-weight: 900; font-size: 1.35rem; color: #fff; text-shadow: 0 .1rem .2rem #300; border: .2rem solid #f0c24a;
+  background: linear-gradient(#e2403f, #96141c); box-shadow: inset 0 .15rem 0 rgba(255,255,255,.3), inset 0 -.2rem 0 rgba(0,0,0,.25), 0 .3rem .5rem rgba(0,0,0,.55); }
+.gback b { font-size: 2.2rem; line-height: 1; color: #ffd24a; margin-top: -.2rem; } .gback:active { transform: scale(.95); }
+.gwallet { justify-self: end; display: flex; gap: .7rem; }
+.gwallet .cur, .mwallet .cur { display: flex; align-items: center; gap: .45rem; background: rgba(0,0,0,.6); border: .14rem solid rgba(247,197,72,.7); border-radius: 2rem; padding: .12rem .22rem .12rem .3rem; }
+.gwallet .cur img { width: 2rem; height: 2rem; object-fit: contain; } .gwallet .cur b { font-size: 1.3rem; min-width: 3rem; text-align: center; }
+.gwallet .plus { width: 2.1rem; height: 2.1rem; border-radius: .5rem; border: .12rem solid #fff3c0; background: linear-gradient(#ffd75a, #e09a14); color: #3a2400; font-size: 1.5rem; font-weight: 900; line-height: 1; cursor: pointer; }
+/* painel com moldura dourada */
+.gpanel { position: relative; border-radius: 1.1rem; border: .22rem solid #d9a531; background: linear-gradient(160deg, rgba(22,38,92,.96), rgba(8,16,48,.96));
+  box-shadow: inset 0 0 0 .14rem rgba(255,232,150,.35), inset 0 0 2rem rgba(0,0,0,.5), 0 .6rem 1.6rem rgba(0,0,0,.6); animation: gpin .35s ease-out both; }
+.gpanel::before { content: ""; position: absolute; inset: .35rem; border-radius: .8rem; border: .08rem solid rgba(255,214,110,.28); pointer-events: none; }
+@keyframes gpin { from { opacity: 0; transform: translateY(1rem); } }
+/* botões com ícone */
+.gbtn { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem 1rem .35rem .45rem; border-radius: .7rem; font: inherit; font-weight: 900; font-size: 1.2rem; cursor: pointer;
+  color: #fff; border: .15rem solid #d9a531; background: linear-gradient(#2b4fb0, #102a73); box-shadow: inset 0 .12rem 0 rgba(255,255,255,.25), 0 .25rem .4rem rgba(0,0,0,.5); transition: transform .08s; }
+.gbtn:active { transform: scale(.95); } .gbtn img { width: 2.1rem; height: 2.1rem; object-fit: contain; }
+.gbtn.gold { color: #3a2400; background: linear-gradient(#ffe27a, #e7a21c); border-color: #fff0b0; }
+.gbtn.navy { background: linear-gradient(#1a2a5c, #0b1638); }
+.ui-ico { width: 1.6em; height: 1.6em; object-fit: contain; vertical-align: middle; }
+.lg-ico { width: 1.8em; height: 1.8em; object-fit: contain; vertical-align: middle; filter: drop-shadow(0 .1em .15em rgba(0,0,0,.6)); }
+.lg-ico.big { width: 4rem; height: 4rem; }
+/* ================================================================ sala da Ranqueada */
+#rkLobby .bg, #ranking .bg { inset: 0; filter: none; } #rkLobby .bg::after, #ranking .bg::after { background: linear-gradient(rgba(4,8,30,.25), rgba(4,8,30,.15) 60%, rgba(4,8,30,.35)); }
+.lb-season { align-self: center; display: flex; gap: .6rem; align-items: center; margin-top: -.15rem; padding: .3rem 2.6rem; font-weight: 900; font-size: 1.3rem; color: #fff;
+  background: url(../img/ui/ribbon_red.webp) center/100% 100% no-repeat; text-shadow: 0 .1rem .2rem #300; }
+.lb-season i { font-style: normal; color: #ffd24a; }
+.lb { flex: 1; min-height: 0; display: flex; gap: 1.2rem; padding: .5rem 1.6rem .2rem; padding-left: calc(1.6rem + var(--sa-l)); padding-right: calc(1.6rem + var(--sa-r)); }
+.lb-prof { width: 27%; min-width: 19rem; flex: none; padding: .8rem 1rem; display: flex; flex-direction: column; gap: .3rem; overflow: auto; }
+.lb-head { display: flex; align-items: center; gap: .8rem; }
+.lb-av { position: relative; width: 5.4rem; height: 5.4rem; flex: none; }
+.lb-avatar { position: absolute; left: 18%; top: 14%; width: 64%; height: 64%; border-radius: 50%; object-fit: cover; }
+.lb-frame { position: absolute; inset: -6%; width: 112%; height: 112%; pointer-events: none; }
+.lb-who h2 { margin: 0; font-size: 1.6rem; } .lb-who small { color: #b8c4e8; }
+.lb-lvrow { display: flex; align-items: center; gap: .5rem; } .lb-lvrow > div { flex: 1; }
+.lb-lv { position: relative; width: 2.6rem; height: 2.6rem; flex: none; } .lb-lv img { width: 100%; height: 100%; object-fit: contain; }
+.lb-lv b { position: absolute; inset: 22% 0 0; text-align: center; font-size: 1rem; text-shadow: 0 .1rem .1rem #000; }
+.lb-xp { height: .7rem; border-radius: 1rem; background: #08102a; border: .1rem solid rgba(247,197,72,.5); overflow: hidden; } .lb-xp i { display: block; height: 100%; background: linear-gradient(#5aa8ff, #2a6fe0); }
+.lb-league { display: flex; align-items: center; gap: .7rem; } .lb-league b { font-size: 1.35rem; color: #ffd24a; }
+.lb-pos { font-size: 1.5rem; font-weight: 900; } .lb-pos span { opacity: .5; }
+.lb-bar { height: 1rem; border-radius: 1rem; background: #08102a; border: .12rem solid #a8741a; overflow: hidden; } .lb-bar i { display: block; height: 100%; background: linear-gradient(90deg, #f7c548, #ffe39a); }
+.lb-next { text-align: center; color: #cfd8f5; font-size: 1rem; }
+.lb-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: .3rem; text-align: center; border-top: .08rem solid rgba(247,197,72,.3); border-bottom: .08rem solid rgba(247,197,72,.3); padding: .35rem 0; }
+.lb-stats span { display: flex; flex-direction: column; align-items: center; } .lb-stats .ui-ico { width: 2rem; height: 2rem; } .lb-stats b { font-size: 1.25rem; } .lb-stats small { font-size: .7rem; color: #b8c4e8; }
+.lb-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-around; gap: .5rem; }
+.lb-rank { padding-right: 1.2rem; }
+.lb-rewards { display: flex; flex-direction: column; align-items: center; padding: 0; border: 0; background: none; color: #ffd24a; font: inherit; font-weight: 900; font-size: .95rem; cursor: pointer; max-width: 50%; text-align: center; }
+.lb-rewards img { width: 7rem; max-width: 100%; animation: lbglow 2.4s ease-in-out infinite; } .lb-rewards span { text-shadow: 0 .1rem .2rem #000; }
+@keyframes lbglow { 50% { filter: drop-shadow(0 0 .8rem rgba(255,210,74,.75)); transform: translateY(-.15rem); } }
+.lb-army { flex: 1; min-width: 0; padding: .9rem 1.1rem; display: flex; flex-direction: column; gap: .65rem; overflow: hidden; }
+.lb-sel { display: flex; gap: 1rem; }
+.lb-pick { flex: 1; display: flex; align-items: center; gap: .9rem; padding: .45rem .7rem; border-radius: .9rem; cursor: pointer; text-align: left; color: #fff; font: inherit;
+  border: .14rem solid rgba(247,197,72,.55); background: linear-gradient(90deg, rgba(10,20,60,.95), rgba(30,50,110,.7)), url(../img/ui/bg_ranked.webp) right 30%/240% no-repeat; }
+.lb-pick:active { transform: scale(.98); }
+.lb-tile { width: 5rem; height: 5rem; flex: none; border-radius: .7rem; overflow: hidden; border: .18rem solid #e7b43c; box-shadow: 0 0 .8rem rgba(255,210,74,.45); }
+.lb-tile img { width: 100%; height: 100%; object-fit: cover; }
+.lb-pn { flex: 1; display: flex; flex-direction: column; } .lb-pn small { color: #ffd24a; font-weight: 800; } .lb-pn b { font-size: 1.45rem; } .lb-pn em { font-style: normal; color: #8fc8ff; font-weight: 800; }
+.lb-pn em .ui-ico { width: 1.2em; height: 1.2em; } .lb-arrow { width: 3rem; flex: none; }
+.lb-decks { display: flex; gap: .6rem; flex-wrap: wrap; }
+.lb-decks .gbtn { min-width: 9rem; } .lb-decks .gbtn span { max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-cards { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: .45rem; }
+.lb-cards .card { width: 100%; height: 100%; aspect-ratio: auto; font-size: .62rem; }
+.lb-go { display: flex; justify-content: center; align-items: center; gap: .6rem; padding: .1rem 0 .6rem; }
+.lb-pen { height: 5.5rem; filter: drop-shadow(0 .2rem .3rem rgba(0,0,0,.6)); }
+.lb-search { width: min(40vw, 70vh); animation: lbpulse2 1.8s ease-in-out infinite; }
+.lb-search span { left: 27%; font-size: calc(min(40vw, 70vh) * .062); color: #3a2400; text-shadow: 0 .08rem 0 rgba(255,240,180,.7); }
+@keyframes lbpulse2 { 50% { filter: drop-shadow(0 0 1.3rem rgba(255,210,74,.85)); } }
+.lb-rw { width: min(40rem, 92%); padding: 1.3rem 1.5rem; text-align: center; }
+.lb-rwlist { display: flex; flex-direction: column; gap: .35rem; text-align: left; margin-top: .6rem; }
+.lb-rwi { display: flex; align-items: center; gap: .7rem; padding: .3rem .6rem; border-radius: .6rem; background: rgba(255,255,255,.04); }
+.lb-rwi > div { flex: 1; } .lb-rwi small { display: block; color: #b8c4e8; } .lb-rwi span { font-weight: 900; color: #ffe39a; }
+.lb-rwi.cur { outline: .15rem solid #ffd24a; background: rgba(247,197,72,.15); } .lb-rwi.top { border-top: .1rem solid rgba(247,197,72,.4); }
+
+@media (orientation: portrait) { html.rk-free .lb { flex-direction: column; } html.rk-free .lb-prof { width: auto; } }

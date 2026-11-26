@@ -19,6 +19,7 @@
       app().innerHTML = '';
       SCREENS[name](args);
       app().querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { BB.audio.play('click'); ui.show(b.dataset.go); }));
+      app().querySelectorAll('.gwallet [data-plus]').forEach((b) => b.addEventListener('click', () => { BB.audio.play('click'); ui.show('shop', { tab: 'gems' }); }));
     },
     refresh() { ui.show(current, currentArgs); },
     // telas abertas a partir da sala da Ranqueada voltam para ela
@@ -65,7 +66,7 @@
         <img class="art" src="${BB.art.cardUrl(def)}" alt=""${BB.Shop && BB.profile && BB.Shop.cardFilter(BB.profile, def.id) ? ' style="filter:' + BB.Shop.cardFilter(BB.profile, def.id) + '"' : ''}>
         <div class="cost">${def.cost}</div>
         ${o.level && owned ? '<div class="lv">' + T('ui.level', owned.level) + '</div>' : ''}
-        ${o.up ? '<div class="up">▲</div>' : ''}${BB.Shop && BB.Shop.forTarget('troop', def.id).length ? '<div class="skb">🎨</div>' : ''}
+        ${o.up ? '<div class="up">▲</div>' : ''}${BB.Shop && BB.Shop.forTarget('troop', def.id).length ? '<img class="skb" src="img/ui/crown.webp" alt="">' : ''}
         <div class="name">${esc(BB.cardName(def.id))}</div></div>`;
     },
 
@@ -154,10 +155,13 @@
 
   };
 
-  function topbar(title, backTo) {
-    const p = BB.profile;
-    return `<div class="topbar">${backTo ? `<button class="btn red small" id="backBtn">‹ ${T('ui.back')}</button>` : ''}<h1 class="title">${esc(title)}</h1>
-      <div class="wallet"><span>🪙 ${p.gold}</span><span>💎 ${p.crystals}</span></div></div>`;
+  // cabeçalho padrão: botão voltar ilustrado, título dourado (com louros e estandartes no modo "fancy") e carteira com atalho para a loja
+  function topbar(title, backTo, o) {
+    const p = BB.profile, fancy = o && o.fancy;
+    return `<div class="topbar ${fancy ? 'fancy' : ''}">${backTo ? `<button class="gback" id="backBtn"><b>‹</b><span>${T('ui.back')}</span></button>` : '<span></span>'}
+      <h1 class="title">${fancy ? '<img class="tb-pen" src="img/ui/pennant_fleur.webp" alt=""><img class="tb-lau" src="img/ui/laurel_l.webp" alt="">' : ''}<span>${esc(title)}</span>${fancy ? '<img class="tb-lau" src="img/ui/laurel_r.webp" alt=""><img class="tb-pen" src="img/ui/pennant_fleur.webp" alt="">' : ''}</h1>
+      <div class="gwallet"><span class="cur"><img src="img/ui/coins.webp" alt=""><b>${p.gold}</b><button class="plus" data-plus="1">+</button></span>
+        <span class="cur"><img src="img/ui/gems.webp" alt=""><b>${p.crystals}</b><button class="plus" data-plus="1">+</button></span></div></div>`;
   }
   function bindBack(name, fn) {
     back[name] = fn;
@@ -207,8 +211,8 @@
         <div class="mtop"><div class="profile tap" id="profileBtn">${BB.Shop.img(BB.Shop.avatarPic(p), 'avatar')}<div class="mlvl">${p.accountLevel}</div>
             <div><b>${esc(BB.playerName(p))}</b> <span class="guest">(${T('ui.guest')})</span>
             <div class="xpbar"><i style="width:${(p.xp / need) * 100}%"></i><em>${p.xp}/${need} XP</em></div></div></div>
-          <div class="mwallet"><span class="cur"><i>🪙</i><b>${p.gold}</b><button class="plus" data-plus="gems">+</button></span>
-            <span class="cur"><i>💎</i><b>${p.crystals}</b><button class="plus" data-plus="gems">+</button></span>
+          <div class="mwallet"><span class="cur"><img src="img/ui/coins.webp" alt=""><b>${p.gold}</b><button class="plus" data-plus="gems">+</button></span>
+            <span class="cur"><img src="img/ui/gems.webp" alt=""><b>${p.crystals}</b><button class="plus" data-plus="gems">+</button></span>
             <button class="gear" data-m="settings" aria-label="${esc(T('ui.settings'))}"><img src="img/menu/icon_gear.webp" alt=""></button></div></div>
         <div class="mmain">
           <div class="mcol">${left}</div>
@@ -371,7 +375,7 @@
       const slots = s.work.map((id) => {
         const def = C.card(id), o = BB.Progress.owned(p, id);
         const f = BB.Shop.cardFilter(p, id), has = BB.Shop.forTarget('troop', id).length;
-        return `<div class="ped ${def.rarity}" data-deck="${id}"><canvas width="180" height="150" data-unit="${id}"${f ? ' style="filter:' + f + '"' : ''}></canvas><div class="ped-base"></div>${has ? '<div class="skb" title="skin">🎨</div>' : ''}
+        return `<div class="ped ${def.rarity}" data-deck="${id}"><canvas width="180" height="150" data-unit="${id}"${f ? ' style="filter:' + f + '"' : ''}></canvas><div class="ped-base"></div>${has ? '<img class="skb" src="img/ui/crown.webp" alt="">' : ''}
           <div class="cost">${def.cost}</div><div class="ped-lv">${T('ui.level', o ? o.level : 1)}</div><div class="ped-name">${esc(BB.cardName(id))}</div></div>`;
       }).join('') + '<div class="ped empty" data-empty="1"></div>'.repeat(Math.max(0, size - s.work.length));
       const avail = C.collectible.filter((c) => BB.Progress.owned(p, c.id) && !s.work.includes(c.id)).sort((a, b) => byCost(a.id, b.id));

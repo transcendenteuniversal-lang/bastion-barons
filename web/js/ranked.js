@@ -15,12 +15,12 @@
 
     // 6 ligas com piso de pontos (proteção: quem alcança uma liga não cai abaixo do piso na temporada)
     LEAGUES: [
-      { id: 'palisade', floor: 0, icon: '🪵' },
-      { id: 'stone_tower', floor: 300, icon: '🗼' },
-      { id: 'iron_fortress', floor: 700, icon: '⚔️' },
-      { id: 'silver_bastion', floor: 1200, icon: '🛡️' },
-      { id: 'golden_citadel', floor: 1800, icon: '👑' },
-      { id: 'barons_throne', floor: 2500, icon: '🐉' },
+      { id: 'palisade', floor: 0, icon: '🪵', img: 'wood' },
+      { id: 'stone_tower', floor: 300, icon: '🗼', img: 'stone' },
+      { id: 'iron_fortress', floor: 700, icon: '⚔️', img: 'iron' },
+      { id: 'silver_bastion', floor: 1200, icon: '🛡️', img: 'league_silver' },
+      { id: 'golden_citadel', floor: 1800, icon: '👑', img: 'league_gold' },
+      { id: 'barons_throne', floor: 2500, icon: '🐉', img: 'league_crown' },
     ],
     // prêmio na virada pela maior liga alcançada (só itens do jogo) e bônus do Top 10
     REWARDS: [{ gold: 100 }, { gold: 200 }, { gold: 350 }, { gold: 500, crystals: 5 }, { gold: 800, crystals: 20 }, { gold: 1200, crystals: 50 }],

@@ -83,6 +83,14 @@
     checkTester() {
       const mail = BB.cloud && BB.cloud.loggedIn() ? String(BB.cloud.email() || '').trim().toLowerCase() : '';
       S._tester = !!mail && S.TESTERS.includes(S.sha256(mail));
+      // conta de teste: nível alto (todos os Barões e castelos) e todas as cartas
+      const p = BB.profile;
+      if (S._tester && p && BB.content) {
+        let changed = false;
+        if (p.accountLevel < 10) { p.accountLevel = 10; p.xp = 0; changed = true; }
+        for (const c of BB.content.collectible) if (!BB.Progress.owned(p, c.id)) { p.cards.push({ id: c.id, level: 1, copies: 0 }); changed = true; }
+        if (changed && BB.save) BB.save();
+      }
       return S._tester;
     },
     sha256(str) {

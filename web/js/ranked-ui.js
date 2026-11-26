@@ -25,6 +25,8 @@
     },
     st() { return RU.data().st; },
     leagueName(i) { return T('league.' + R().LEAGUES[i].id); },
+    leagueImg(i, cls) { return `<img class="lg-ico ${cls || ''}" src="img/ui/${R().LEAGUES[i].img}.webp" alt="">`; },
+    ico(n, cls) { return `<img class="ui-ico ${cls || ''}" src="img/ui/${n}.webp" alt="">`; },
     fromRow(r) {
       return { season: r.season, points: r.points, maxLeague: r.max_league, streak: r.streak, wins: r.wins, losses: r.losses, draws: r.draws,
         trophies: r.trophies, prevSeason: r.prev_season || '', prevPoints: r.prev_points || 0 };
@@ -190,7 +192,7 @@
       const medal = e.pos === 1 ? '🥇' : e.pos === 2 ? '🥈' : e.pos === 3 ? '🥉' : '#' + e.pos;
       return `<div class="rk-row ${e.me ? 'me' : ''}"><span class="rk-pos">${medal}</span>${e.me ? BB.Shop.img(BB.Shop.avatarPic(BB.profile)) : `<img src="${BB.art.baronUrl(e.baron || 'rei_bastion')}" alt="">`}
         <span class="rk-name">${esc(e.me ? e.name + ' (' + T('rk.you') + ')' : e.name)}</span>${e.trophies ? `<span class="rk-tro">🏆${e.trophies > 1 ? e.trophies : ''}</span>` : ''}
-        <span class="rk-lg">${R().LEAGUES[e.league].icon}</span><b>${e.points}</b></div>`;
+        <span class="rk-lg">${RU.leagueImg(e.league)}</span><b>${e.points}</b></div>`;
     },
     render(board, status) {
       const d = RU.data(), st = d.st, li = R().league(st.points), nx = R().nextLeague(st.points);
@@ -199,7 +201,7 @@
       const pct = nx ? Math.round(((st.points - lo) / (hi - lo)) * 100) : 100;
       const left = $('#rkLeft'), list = $('#rkList'), mine = $('#rkMine');
       if (!left) return;
-      left.innerHTML = `<div class="rk-emblem">${R().LEAGUES[li].icon}</div><h2 class="title">${RU.leagueName(li)}</h2>
+      left.innerHTML = `<div class="rk-emblem">${RU.leagueImg(li, 'big')}</div><h2 class="title">${RU.leagueName(li)}</h2>
         <div class="rk-big">${board && board.position ? '#' + board.position.toLocaleString() : '—'} <span>·</span> ${T('rk.points', st.points)}</div>
         <div class="rk-bar"><i style="width:${pct}%"></i></div>
         <div class="rk-next">${nx ? T('rk.next', nx.need, RU.leagueName(nx.index)) : T('rk.max')}</div>
@@ -247,13 +249,17 @@
     },
 
     // ------------------------------------------------------------ sala de espera da Ranqueada
+    seasonBanner() {
+      const t = now(), season = R().seasonId(t), days = R().daysLeft(t);
+      return `<div class="lb-season"><span>⌛ ${T('rk.season', R().seasonNumber(season))}</span><i>·</i><span>${days <= 1 ? T('rk.ends_today') : T('rk.ends', days)}</span></div>`;
+    },
     lobby() {
-      const t = now(), season = R().seasonId(t), days = R().daysLeft(t), p = BB.profile;
-      BB.ui.h.screen('rkLobby', BB.ui.h.topbar(T('rk.title'), true) + `
-        <div class="rk-sub">${T('rk.season', R().seasonNumber(season))} · ${days <= 1 ? T('rk.ends_today') : T('rk.ends', days)}</div>
-        <div class="lb"><div class="panel lb-prof" id="lbProf"></div>
-          <div class="panel lb-army" id="lbArmy"></div></div>
-        <div class="lb-go" id="lbGo"></div>`);
+      BB.ui.h.screen('rkLobby', BB.ui.h.topbar(T('rk.title'), true, { fancy: true }) + RU.seasonBanner() + `
+        <div class="lb"><div class="gpanel lb-prof" id="lbProf"></div>
+          <div class="gpanel lb-army" id="lbArmy"></div></div>
+        <div class="lb-go"><img class="lb-pen" src="img/ui/pennant_fleur.webp" alt="">
+          <button class="mbtn lb-search" id="lbGoBtn"><img src="img/menu/btn_battle.webp" alt=""><span id="lbGoTxt">${T('rk.search')}</span></button>
+          <img class="lb-pen" src="img/ui/pennant_fleur.webp" alt=""></div>`, 'img/ui/bg_ranked.webp');
       BB.ui.h.bindBack('rkLobby', () => BB.ui.show('menu'));
       BB.audio.music('menu');
       const a = RU.checkAbandon(); if (a) RU.showAbandon(a);
@@ -262,33 +268,59 @@
       if (C().configured()) RU.fetchBoard().then((r) => { if (BB.ui.current() === 'rkLobby') RU.lobbyProfile(r.board, r.status); });
     },
     lobbyProfile(board, status) {
-      const el = $('#lbProf'), go = $('#lbGo');
+      const el = $('#lbProf');
       if (!el) return;
-      const d = RU.data(), st = d.st, li = R().league(st.points), nx = R().nextLeague(st.points), p = BB.profile;
+      const d = RU.data(), st = d.st, li = R().league(st.points), nx = R().nextLeague(st.points), p = BB.profile, b = BB.content.balance;
       const lo = R().LEAGUES[li].floor, hi = nx ? R().LEAGUES[nx.index].floor : lo;
       const pct = nx ? Math.round(((st.points - lo) / (hi - lo)) * 100) : 100, logged = C().configured() && C().loggedIn();
-      el.innerHTML = `<div class="lb-head">${BB.Shop.img(BB.Shop.avatarPic(p), 'lb-avatar')}<div><h2 class="title">${esc(BB.playerName(p))}</h2>
-          <div class="muted">${T('profile.level', p.accountLevel)}${st.trophies ? ' · 🏆 ' + st.trophies : ''}</div></div></div>
-        <div class="lb-league"><span class="rk-emblem">${R().LEAGUES[li].icon}</span><div><b>${RU.leagueName(li)}</b>
-          <div class="rk-big">${board && board.position ? '#' + board.position.toLocaleString() : '—'} <span>·</span> ${T('rk.points', st.points)}</div></div></div>
-        <div class="rk-bar"><i style="width:${pct}%"></i></div><div class="rk-next">${nx ? T('rk.next', nx.need, RU.leagueName(nx.index)) : T('rk.max')}</div>
-        <div class="rk-rec">${T('rk.record', st.wins, st.losses, st.draws)}${st.streak >= 2 ? ' · ' + T('rk.streak', st.streak) : ''}</div>
+      const need = BB.Progress.xpForNext(b, p.accountLevel);
+      el.innerHTML = `<div class="lb-head"><div class="lb-av">${BB.Shop.img(BB.Shop.avatarPic(p), 'lb-avatar')}<img class="lb-frame" src="img/ui/frame_round.webp" alt=""></div>
+          <div class="lb-who"><h2 class="title">${esc(BB.playerName(p))}</h2>
+            <div class="lb-lvrow"><span class="lb-lv"><img src="img/ui/crown_shield.webp" alt=""><b>${p.accountLevel}</b></span>
+              <div><small>${T('profile.level', p.accountLevel)}${st.trophies ? ' · 🏆 ' + st.trophies : ''}</small><div class="lb-xp"><i style="width:${(p.xp / need) * 100}%"></i></div></div></div></div></div>
+        <div class="lb-league">${RU.leagueImg(li, 'big')}<div><b>${RU.leagueName(li)}</b>
+          <div class="lb-pos">${board && board.position ? '#' + board.position.toLocaleString() : '—'} <span>·</span> ${T('rk.points', st.points)}</div></div></div>
+        <div class="lb-bar"><i style="width:${pct}%"></i></div><div class="lb-next">${nx ? T('rk.next', nx.need, RU.leagueName(nx.index)) : T('rk.max')}</div>
+        <div class="lb-stats">
+          <span title="${T('rk.wins')}">${RU.ico('swords')}<b>${st.wins}</b><small>${T('rk.wins')}</small></span>
+          <span title="${T('rk.draws')}">${RU.ico('shield')}<b>${st.draws}</b><small>${T('rk.draws')}</small></span>
+          <span title="${T('rk.losses')}">${RU.ico('skull')}<b>${st.losses}</b><small>${T('rk.losses')}</small></span>
+          <span title="${T('rk.streak_short')}">${RU.ico('fire')}<b>${st.streak}</b><small>${T('rk.streak_short')}</small></span></div>
         <div class="rk-status">${status || ''}</div>
-        <button class="btn small dark" id="lbBoard">🏆 ${T('rk.ranking')}</button>`;
-      go.innerHTML = logged ? `<button class="btn gold lb-search" id="lbSearch">⚔ ${T('rk.search')}</button>`
-        : `<button class="btn gold lb-search" id="lbLogin">${T('rk.login')}</button>`;
+        <div class="lb-foot"><button class="gbtn blue lb-rank" id="lbBoard">${RU.ico('trophy')}<span>${T('rk.ranking')}</span></button>
+          <button class="lb-rewards" id="lbRewards"><img src="img/ui/season_chest.webp" alt=""><span>${T('rk.season_rewards')}</span></button></div>`;
+      $('#lbGoTxt').textContent = logged ? T('rk.search') : T('rk.login');
+      $('#lbGoBtn').onclick = () => {
+        if (logged) { RU.play(); return; }
+        BB.audio.play('click'); if (!C().configured()) { BB.ui.toast(T('rk.not_configured')); return; } RU.loginModal(() => BB.ui.show('rkLobby'));
+      };
       $('#lbBoard').onclick = () => { BB.audio.play('click'); BB.ui.returnTo = 'rkLobby'; BB.ui.show('ranking'); };
-      const s1 = $('#lbSearch'); if (s1) s1.onclick = () => RU.play();
-      const s2 = $('#lbLogin'); if (s2) s2.onclick = () => { BB.audio.play('click'); if (!C().configured()) { BB.ui.toast(T('rk.not_configured')); return; } RU.loginModal(() => BB.ui.show('rkLobby')); };
+      $('#lbRewards').onclick = () => RU.rewardsModal();
+    },
+    // prêmios da temporada (pela maior liga alcançada) — os mesmos valores pagos na virada
+    rewardsModal() {
+      BB.audio.play('click');
+      const st = RU.data().st, cur = st.maxLeague, ov = document.getElementById('overlay'), m = document.createElement('div');
+      m.className = 'modal';
+      m.innerHTML = `<div class="gpanel lb-rw"><h2 class="title">${T('rk.season_rewards')}</h2><p class="muted">${T('rk.rewards_text')}</p>
+        <div class="lb-rwlist">${R().LEAGUES.map((l, i) => { const r = R().REWARDS[i];
+          return `<div class="lb-rwi ${i === cur ? 'cur' : ''} ${i <= cur ? 'got' : ''}">${RU.leagueImg(i)}<div><b>${RU.leagueName(i)}</b><small>${l.floor}+ pts</small></div>
+            <span>${RU.ico('coins')} ${r.gold}${r.crystals ? ' ' + RU.ico('gems') + ' ' + r.crystals : ''}</span></div>`; }).join('')}
+          <div class="lb-rwi top">${RU.ico('trophy')}<div><b>Top 10</b><small>${T('rk.top10_bonus')}</small></div><span>${RU.ico('coins')} +${R().TOP10.gold} ${RU.ico('gems')} +${R().TOP10.crystals}</span></div></div>
+        <div class="acts"><button class="btn gold" data-cancel="1">${T('rk.ok')}</button></div></div>`;
+      m.querySelector('button').onclick = () => { BB.audio.play('click'); m.remove(); };
+      ov.appendChild(m);
     },
     lobbyArmy() {
       const el = $('#lbArmy'), p = BB.profile, C2 = BB.content, deck = p.decks[p.activeDeck];
       const cs = BB.Shop.equipped(p, 'castle', p.selectedCastle);
+      const pick = (id, img, lbl, name) => `<button class="lb-pick" id="${id}"><span class="lb-tile">${img}</span>
+          <span class="lb-pn"><small>${lbl}</small><b>${name}</b><em>${RU.ico('refresh')} ${T('rk.change')}</em></span><img class="lb-arrow" src="img/ui/next.webp" alt=""></button>`;
       el.innerHTML = `<div class="lb-sel">
-          <div class="lb-pick" id="lbBaron">${BB.Shop.img(BB.Shop.baronPic(p, p.selectedBaron))}<div><small>${T('ui.barons')}</small><b>${BB.baronName(p.selectedBaron)}</b><em>${T('rk.change')}</em></div></div>
-          <div class="lb-pick" id="lbCastle"><img src="img/castle_cards/${p.selectedCastle}.webp" style="${cs && cs.filter ? 'filter:' + cs.filter : ''}" alt=""><div><small>${T('ui.castles')}</small><b>${BB.castleName(p.selectedCastle)}</b><em>${T('rk.change')}</em></div></div></div>
-        <div class="lb-decks">${[0, 1, 2].map((i) => `<button class="btn small ${i === p.activeDeck ? 'gold' : 'dark'}" data-dk="${i}">${esc(BB.deckName(i))}</button>`).join('')}
-          <button class="btn small" id="lbEdit">✏️ ${T('rk.edit_deck')}</button></div>
+          ${pick('lbBaron', BB.Shop.img(BB.Shop.baronPic(p, p.selectedBaron)), T('ui.barons'), BB.baronName(p.selectedBaron))}
+          ${pick('lbCastle', `<img src="img/castle_cards/${p.selectedCastle}.webp" style="${cs && cs.filter ? 'filter:' + cs.filter : ''}" alt="">`, T('ui.castles'), BB.castleName(p.selectedCastle))}</div>
+        <div class="lb-decks">${[0, 1, 2].map((i) => `<button class="gbtn ${i === p.activeDeck ? 'gold' : 'navy'}" data-dk="${i}">${RU.ico(i === p.activeDeck ? 'castle' : 'cards')}<span>${esc(BB.deckName(i))}</span></button>`).join('')}
+          <button class="gbtn blue" id="lbEdit">${RU.ico('pencil')}<span>${T('rk.edit_deck')}</span></button></div>
         <div class="lb-cards">${deck.map((id) => BB.ui.cardHtml(C2.card(id), BB.Progress.owned(p, id), { level: true })).join('')}</div>`;
       const ret = (scr) => { BB.audio.play('click'); BB.ui.returnTo = 'rkLobby'; BB.ui.show(scr); };
       $('#lbBaron').onclick = () => ret('barons');
@@ -304,10 +336,9 @@
     screen() {
       const t = now(), season = R().seasonId(t), days = R().daysLeft(t);
       RU._scrolled = false;
-      BB.ui.h.screen('ranking', BB.ui.h.topbar(T('rk.title'), true) + `
-        <div class="rk-sub">${T('rk.season', R().seasonNumber(season))} · ${days <= 1 ? T('rk.ends_today') : T('rk.ends', days)}</div>
-        <div class="rk"><div class="panel rk-left" id="rkLeft"></div>
-          <div class="panel rk-right"><div class="rk-list" id="rkList"></div><div class="rk-mine" id="rkMine"></div></div></div>`);
+      BB.ui.h.screen('ranking', BB.ui.h.topbar(T('rk.ranking'), true, { fancy: true }) + RU.seasonBanner() + `
+        <div class="rk"><div class="gpanel rk-left" id="rkLeft"></div>
+          <div class="gpanel rk-right"><div class="rk-list" id="rkList"></div><div class="rk-mine" id="rkMine"></div></div></div>`, 'img/ui/bg_ranked.webp');
       BB.ui.h.bindBack('ranking', () => BB.ui.show(BB.ui.backTarget()));
       BB.audio.music('menu');
       const a = RU.checkAbandon(); if (a) RU.showAbandon(a);
@@ -347,7 +378,7 @@
     vs(opp, ai) {
       const d = RU.data(), p = BB.profile;
       const side = (name, baron, points, me) => { const li = R().league(points); return `<div class="vs-side ${me ? 'me' : 'foe'}">${me ? BB.Shop.img(BB.Shop.avatarPic(BB.profile)) : `<img src="${BB.art.baronUrl(baron)}" alt="">`}
-        <h2 class="title">${esc(name)}</h2><div>${R().LEAGUES[li].icon} ${RU.leagueName(li)}</div><b>${T('rk.points', points)}</b><small>${BB.baronName(baron)}</small></div>`; };
+        <h2 class="title">${esc(name)}</h2><div>${RU.leagueImg(li)} ${RU.leagueName(li)}</div><b>${T('rk.points', points)}</b><small>${BB.baronName(baron)}</small></div>`; };
       BB.ui.h.screen('matchmaking', `<div class="vs">${side(BB.playerName(p), p.selectedBaron, d.st.points, true)}<div class="vs-mid title">VS</div>${side(opp.name, opp.baron, opp.points, false)}</div>`);
       BB.audio.play('castle');
       setTimeout(() => { if (BB.ui.current() === 'matchmaking') BB.ui.show('battle', { difficulty: ai.difficulty, ranked: { opp, ai } }); }, 2300);
@@ -357,7 +388,7 @@
     resultHtml(r) {
       const cls = r.delta > 0 ? 'up' : r.delta < 0 ? 'down' : '';
       return `<div class="rk-res"><span class="rk-delta ${cls}">${r.delta > 0 ? '+' : ''}${T('rk.points', r.delta)}</span>
-        <span>${T('rk.total', r.after)}</span><span>${R().LEAGUES[r.leagueAfter].icon} ${RU.leagueName(r.leagueAfter)}</span>
+        <span>${T('rk.total', r.after)}</span><span>${RU.leagueImg(r.leagueAfter)} ${RU.leagueName(r.leagueAfter)}</span>
         ${r.promoted ? `<span class="rk-promo">⬆ ${T('rk.promoted', RU.leagueName(r.leagueAfter))}</span>` : ''}</div>`;
     },
   };
