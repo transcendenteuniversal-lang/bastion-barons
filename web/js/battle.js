@@ -114,7 +114,8 @@
         <div class="hb-sub foe" data-r="1260,40,1522,68">${BB.baronName(foe.baron.id)} • ${this.ranked ? BB.Ranked.LEAGUES[this.ranked.opp.league].icon + ' ' + this.ranked.opp.points : T('battle.offline_short')}</div>
         <div class="hb-hp foe" data-r="1260,72,1522,104"><i id="hpFoe"></i><span id="hpFoeT"></span></div>
 
-        <button class="hb-btn tap" data-r="436,14,494,70" id="pauseBtn">❚❚</button>
+        ${this.ranked ? `<button class="hb-btn tap surr" data-r="436,14,494,70" id="surrBtn" title="${T('battle.surrender')}">🏳</button>`
+          : `<button class="hb-btn tap" data-r="436,14,494,70" id="pauseBtn">❚❚</button>`}
         <div class="hb-score me" data-r="598,8,766,78"><b>👑</b><span id="crownMe">0</span></div>
         <div class="hb-timer" data-r="764,8,910,78" id="timer">3:00</div>
         <div class="hb-score foe" data-r="908,8,1078,78"><span id="crownFoe">0</span><b>👑</b></div>
@@ -143,7 +144,8 @@
         slots: [0, 1, 2, 3, 4, 5].map((i) => $('#slot' + i)), drawFill: $('#drawFill'), pileTxt: $('#pileTxt'), energyMax: $('#energyMax'), energyCap: $('#energyCap'), trash: $('#trash'), energyFill: $('#energyFill'), energyNum: $('#energyNum'), hint: $('#hint'),
         autoBtn: $('#autoBtn'), emotes: $('#emotes'), bubbles: [$('#bubbleMe'), $('#bubbleFoe')],
       };
-      $('#pauseBtn').onclick = () => this.pause();
+      if (this.ranked) $('#surrBtn').onclick = () => this.surrenderPrompt();
+      else $('#pauseBtn').onclick = () => this.pause();
       this.bindOrb(this.el.baronBtn, 'baron');
       this.bindOrb(this.el.castleBtn, 'castle');
       $('#emoteBtn').onclick = () => { BB.audio.play('click'); this.el.emotes.classList.toggle('hidden'); };
@@ -407,7 +409,18 @@
     }
 
     // ---------------------------------------------------------- pausa / fim
+    // Ranqueada: não existe pausa (o jogo continua correndo); só dá para desistir
+    surrenderPrompt() {
+      if (this.match.over || document.querySelector('#overlay .modal')) return;
+      BB.audio.play('click');
+      BB.ui.modal(T('battle.surrender'), T('battle.confirm_surrender'), [
+        { label: T('battle.yes'), cls: 'red', fn: () => { if (!this.match.over) this.match.surrender(0); } },
+        { label: T('battle.no'), cls: 'dark' },
+      ]);
+    }
+
     pause() {
+      if (this.ranked) { this.surrenderPrompt(); return; }
       if (this.match.over || this.paused) return;
       this.paused = true; this.disarm(); BB.platform.gameplayStop();
       BB.ui.modal(T('battle.paused'), '', [
@@ -420,7 +433,7 @@
       ]);
     }
 
-    onAppPause() { if (!this.match.over && !this.paused) this.pause(); }
+    onAppPause() { if (this.ranked) return; if (!this.match.over && !this.paused) this.pause(); } // Ranqueada: sem pausa
 
     finish() {
       if (this.finished) return;

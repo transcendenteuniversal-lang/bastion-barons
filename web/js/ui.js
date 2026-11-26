@@ -198,18 +198,18 @@
       const need = BB.Progress.xpForNext(b, p.accountLevel);
       const ranked = BB.RankedUI && BB.RankedUI.available();
       // botões com a arte do menu (img/menu/btn_*.webp): ícone à esquerda, texto escrito pelo jogo
-      const mb = (img, label, go, gold) => `<button class="mbtn ${gold ? 'gold' : ''} ${label.length > 11 ? 'long' : ''}" data-m="${go}"><img src="img/menu/${img}.webp" alt=""><span>${label}</span></button>`;
+      const mb = (img, label, go, gold, soon) => `<button class="mbtn ${gold ? 'gold' : ''} ${label.length > 11 ? 'long' : ''} ${soon ? 'soon' : ''}" data-m="${go}"><img src="img/menu/${img}.webp" alt=""><span>${label}</span>${soon ? `<i class="soon-tag">${T('ui.coming_soon')}</i>` : ''}</button>`;
       const left = (ranked ? mb('btn_ranked', T('ui.ranked'), 'ranked', true) : '') + mb('btn_barons', T('ui.barons'), 'barons') + mb('btn_castles', T('ui.castles'), 'castles')
-        + mb('btn_history', T('ui.history'), 'history');
+        + mb('btn_history', T('ui.history'), 'history') + mb('btn_championship', T('ui.championship'), 'soon', false, true);
       const right = mb('btn_store', T('shop.title'), 'shop', true) + mb('btn_collection', T('ui.collection'), 'collection') + mb('btn_cards', T('ui.deck'), 'deck')
-        + (ranked ? mb('btn_ranking', T('ui.leaderboard'), 'ranking') : '');
+        + (ranked ? mb('btn_ranking', T('ui.leaderboard'), 'ranking') : '') + mb('btn_season', T('ui.season'), 'soon', false, true);
       screen('menu', `
         <div class="mtop"><div class="profile tap" id="profileBtn">${BB.Shop.img(BB.Shop.avatarPic(p), 'avatar')}<div class="mlvl">${p.accountLevel}</div>
             <div><b>${esc(BB.playerName(p))}</b> <span class="guest">(${T('ui.guest')})</span>
             <div class="xpbar"><i style="width:${(p.xp / need) * 100}%"></i><em>${p.xp}/${need} XP</em></div></div></div>
           <div class="mwallet"><span class="cur"><i>🪙</i><b>${p.gold}</b><button class="plus" data-plus="gems">+</button></span>
             <span class="cur"><i>💎</i><b>${p.crystals}</b><button class="plus" data-plus="gems">+</button></span>
-            <button class="gear" data-m="settings" aria-label="${esc(T('ui.settings'))}">⚙</button></div></div>
+            <button class="gear" data-m="settings" aria-label="${esc(T('ui.settings'))}"><img src="img/menu/icon_gear.webp" alt=""></button></div></div>
         <div class="mmain">
           <div class="mcol">${left}</div>
           <div class="mmid"><img class="logo" src="img/logo.webp" alt="">
@@ -225,6 +225,7 @@
         const go = el.dataset.m;
         // Ranqueada: entra direto na busca de adversário (ou no ranking, para entrar na conta)
         if (go === 'ranked') { ui.show('rkLobby'); return; } // sala de espera da Ranqueada
+        if (go === 'soon') { ui.toast(T('ui.coming_soon')); return; } // Campeonato e Temporada: em breve
         ui.show(go);
       });
       app().querySelectorAll('[data-plus]').forEach((el) => el.onclick = () => { BB.audio.play('click'); ui.show('shop', { tab: el.dataset.plus }); });

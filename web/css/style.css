@@ -499,3 +499,11 @@ html.rk-free #rotate { display: none !important; }
 @keyframes lbpulse { 50% { box-shadow: 0 0 1.6rem rgba(255,210,74,.8); } }
 .deckinfo .tabs .btn { max-width: 11rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (orientation: portrait) { html.rk-free .lb { flex-direction: column; } html.rk-free .lb-prof { width: auto; } }
+/* botões "em breve" (Campeonato, Temporada) e engrenagem */
+.mbtn.soon img { filter: grayscale(.55) brightness(.75); }
+.mbtn.soon span { opacity: .75; }
+.mbtn .soon-tag { position: absolute; right: 4%; top: -12%; font-style: normal; font-weight: 900; font-size: calc(var(--bw) * .045); padding: .15em .6em; border-radius: 1em;
+  background: linear-gradient(#ff6b6b, #b3202a); color: #fff; border: .1em solid #ffd24a; transform: rotate(4deg); box-shadow: 0 .2em .4em rgba(0,0,0,.5); pointer-events: none; }
+.mwallet .gear { display: grid; place-items: center; padding: .35rem; }
+.mwallet .gear img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 .1rem .15rem rgba(0,0,0,.6)); }
+.hb-btn.surr { font-size: 1.2em; }
