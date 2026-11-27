@@ -164,20 +164,21 @@
 
   };
 
-  // cabeçalho padrão: botão voltar ilustrado, título dourado (com louros e estandartes no modo "fancy") e carteira com atalho para a loja
+  // cabeçalho padrão: seta ilustrada, título na placa dourada entre estandartes, (logo) e carteira com atalho para a loja
   function topbar(title, backTo, o) {
-    const p = BB.profile, fancy = o && o.fancy;
-    return `<div class="topbar ${fancy ? 'fancy' : ''}">${backTo ? `<button class="gback" id="backBtn"><b>‹</b><span>${T('ui.back')}</span></button>` : '<span></span>'}
-      <h1 class="title">${fancy ? '<img class="tb-pen" src="img/ui/pennant_fleur.webp" alt=""><img class="tb-lau" src="img/ui/laurel_l.webp" alt="">' : ''}<span>${esc(title)}</span>${fancy ? '<img class="tb-lau" src="img/ui/laurel_r.webp" alt=""><img class="tb-pen" src="img/ui/pennant_fleur.webp" alt="">' : ''}</h1>
-      <div class="gwallet"><span class="cur"><img src="img/ui/coins.webp" alt=""><b>${p.gold}</b><button class="plus" data-plus="1">+</button></span>
-        <span class="cur"><img src="img/ui/gems.webp" alt=""><b>${p.crystals}</b><button class="plus" data-plus="1">+</button></span></div></div>`;
+    const p = BB.profile, logo = o && o.logo;
+    return `<div class="topbar">${backTo ? `<button class="gback" id="backBtn" aria-label="${esc(T('ui.back'))}"><img src="img/ui2/back.webp" alt=""></button>` : '<span></span>'}
+      ${logo ? '<img class="tb-logo" src="img/ui2/logo_small.webp" alt="">' : ''}
+      <h1 class="tbt"><img class="tb-pen" src="img/ui2/pennant.webp" alt=""><span class="tb-plate"><span class="title">${esc(title)}</span></span><img class="tb-pen" src="img/ui2/pennant.webp" alt=""></h1>
+      <div class="gwallet"><span class="cur"><img src="img/ui2/coins.webp" alt=""><b>${p.gold}</b><button class="plus" data-plus="1" aria-label="+"><img src="img/ui2/plus.webp" alt=""></button></span>
+        <span class="cur"><img src="img/ui2/gems.webp" alt=""><b>${p.crystals}</b><button class="plus" data-plus="1" aria-label="+"><img src="img/ui2/plus.webp" alt=""></button></span></div></div>`;
   }
   function bindBack(name, fn) {
     back[name] = fn;
     const b = $('#backBtn');
     if (b) b.onclick = () => { BB.audio.play('click'); fn(); };
   }
-  const screen = (id, html, bg) => { app().innerHTML = `<div class="screen" id="${id}"><div class="bg" style="background-image:url(${bg || 'img/menu_bg.webp'})"></div>${html}</div>`; };
+  const screen = (id, html, bg) => { app().innerHTML = `<div class="screen" id="${id}"><div class="bg ${bg ? 'art' : 'art'}" style="background-image:url(${bg || 'img/ui2/bg_valley.webp'})"></div>${html}</div>`; };
 
   // outros módulos (ex.: Ranqueada) registram telas e usam os mesmos ajudantes
   ui.addScreen = (name, fn) => { SCREENS[name] = fn; };
@@ -274,15 +275,18 @@
     // ------------------------------------------------------------ Barões
     barons() {
       const p = BB.profile;
+      const AB = { rei_bastion: 'img/ui/crown.webp', elara: 'img/ui/c_bow.webp', thorg: 'img/ui/c_fire.webp', malachar: 'img/ui/c_skull.webp', eldrin: 'img/ui/c_arcane.webp' };
       const items = BB.content.barons.map((b) => {
         const un = BB.Progress.baronUnlocked(p, b), sel = p.selectedBaron === b.id;
-        return `<div class="panel choice ${sel ? 'sel' : ''} ${un ? '' : 'locked'}">${BB.Shop.img(BB.Shop.baronPic(p, b.id), 'portrait')}
-          ${BB.ShopUI ? BB.ShopUI.pickerHtml('baron', b.id) : ''}
-          <h3 class="title">${BB.baronName(b.id)}</h3><div class="sub">${T('baron.' + b.id + '.title')}</div>
-          <div class="ab">${T('baron.' + b.id + '.ability')}</div><div class="desc">${T('baron.' + b.id + '.desc')}</div>
-          ${!un ? `<div class="lock">${T('ui.locked_level', b.unlockLevel)}</div>` : sel ? `<b style="color:#5fd06d">${T('ui.selected')}</b>` : `<button class="btn green small" data-pick="${b.id}">${T('ui.select')}</button>`}</div>`;
+        return `<div class="bcard t-${b.id} ${sel ? 'sel' : ''} ${un ? '' : 'locked'}">${sel ? '<img class="bc-crown" src="img/ui2/crown.webp" alt="">' : ''}
+          <div class="bc-art">${BB.Shop.img(BB.Shop.baronPic(p, b.id), 'portrait')}</div>
+          <h3 class="title">${BB.baronName(b.id)}</h3>${BB.ShopUI ? BB.ShopUI.pickerHtml('baron', b.id) : ''}<div class="bc-sub">${T('baron.' + b.id + '.title')}</div>
+          <div class="bc-ab"><img src="${AB[b.id] || 'img/ui/crown.webp'}" alt=""><span>${T('baron.' + b.id + '.ability')}</span></div>
+          <div class="bc-desc">${T('baron.' + b.id + '.desc')}</div>
+          ${!un ? `<div class="ibtn gray"><img src="img/ui2/lock.webp" alt="">${T('ui.locked_level', b.unlockLevel)}</div>`
+            : sel ? `<div class="ibtn sel"><img src="img/ui2/check_shield.webp" alt="">${T('ui.selected')}</div>` : `<button class="ibtn" data-pick="${b.id}">${T('ui.select')}</button>`}</div>`;
       }).join('');
-      screen('barons', topbar(T('ui.barons'), true) + `<div class="content"><div class="choices">${items}</div></div>`);
+      screen('barons', topbar(T('ui.barons'), true) + `<div class="subline">✦ ${T('ui.barons_sub')} ✦</div><div class="cards5">${items}</div>`, 'img/ui2/bg_court.webp');
       bindBack('barons', () => ui.show(ui.backTarget()));
       app().querySelectorAll('[data-pick]').forEach((b) => b.onclick = () => { BB.audio.play('click'); p.selectedBaron = b.dataset.pick; BB.save(); ui.refresh(); });
       if (BB.ShopUI) BB.ShopUI.bindPickers(app(), () => ui.refresh());
@@ -292,15 +296,17 @@
     castles() {
       const p = BB.profile;
       const items = BB.content.castles.map((c) => {
-        const un = BB.Progress.castleUnlocked(p, c), sel = p.selectedCastle === c.id;
-        return `<div class="panel choice ${sel ? 'sel' : ''} ${un ? '' : 'locked'}"><canvas class="portrait" data-castle="${c.id}" width="320" height="320"></canvas>
+        const un = BB.Progress.castleUnlocked(p, c), sel = p.selectedCastle === c.id, sk = BB.Shop.equipped(p, 'castle', c.id);
+        return `<div class="ccard ${sel ? 'sel' : ''} ${un ? '' : 'locked'}">${sel ? '<img class="cc-check" src="img/ui2/check_shield.webp" alt="">' : ''}
+          <img class="cc-art" src="img/ui2/ct_${c.id}.webp" style="${sk && sk.filter ? 'filter:' + sk.filter : ''}" alt="">
           ${BB.ShopUI ? BB.ShopUI.pickerHtml('castle', c.id) : ''}
-          <h3 class="title">${BB.castleName(c.id)}</h3><div class="ab">${T('castle.' + c.id + '.ability')}</div><div class="desc">${T('castle.' + c.id + '.desc')}</div>
-          ${!un ? `<div class="lock">${T('ui.locked_level', c.unlockLevel)}</div>` : sel ? `<b style="color:#5fd06d">${T('ui.selected')}</b>` : `<button class="btn green small" data-pick="${c.id}">${T('ui.select')}</button>`}</div>`;
+          <h3 class="title cc-name">${BB.castleName(c.id)}</h3><div class="cc-ab">${T('castle.' + c.id + '.ability')}</div>
+          <div class="cc-desc"><img src="img/ui2/ca_${c.id}.webp" alt=""><span>${T('castle.' + c.id + '.desc')}</span></div>
+          ${!un ? `<div class="ibtn gray"><img src="img/ui2/lock.webp" alt="">${T('ui.locked_level', c.unlockLevel)}</div>`
+            : sel ? `<div class="ibtn sel">${T('ui.selected')}</div>` : `<button class="ibtn" data-pick="${c.id}">${T('ui.select')}</button>`}</div>`;
       }).join('');
-      screen('castles', topbar(T('ui.castles'), true) + `<div class="content"><div class="choices">${items}</div></div>`);
+      screen('castles', topbar(T('ui.castles'), true) + `<div class="cards5">${items}</div>`);
       bindBack('castles', () => ui.show(ui.backTarget()));
-      app().querySelectorAll('[data-castle]').forEach((cv) => { drawCastlePreview(cv, BB.content.castle(cv.dataset.castle)); const sk = BB.Shop.equipped(BB.profile, 'castle', cv.dataset.castle); cv.style.filter = sk && sk.filter ? sk.filter : ''; });
       app().querySelectorAll('[data-pick]').forEach((b) => b.onclick = () => { BB.audio.play('click'); p.selectedCastle = b.dataset.pick; BB.save(); ui.refresh(); });
       if (BB.ShopUI) BB.ShopUI.bindPickers(app(), () => ui.refresh());
     },
@@ -457,17 +463,25 @@
 
     // ------------------------------------------------------------ histórico
     history() {
-      const p = BB.profile;
-      const rows = p.history.map((r) => {
+      const p = BB.profile, H = p.history;
+      const rankedWins = H.filter((r) => r.mode === 'ranked' && r.result > 0).length;
+      const port = (id) => `<img class="hs-port" src="${BB.art.baronUrl(id)}" alt="">`;
+      const rows = H.map((r) => {
         const cls = r.result > 0 ? 'win' : r.result < 0 ? 'loss' : 'draw';
         const res = T(r.result > 0 ? 'result.victory' : r.result < 0 ? 'result.defeat' : 'result.draw');
-        const d = new Date(r.date);
-        return `<div class="hist ${cls}"><b style="width:9rem">${res}</b><span style="flex:1">${BB.baronName(r.baron)} × ${BB.baronName(r.opponentBaron)}</span>
-          <span>${Math.round(r.myPct * 100)}% / ${Math.round(r.foePct * 100)}%</span><span>${Math.floor(r.seconds / 60)}:${String(r.seconds % 60).padStart(2, '0')}</span>
-          <span class="muted">${T('ui.' + r.mode.replace('training_', ''))}</span><span class="muted">${d.toLocaleDateString()}</span></div>`;
+        const d = new Date(r.date), mode = r.mode.replace('training_', '');
+        return `<div class="hrow"><span class="hres ${cls}"><img src="img/ui2/${r.result > 0 ? 'i_wins' : r.result < 0 ? 'i_swords_red' : 'i_draws'}.webp" alt="">${res}</span>
+          ${port(r.baron)}<img class="hs-x" src="img/ui/swords.webp" alt="">${port(r.opponentBaron)}<span class="hs-names">${BB.baronName(r.baron)} × ${BB.baronName(r.opponentBaron)}</span>
+          <span class="hs-c"><img src="img/ui2/fleur_shield.webp" alt="">${Math.round(r.myPct * 100)}% / ${Math.round(r.foePct * 100)}%</span>
+          <span class="hs-c"><img src="img/ui2/hourglass.webp" alt="">${Math.floor(r.seconds / 60)}:${String(r.seconds % 60).padStart(2, '0')}</span>
+          <span class="hs-c"><img src="img/ui2/${mode === 'ranked' ? 'mode_ranked' : 'i_swords_red'}.webp" alt="">${T('ui.' + mode)}</span>
+          <span class="hs-c"><img src="img/ui2/calendar.webp" alt="">${d.toLocaleDateString()}</span></div>`;
       }).join('');
-      screen('history', topbar(T('ui.history'), true) + `<div class="content"><p class="center" style="color:var(--gold);font-weight:800;font-size:1.3rem">
-        ${T('history.stats', p.battles, p.wins, p.losses, p.draws, p.bestWinStreak)}</p>${rows || `<p class="center muted">${T('history.empty')}</p>`}</div>`);
+      const st = (img, v, cls, tip) => `<span class="hsum-i ${cls}" title="${esc(tip)}"><img src="img/ui2/${img}.webp" alt=""><b>${v}</b><small>${esc(tip)}</small></span>`;
+      screen('history', topbar(T('ui.history'), true) + `<div class="hsum gpanel"><img class="hsum-em" src="img/ui2/hist_emblem.webp" alt="">
+          ${st('i_battles', p.battles, '', T('profile.battles'))}${st('i_wins', p.wins, 'g', T('profile.wins'))}${st('i_swords_red', p.losses, 'r', T('profile.losses'))}${st('i_draws', p.draws, '', T('rk.draws'))}
+          <i class="hsum-sep"></i>${st('crown_laurel', rankedWins, 'gold', T('history.ranked_wins'))}</div>
+        <div class="hlist gpanel">${rows || `<p class="center muted">${T('history.empty')}</p>`}</div>`);
       bindBack('history', () => ui.show('menu'));
     },
 
