@@ -155,30 +155,50 @@
     },
 
     // ------------------------------------------------------------ perfil (foto, números e "Minhas skins")
-    profile() {
+    profile(arg) {
       const p = BB.profile, b = BB.content.balance, need = BB.Progress.xpForNext(b, p.accountLevel);
+      if (arg && arg.tab) SU.pfTab = arg.tab;
+      const ptab = SU.pfTab || 'custom';
       const owned = BB.content.collectible.filter((c) => BB.Progress.owned(p, c.id)).length;
       const mySkins = S().SKINS.filter((sk) => !sk.free && S().owns(p, sk.id)).length;
-      const sect = (title, html) => (html ? `<h3 class="title pf-h">${title}</h3>${html}` : '');
-      const group = (type, items) => items.map((it) => { const h = SU.pickerHtml(type, it.id); return h ? `<div class="pf-tgt">${esc(it.name)}</div>${h}` : ''; }).join('');
-      BB.ui.h.screen('profile', BB.ui.h.topbar(T('profile.title'), true) + `<div class="pf">
-        <div class="panel pf-left">${S().img(S().avatarPic(p), 'pf-avatar')}<h2 class="title">${esc(BB.playerName(p))}</h2>
-          <div>${T('profile.level', p.accountLevel)}</div><div class="xpbar"><i style="width:${(p.xp / need) * 100}%"></i></div><small class="muted">${p.xp}/${need} XP</small>
-          <div class="pf-stats">${[[T('profile.battles'), p.battles], [T('profile.wins'), p.wins], [T('profile.losses'), p.losses], [T('profile.best_streak'), p.bestWinStreak],
-            [T('profile.cards'), owned + '/' + BB.content.collectible.length], [T('profile.skins'), mySkins + '/' + S().SKINS.filter((sk) => !sk.free).length]]
-            .map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('')}</div>
-          <button class="btn gold small" data-go="shop">🛒 ${T('profile.more_skins')}</button></div>
-        <div class="panel pf-right"><h2 class="title">${T('profile.my_skins')}</h2>
-          ${sect(T('shop.t_avatar'), SU.pickerHtml('avatar'))}
-          ${sect(T('shop.t_celebration'), SU.pickerHtml('celebration'))}
-          ${sect(T('shop.t_emotes'), SU.pickerHtml('emotes'))}
-          ${sect(T('shop.t_baron'), group('baron', BB.content.barons.map((x) => ({ id: x.id, name: BB.baronName(x.id) }))))}
-          ${sect(T('shop.t_castle'), group('castle', BB.content.castles.map((x) => ({ id: x.id, name: BB.castleName(x.id) }))))}
-          ${sect(T('shop.t_troop'), group('troop', [...new Set(S().SKINS.filter((sk) => sk.type === 'troop').map((sk) => sk.target))].map((id) => ({ id, name: BB.cardName(id) }))))}
-        </div></div>`);
+      const sect = (ico, title, html) => (html ? `<h3 class="pf-h"><img src="img/${ico}.webp" alt="">${title}</h3>${html}` : '');
+      const group = (type, items) => `<div class="pf-grp">${items.map((it) => { const h = SU.pickerHtml(type, it.id); return h ? `<div class="pf-g"><div class="pf-tgt">${esc(it.name)}</div>${h}</div>` : ''; }).join('')}</div>`;
+      const stat = (ico, k, v) => `<div class="pf-st"><img src="img/${ico}.webp" alt=""><div><small>${k}</small><b>${v}</b></div></div>`;
+      let body = '';
+      if (ptab === 'custom') body = sect('ui2/stall', T('shop.t_avatar'), SU.pickerHtml('avatar')) + sect('ui2/party', T('shop.t_celebration'), SU.pickerHtml('celebration'))
+        + sect('ui2/star', T('shop.t_emotes'), SU.pickerHtml('emotes'))
+        + sect('ui2/crown', T('shop.t_baron'), group('baron', BB.content.barons.map((x) => ({ id: x.id, name: BB.baronName(x.id) }))))
+        + sect('ui/castle', T('shop.t_castle'), group('castle', BB.content.castles.map((x) => ({ id: x.id, name: BB.castleName(x.id) }))))
+        + sect('ui/cards', T('shop.t_troop'), group('troop', [...new Set(S().SKINS.filter((sk) => sk.type === 'troop').map((sk) => sk.target))].map((id) => ({ id, name: BB.cardName(id) }))));
+      else if (ptab === 'stats') {
+        const H = p.history, rk = BB.RankedUI ? BB.RankedUI.data().st : null;
+        const fav = {}; H.forEach((r) => { fav[r.baron] = (fav[r.baron] || 0) + 1; });
+        const favB = Object.keys(fav).sort((a, c) => fav[c] - fav[a])[0];
+        const winPct = p.battles ? Math.round((p.wins / p.battles) * 100) + '%' : '—';
+        const avgT = H.length ? Math.round(H.reduce((a, r) => a + (r.seconds || 0), 0) / H.length) : 0;
+        body = `<div class="pf-stats2">${stat('ui2/i_battles', T('profile.battles'), p.battles)}${stat('ui2/i_wins', T('profile.wins'), p.wins)}${stat('ui2/i_swords_red', T('profile.losses'), p.losses)}
+          ${stat('ui2/i_draws', T('rk.draws'), p.draws)}${stat('ui2/crown_laurel', T('profile.win_rate'), winPct)}${stat('ui/fire', T('profile.best_streak'), p.bestWinStreak)}
+          ${stat('ui2/hourglass', T('profile.avg_time'), avgT ? Math.floor(avgT / 60) + ':' + String(avgT % 60).padStart(2, '0') : '—')}${stat('ui2/crown', T('profile.fav_baron'), favB ? BB.baronName(favB) : '—')}
+          ${rk ? stat('ui2/mode_ranked', T('profile.ranked_pts'), rk.points) + stat('ui2/trophy', T('rk.trophies'), rk.trophies) : ''}</div>`;
+      } else body = `<div class="pf-soon"><img src="img/ui2/trophy_laurel.webp" alt=""><h3 class="title">${T('profile.tab_ach')}</h3><p>${T('ui.coming_soon')}</p></div>`;
+      const TABS = [['custom', 'ui2/t_person'], ['stats', 'ui2/t_chart'], ['ach', 'ui2/t_laurel'], ['settings', 'ui2/t_gear']];
+      BB.ui.h.screen('profile', BB.ui.h.topbar(T('profile.title'), true, { logo: true }) + `<div class="pf">
+        <div class="gpanel pf-left"><div class="pf-av">${S().img(S().avatarPic(p), 'pf-avatar')}<img class="pf-frame" src="img/ui/frame_round.webp" alt=""></div>
+          <h2 class="title pf-name">${esc(BB.playerName(p))}</h2><div class="pf-lv"><img src="img/ui2/crown_laurel.webp" alt="">${T('profile.level', p.accountLevel)}</div>
+          <div class="lb-xp pf-xp"><i style="width:${(p.xp / need) * 100}%"></i></div><small class="muted">${p.xp} / ${need} XP</small>
+          <div class="pf-tiles">${stat('ui2/i_battles', T('profile.battles'), p.battles)}${stat('ui2/trophy', T('profile.wins'), p.wins)}${stat('ui2/cancel', T('profile.losses'), p.losses)}
+            ${stat('ui/fire', T('profile.best_streak'), p.bestWinStreak)}${stat('ui/cards', T('profile.cards'), owned + ' / ' + BB.content.collectible.length)}${stat('ui2/helmet', T('profile.skins'), mySkins + ' / ' + S().SKINS.filter((sk) => !sk.free).length)}</div>
+          <button class="ibtn gold pf-more" id="pfShop"><img src="img/ui2/stall.webp" alt="">${T('profile.more_skins')}</button></div>
+        <div class="gpanel pf-right"><div class="pf-tabs">${TABS.map(([t, ic]) => `<button class="tabb ${t === ptab ? 'on' : ''}" data-pt="${t}"><img src="img/${ic}.webp" alt=""><span>${T('profile.tab_' + t)}</span></button>`).join('')}</div>
+          <div class="pf-body">${body}</div></div></div>`, 'img/ui2/bg_court.webp');
       BB.ui.h.bindBack('profile', () => BB.ui.show('menu'));
-      document.querySelectorAll('#profile [data-go]').forEach((x) => x.onclick = () => { BB.audio.play('click'); tab = 'skins'; BB.ui.show('shop'); });
-      const keep = () => { const sc = document.querySelector('.pf-right'), y = sc ? sc.scrollTop : 0; BB.ui.show('profile'); const n = document.querySelector('.pf-right'); if (n) n.scrollTop = y; };
+      $('#pfShop').onclick = () => { BB.audio.play('click'); tab = 'skins'; BB.ui.show('shop'); };
+      document.querySelectorAll('[data-pt]').forEach((x) => x.onclick = () => {
+        BB.audio.play('click');
+        if (x.dataset.pt === 'settings') { BB.ui.show('settings'); return; }
+        SU.pfTab = x.dataset.pt; BB.ui.show('profile');
+      });
+      const keep = () => { const sc = document.querySelector('.pf-body'), y = sc ? sc.scrollTop : 0; BB.ui.show('profile'); const n = document.querySelector('.pf-body'); if (n) n.scrollTop = y; };
       SU.bindPickers(document.getElementById('profile'), keep);
     },
 
@@ -202,5 +222,5 @@
   };
 
   BB.ShopUI = SU;
-  if (BB.ui && BB.ui.addScreen) { BB.ui.addScreen('shop', (a) => SU.screen(a)); BB.ui.addScreen('profile', () => SU.profile()); }
+  if (BB.ui && BB.ui.addScreen) { BB.ui.addScreen('shop', (a) => SU.screen(a)); BB.ui.addScreen('profile', (a) => SU.profile(a)); }
 })(window.BB);

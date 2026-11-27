@@ -92,10 +92,9 @@
     // conta (Google ou e-mail): conectar e desconectar — some onde não há nuvem (ex.: CrazyGames)
     accountRow() {
       if (!BB.cloud || !BB.cloud.configured() || !BB.RankedUI || !BB.RankedUI.available()) return '';
-      if (BB.cloud.loggedIn()) return `<div class="setrow">${T('settings.account')}<span class="nmrow"><small>${esc(BB.cloud.email())}</small>
-        <button class="btn small red" id="acOut">${T('rk.logout')}</button></span></div>`;
-      return `<div class="setrow">${T('settings.account')}<span class="nmrow"><button class="btn small rk-google" id="acGoogle"><b>G</b> ${T('settings.google')}</button>
-        <button class="btn small dark" id="acMail">✉ ${T('settings.email')}</button></span></div>`;
+      const r = (ctl) => `<div class="srow"><img class="sico" src="img/ui2/t_person.webp" alt=""><span class="slbl">${T('settings.account')}</span><span class="sctl">${ctl}</span></div>`;
+      if (BB.cloud.loggedIn()) return r(`<small>${esc(BB.cloud.email())}</small><button class="gbtn red" id="acOut"><span>${T('rk.logout')}</span></button>`);
+      return r(`<button class="gbtn white" id="acGoogle"><b class="gG">G</b><span>${T('settings.google')}</span></button><button class="gbtn navy" id="acMail"><span>✉ ${T('settings.email')}</span></button>`);
     },
 
     // dar nome a um dos 3 baralhos
@@ -169,7 +168,7 @@
     const p = BB.profile, logo = o && o.logo;
     return `<div class="topbar">${backTo ? `<button class="gback" id="backBtn" aria-label="${esc(T('ui.back'))}"><img src="img/ui2/back.webp" alt=""></button>` : '<span></span>'}
       ${logo ? '<img class="tb-logo" src="img/ui2/logo_small.webp" alt="">' : ''}
-      <h1 class="tbt"><img class="tb-pen" src="img/ui2/pennant.webp" alt=""><span class="tb-plate"><span class="title">${esc(title)}</span></span><img class="tb-pen" src="img/ui2/pennant.webp" alt=""></h1>
+      <h1 class="tbt"><img class="tb-pen" src="img/ui2/pennant.webp" alt=""><span class="tb-plate ${title.length > 9 ? 'long' : ''}"><span class="title">${esc(title)}</span></span><img class="tb-pen" src="img/ui2/pennant.webp" alt=""></h1>
       <div class="gwallet"><span class="cur"><img src="img/ui2/coins.webp" alt=""><b>${p.gold}</b><button class="plus" data-plus="1" aria-label="+"><img src="img/ui2/plus.webp" alt=""></button></span>
         <span class="cur"><img src="img/ui2/gems.webp" alt=""><b>${p.crystals}</b><button class="plus" data-plus="1" aria-label="+"><img src="img/ui2/plus.webp" alt=""></button></span></div></div>`;
   }
@@ -395,16 +394,21 @@
       }).join('') + '<div class="ped empty" data-empty="1"></div>'.repeat(Math.max(0, size - s.work.length));
       const avail = C.collectible.filter((c) => BB.Progress.owned(p, c.id) && !s.work.includes(c.id)).sort((a, b) => byCost(a.id, b.id));
       screen('deck', topbar(BB.deckName(s.idx), true) + `
-        <div class="deckinfo"><div class="tabs">${[0, 1, 2].map((i) => `<button class="btn small ${i === s.idx ? 'on' : ''}" data-tab="${i}">${esc(BB.deckName(i))}</button>`).join('')}
-          <button class="btn small dark" id="renameDeck" title="${esc(T('ui.deck_rename'))}">✏️</button></div>
-          <b style="flex:1">${T('ui.deck_count', s.work.length, size, BB.DeckRules.averageCost(s.work, C).toFixed(1))}</b>
-          <button class="btn green small" id="saveDeck" ${valid ? '' : 'disabled'}>${T('ui.save')}</button></div>
-        <div class="deckzone">${slots}</div>
-        <div class="content deckcoll"><p class="muted center" style="margin:0 0 .6rem">${T('ui.deck_drag_swap')}</p><div class="grid row1" id="collRow">${avail.map((c) => ui.cardHtml(c, BB.Progress.owned(p, c.id), { level: true, attrs: 'data-coll="' + c.id + '"' })).join('')}</div></div>`);
+        <div class="deckinfo"><div class="tabs">${[0, 1, 2].map((i) => `<button class="gbtn ${i === s.idx ? 'gold' : 'navy'}" data-tab="${i}"><img src="img/ui/${i === s.idx ? 'castle' : 'cards'}.webp" alt=""><span>${esc(BB.deckName(i))}</span></button>`).join('')}
+          <button class="sqbtn" id="renameDeck" title="${esc(T('ui.deck_rename'))}"><img src="img/ui/pencil.webp" alt=""></button></div>
+          <div class="dk-count"><img src="img/ui/cards.webp" alt="">${T('ui.deck_count', s.work.length, size, BB.DeckRules.averageCost(s.work, C).toFixed(1))}</div>
+          <button class="ibtn" id="saveDeck" ${valid ? '' : 'disabled'}>${T('ui.save')}</button></div>
+        <div class="deckzone gpanel">${slots}</div>
+        <div class="dk-hint"><img src="img/ui/info.webp" alt="">${T('ui.deck_drag_swap')}</div>
+        <div class="deckcoll gpanel"><button class="dk-arr" id="dkL"><img src="img/ui2/arrow_l.webp" alt=""></button>
+          <div class="grid row1" id="collRow">${avail.map((c) => ui.cardHtml(c, BB.Progress.owned(p, c.id), { level: true, attrs: 'data-coll="' + c.id + '"' })).join('')}</div>
+          <button class="dk-arr" id="dkR"><img src="img/ui2/arrow_r.webp" alt=""></button></div>`, 'img/ui2/bg_court.webp');
       bindBack('deck', () => { ui.closeCardMenu(); ui.show(ui.backTarget()); });
       BB.art.animatePreviews(app());
       const row = $('#collRow');
       if (s.scroll) row.scrollLeft = s.scroll; // a coleção continua no mesmo lugar depois da troca
+      $('#dkL').onclick = () => row.scrollBy({ left: -row.clientWidth * 0.8, behavior: 'smooth' });
+      $('#dkR').onclick = () => row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' });
       const redraw = () => { s.scroll = row.scrollLeft; s.keep = true; ui.closeCardMenu(); ui.show('deck', s); };
       const swap = (inId, outId) => {
         const i = outId ? s.work.indexOf(outId) : -1;
@@ -486,21 +490,30 @@
     },
 
     // ------------------------------------------------------------ configurações
-    settings() {
+    settings(arg) {
       const p = BB.profile;
+      if (arg && arg.tab) ui.setTab = arg.tab;
+      const tab = ui.setTab || 'general';
       const pct = (v) => Math.round(v * 100) + '%';
-      screen('settings', topbar(T('ui.settings'), true) + `<div class="content"><div class="settings">
-        ${ui.accountRow()}
-        <div class="setrow">${T('settings.name')}<span class="nmrow"><input id="nm" maxlength="16" value="${esc(BB.playerName(p))}" ${BB.Progress.nameLockLeft(p) ? 'disabled' : ''}>
-          ${BB.Progress.nameLockLeft(p) ? `<small class="muted">${T('settings.name_locked', Math.ceil(BB.Progress.nameLockLeft(p) / 86400000))}</small>` : `<button class="btn small" id="nmSave">${T('ui.save')}</button>`}</span></div>
-        <div class="setrow">${T('settings.music')}: ${pct(p.music)}<span><button class="btn small" data-v="music:-1">−</button> <button class="btn small" data-v="music:1">+</button></span></div>
-        <div class="setrow">${T('settings.sfx')}: ${pct(p.sfx)}<span><button class="btn small" data-v="sfx:-1">−</button> <button class="btn small" data-v="sfx:1">+</button></span></div>
-        <div class="setrow">${T('settings.vibration')}<button class="btn small" id="vib">${p.vibration ? T('ui.on') : T('ui.off')}</button></div>
-        <div class="setrow">${T('settings.language')}<button class="btn small" id="lang">${BB.LANGS.find((l) => l.id === BB.lang()).name}</button></div>
-        <div class="setrow">${T('settings.privacy')}<button class="btn small dark" id="priv">${T('settings.view')}</button></div>
-        <div class="setrow">${T('settings.credits')}<button class="btn small dark" id="cred">${T('settings.view')}</button></div>
-        <div class="setrow">${T('settings.reset')}<button class="btn small red" id="reset">${T('settings.reset')}</button></div>
-        <p class="muted center">v${BB.VERSION.name} • ID ${p.playerId}</p></div></div>`);
+      const row = (ico, label, ctl) => `<div class="srow"><img class="sico" src="img/${ico}.webp" alt=""><span class="slbl">${label}</span><span class="sctl">${ctl}</span></div>`;
+      const vol = (k) => `<span class="svol"><i style="width:${pct(p[k])}"></i></span><b class="spct">${pct(p[k])}</b>
+        <button class="sqbtn" data-v="${k}:-1">−</button><button class="sqbtn" data-v="${k}:1">+</button>`;
+      const lock = BB.Progress.nameLockLeft(p);
+      const name = row('ui2/t_person', T('settings.name'), `<input id="nm" class="sinput" maxlength="16" value="${esc(BB.playerName(p))}" ${lock ? 'disabled' : ''}>
+        ${lock ? `<small class="muted">${T('settings.name_locked', Math.ceil(lock / 86400000))}</small>` : `<button class="sqbtn" id="nmSave" title="${esc(T('ui.save'))}"><img src="img/ui/pencil.webp" alt=""></button>`}`);
+      const music = row('ui2/party', T('settings.music'), vol('music')), sfx = row('ui2/party', T('settings.sfx'), vol('sfx'));
+      const vib = row('ui/c_bolt', T('settings.vibration'), `<button class="stog ${p.vibration ? 'on' : ''}" id="vib"><i></i></button>`);
+      const lang = row('ui2/t_chart', T('settings.language'), `<button class="ssel" id="lang">${BB.LANGS.find((l) => l.id === BB.lang()).name} ▾</button>`);
+      const priv = row('ui2/lock', T('settings.privacy'), `<button class="gbtn blue" id="priv"><span>${T('settings.view')}</span></button>`);
+      const cred = row('ui/info', T('settings.credits'), `<button class="gbtn blue" id="cred"><span>${T('settings.view')}</span></button>`);
+      const reset = `<div class="sdiv">✦</div>` + row('ui2/scroll', T('settings.reset'), `<button class="ibtn red" id="reset">${T('settings.reset')}</button>`);
+      const TABS = { general: [ui.accountRow(), name, vib, lang, reset], sound: [music, sfx, vib], language: [lang], privacy: [ui.accountRow(), priv, reset], credits: [cred] };
+      const ICO = { general: 'ui2/t_gear', sound: 'ui2/party', language: 'ui2/t_chart', privacy: 'ui2/lock', credits: 'ui/info' };
+      screen('settings', topbar(T('ui.settings'), true, { logo: true }) + `<div class="sets">
+        <div class="gpanel setnav">${Object.keys(TABS).map((t) => `<button class="tabb ${t === tab ? 'on' : ''}" data-st="${t}"><img src="img/${ICO[t]}.webp" alt=""><span>${T('settings.tab_' + t)}</span></button>`).join('')}</div>
+        <div class="gpanel setbody">${TABS[tab].join('')}<p class="muted center sver">v${BB.VERSION.name} • ID ${p.playerId}</p></div></div>`);
+      app().querySelectorAll('[data-st]').forEach((b) => b.onclick = () => { BB.audio.play('click'); ui.setTab = b.dataset.st; ui.refresh(); });
+      const on = (id, fn) => { const el = $('#' + id); if (el) el.onclick = fn; };
       bindBack('settings', () => ui.show('menu'));
       const ns = $('#nmSave');
       if (ns) ns.onclick = () => {
@@ -523,17 +536,17 @@
         p[k] = Math.max(0, Math.min(1, Math.round((p[k] + 0.1 * d) * 10) / 10));
         BB.audio.setVolumes(p.music, p.sfx); BB.save(); BB.audio.play('click'); ui.refresh();
       });
-      $('#vib').onclick = () => { p.vibration = !p.vibration; BB.save(); BB.vibrate(40); ui.refresh(); };
-      $('#lang').onclick = () => {
+      on('vib', () => { p.vibration = !p.vibration; BB.save(); BB.vibrate(40); ui.refresh(); });
+      on('lang', () => {
         const i = BB.LANGS.findIndex((l) => l.id === BB.lang());
         p.language = BB.LANGS[(i + 1) % BB.LANGS.length].id; BB.setLang(p.language); BB.save(); BB.audio.play('click'); ui.refresh();
-      };
-      $('#priv').onclick = () => ui.modal(T('settings.privacy'), T('settings.privacy_text'));
-      $('#cred').onclick = () => ui.modal(T('settings.credits'), T('settings.credits_text'));
-      $('#reset').onclick = () => ui.modal(T('settings.reset'), T('settings.reset_confirm'), [
+      });
+      on('priv', () => ui.modal(T('settings.privacy'), T('settings.privacy_text')));
+      on('cred', () => ui.modal(T('settings.credits'), T('settings.credits_text')));
+      on('reset', () => ui.modal(T('settings.reset'), T('settings.reset_confirm'), [
         { label: T('battle.yes'), cls: 'red', fn: () => { BB.Progress.wipe(); BB.profile = BB.Progress.load(BB.content); BB.setLang(BB.detectLang()); ui.show('splash'); } },
         { label: T('battle.no'), cls: 'dark' },
-      ]);
+      ]));
     },
 
     // ------------------------------------------------------------ resultado
