@@ -89,6 +89,15 @@
     // texto curto de uma recompensa diária: Dia 2 — 🪙80 💎5 🃏1
     dailyText(d) { return T('daily.day', d.day) + ' — 🪙' + d.gold + (d.crystals ? ' 💎' + d.crystals : '') + (d.card ? ' 🃏' + d.card : ''); },
 
+    // conta (Google ou e-mail): conectar e desconectar — some onde não há nuvem (ex.: CrazyGames)
+    accountRow() {
+      if (!BB.cloud || !BB.cloud.configured() || !BB.RankedUI || !BB.RankedUI.available()) return '';
+      if (BB.cloud.loggedIn()) return `<div class="setrow">${T('settings.account')}<span class="nmrow"><small>${esc(BB.cloud.email())}</small>
+        <button class="btn small red" id="acOut">${T('rk.logout')}</button></span></div>`;
+      return `<div class="setrow">${T('settings.account')}<span class="nmrow"><button class="btn small rk-google" id="acGoogle"><b>G</b> ${T('settings.google')}</button>
+        <button class="btn small dark" id="acMail">✉ ${T('settings.email')}</button></span></div>`;
+    },
+
     // dar nome a um dos 3 baralhos
     renameDeck(i, after) {
       const ov = document.getElementById('overlay'), m = document.createElement('div');
@@ -467,7 +476,9 @@
       const p = BB.profile;
       const pct = (v) => Math.round(v * 100) + '%';
       screen('settings', topbar(T('ui.settings'), true) + `<div class="content"><div class="settings">
-        <div class="setrow">${T('settings.name')}<input id="nm" maxlength="16" value="${esc(BB.playerName(p))}"></div>
+        ${ui.accountRow()}
+        <div class="setrow">${T('settings.name')}<span class="nmrow"><input id="nm" maxlength="16" value="${esc(BB.playerName(p))}" ${BB.Progress.nameLockLeft(p) ? 'disabled' : ''}>
+          ${BB.Progress.nameLockLeft(p) ? `<small class="muted">${T('settings.name_locked', Math.ceil(BB.Progress.nameLockLeft(p) / 86400000))}</small>` : `<button class="btn small" id="nmSave">${T('ui.save')}</button>`}</span></div>
         <div class="setrow">${T('settings.music')}: ${pct(p.music)}<span><button class="btn small" data-v="music:-1">−</button> <button class="btn small" data-v="music:1">+</button></span></div>
         <div class="setrow">${T('settings.sfx')}: ${pct(p.sfx)}<span><button class="btn small" data-v="sfx:-1">−</button> <button class="btn small" data-v="sfx:1">+</button></span></div>
         <div class="setrow">${T('settings.vibration')}<button class="btn small" id="vib">${p.vibration ? T('ui.on') : T('ui.off')}</button></div>
@@ -477,7 +488,22 @@
         <div class="setrow">${T('settings.reset')}<button class="btn small red" id="reset">${T('settings.reset')}</button></div>
         <p class="muted center">v${BB.VERSION.name} • ID ${p.playerId}</p></div></div>`);
       bindBack('settings', () => ui.show('menu'));
-      $('#nm').onchange = (e) => { const v = e.target.value.trim(); if (v.length >= 2) { p.playerName = v.slice(0, 16); BB.save(); } };
+      const ns = $('#nmSave');
+      if (ns) ns.onclick = () => {
+        const v = $('#nm').value.trim().replace(/\s+/g, ' ');
+        if (v.length < 2 || v.length > 16) { ui.toast(T('rk.nick_bad')); return; }
+        if (v === p.playerName) return;
+        ui.modal(T('settings.name'), T('settings.name_confirm', v, BB.Progress.NAME_LOCK_DAYS), [
+          { label: T('ui.save'), cls: 'gold', fn: () => { if (BB.Progress.setName(p, v) === 'Ok') { BB.save(); if (BB.RankedUI) { BB.RankedUI.data().pending = true; BB.RankedUI.sync(); } ui.refresh(); } } },
+          { label: T('shop.cancel'), cls: 'dark' },
+        ]);
+      };
+      const ac = $('#acGoogle'); if (ac) ac.onclick = () => { BB.audio.play('click'); BB.cloud.googleStart(); };
+      const am = $('#acMail'); if (am) am.onclick = () => { BB.audio.play('click'); BB.RankedUI.loginModal(() => ui.show('settings')); };
+      const ao = $('#acOut'); if (ao) ao.onclick = () => ui.modal(T('settings.account'), T('settings.logout_confirm'), [
+        { label: T('rk.logout'), cls: 'red', fn: () => { BB.cloud.signOut(); BB.Shop.checkTester(); ui.refresh(); } },
+        { label: T('shop.cancel'), cls: 'dark' },
+      ]);
       app().querySelectorAll('[data-v]').forEach((b) => b.onclick = () => {
         const [k, d] = b.dataset.v.split(':');
         p[k] = Math.max(0, Math.min(1, Math.round((p[k] + 0.1 * d) * 10) / 10));

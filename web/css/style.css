@@ -568,3 +568,5 @@ html.rk-free #rotate { display: none !important; }
 .lb-rwi.cur { outline: .15rem solid #ffd24a; background: rgba(247,197,72,.15); } .lb-rwi.top { border-top: .1rem solid rgba(247,197,72,.4); }
 
 @media (orientation: portrait) { html.rk-free .lb { flex-direction: column; } html.rk-free .lb-prof { width: auto; } }
+.nmrow { display: inline-flex; align-items: center; gap: .6rem; flex-wrap: wrap; justify-content: flex-end; }
+.nmrow input:disabled { opacity: .6; }

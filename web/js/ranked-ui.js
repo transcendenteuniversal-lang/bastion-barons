@@ -170,19 +170,21 @@
       if (BB.Shop) BB.Shop.checkTester();
       try { await RU.ensureAccount(); } catch (e) { /* tenta de novo ao abrir o ranking */ }
       const d = RU.data();
-      if (!d.named) RU.nickModal(after); else if (after) after();
+      if (!d.named && !BB.Progress.nameLockLeft(BB.profile)) RU.nickModal(after);
+      else { d.named = true; if (after) after(); }
     },
     nickModal(after) {
       const ov = document.getElementById('overlay'), m = document.createElement('div');
       m.className = 'modal rk-login';
-      m.innerHTML = `<div class="panel"><h2 class="title">${T('rk.nick_title')}</h2><p>${T('rk.nick_text')}</p>
+      m.innerHTML = `<div class="panel"><h2 class="title">${T('rk.nick_title')}</h2><p>${T('rk.nick_text')} ${T('rk.nick_lock', BB.Progress.NAME_LOCK_DAYS)}</p>
         <input class="rk-in" id="rkNick" maxlength="16" value="${esc(BB.playerName(BB.profile))}"><div class="rk-acts"><button class="btn gold" id="rkSave">${T('rk.save')}</button></div></div>`;
       ov.appendChild(m);
       $('#rkSave', m).onclick = () => {
         const v = $('#rkNick', m).value.trim().replace(/\s+/g, ' ');
         if (v.length < 2 || v.length > 16) { BB.ui.toast(T('rk.nick_bad')); return; }
         BB.audio.play('click');
-        BB.profile.playerName = v; const d = RU.data(); d.named = true; d.pending = true; BB.save(); RU.sync();
+        if (v !== BB.profile.playerName) BB.Progress.setName(BB.profile, v); // conta como troca: próxima só em 14 dias
+        const d = RU.data(); d.named = true; d.pending = true; BB.save(); RU.sync();
         m.remove(); if (after) after();
       };
     },

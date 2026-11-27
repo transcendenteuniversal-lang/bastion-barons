@@ -325,6 +325,13 @@ test('baú de vitórias: 3 cartas a cada 5 vitórias', () => {
   assert(chest && chest.i === 4 && chest.n === 3, JSON.stringify(chest)); eq(p.chestWins, 0);
   BB.Progress.applyResult(p, content, -1, new BB.Rng(1), null); eq(p.chestWins, 0, 'derrota não conta');
 });
+test('apelido: depois de trocar, só troca de novo após 14 dias', () => {
+  const p = BB.Progress.create(content), t0 = Date.UTC(2026, 10, 1);
+  eq(BB.Progress.setName(p, 'Sinister', t0), 'Ok'); eq(p.playerName, 'Sinister');
+  eq(BB.Progress.setName(p, 'Outro', t0 + 13 * 86400000), 'Locked'); eq(p.playerName, 'Sinister');
+  eq(BB.Progress.setName(p, 'Outro', t0 + 14 * 86400000 + 1), 'Ok');
+  eq(BB.Progress.setName(p, 'x', t0 + 40 * 86400000), 'Invalid');
+});
 test('proteção contra azar garante Épica ou melhor', () => {
   const p = BB.Progress.create(content); p.pity = content.balance.pityThreshold - 1;
   const id = BB.Progress.rollCard(p, content, new BB.Rng(1));

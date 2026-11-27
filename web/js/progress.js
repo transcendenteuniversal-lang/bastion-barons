@@ -30,7 +30,7 @@
       // campos ausentes em saves antigos recebem o valor padrão
       const num = (k, d) => { if (typeof p[k] !== 'number' || !isFinite(p[k])) p[k] = d; };
       num('gold', 100); num('crystals', 0); num('xp', 0); num('accountLevel', 1); num('pity', 0);
-      num('chestWins', 0); num('battles', 0); num('wins', 0); num('losses', 0); num('draws', 0); num('winStreak', 0); num('bestWinStreak', 0);
+      num('nameChangedAt', 0); num('chestWins', 0); num('battles', 0); num('wins', 0); num('losses', 0); num('draws', 0); num('winStreak', 0); num('bestWinStreak', 0);
       num('music', 0.6); num('sfx', 0.8);
       if (typeof p.vibration !== 'boolean') p.vibration = true;
       if (typeof p.tutorialDone !== 'boolean') p.tutorialDone = p.battles > 0;
@@ -167,6 +167,18 @@
       let xp = -p.xp;
       for (let l = p.accountLevel; l < level; l++) xp += P.xpForNext(b, l);
       return { level, items: items.filter((x) => x.level === level), xp: Math.max(0, xp), wins: Math.max(1, Math.ceil(Math.max(0, xp) / Math.max(1, b.winXp))) };
+    },
+
+    // apelido: depois de cada troca, só pode trocar de novo após 14 dias
+    NAME_LOCK_DAYS: 14,
+    nameLockLeft(p, now) { const t = (p.nameChangedAt || 0) + P.NAME_LOCK_DAYS * 86400000 - (now || Date.now()); return p.nameChangedAt && t > 0 ? t : 0; },
+    setName(p, name, now) {
+      const v = String(name || '').trim().replace(/\s+/g, ' ');
+      if (v.length < 2 || v.length > 16) return 'Invalid';
+      if (v === p.playerName) return 'Same';
+      if (P.nameLockLeft(p, now)) return 'Locked';
+      p.playerName = v; p.nameChangedAt = now || Date.now();
+      return 'Ok';
     },
 
     applyResult(p, content, result, rng, record) {
