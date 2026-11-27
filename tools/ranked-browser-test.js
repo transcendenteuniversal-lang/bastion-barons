@@ -98,7 +98,8 @@ async function handle(route) {
   await ev(() => { BB.battle.tut.end(); BB.battle.stop(); BB.ui.show('mode'); });
   await wait(400);
   ok(await page.$('#rankedBtn'), 'botão da Ranqueada na escolha de modo');
-  await page.tap('#rankedBtn'); await wait(1200); await shot('01-ranking-sem-conta');
+  await page.tap('#rankedBtn'); await wait(800); ok(await ev(() => BB.ui.current() === 'rkLobby'), 'Ranqueada abre a sala de espera');
+  await ev(() => BB.ui.show('ranking')); await wait(1200); await shot('01-ranking-sem-conta');
   ok(await page.$('#rkLogin'), 'sem conta: ranking visível com botão Entrar');
   const pos0 = await ev(() => document.querySelector('.rk-big').textContent);
   ok(/#1[.,]?\d{3}/.test(pos0.replace(/\s/g, '')), 'com 0 pontos a posição fica lá embaixo (' + pos0.trim() + ')');

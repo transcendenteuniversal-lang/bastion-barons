@@ -248,15 +248,15 @@
 
     // ------------------------------------------------------------ modos
     mode() {
-      screen('mode', topbar(T('ui.choose_mode'), true) + `<div class="content"><h2 class="title center" style="font-size:2.4rem;margin:.6rem 0 1.2rem">${T('ui.training')}</h2>
-        <div class="choices" style="height:auto">
-          <button class="btn green diff" data-d="easy">${T('ui.easy')}<small>${T('mode.easy')}</small></button>
-          <button class="btn diff" data-d="normal">${T('ui.normal')}<small>${T('mode.normal')}</small></button>
-          <button class="btn red diff" data-d="hard">${T('ui.hard')}<small>${T('mode.hard')}</small></button></div>
-        ${BB.RankedUI && BB.RankedUI.available() ? `<button class="btn gold ranked-btn" id="rankedBtn">🏆 ${T('rk.mode')}<small>${T('rk.mode_sub')}</small></button>` : ''}
-        <p class="center muted" style="margin-top:1.2rem;font-size:1.15rem">${T('ui.pvp_soon')}</p></div>`);
-      const rb = $('#rankedBtn'); if (rb) rb.onclick = () => { BB.audio.play('click'); ui.show('ranking'); };
+      const card = (d, cls, em) => `<button class="mcard ${cls}" data-d="${d}"><img class="mc-em" src="img/ui4/${em}.webp" alt="">
+          <span class="mc-t title">${T('mode.t_' + d)}</span>${d === 'easy' ? `<span class="mc-sub">${T('ui.easy')}</span>` : ''}<span class="mc-d">${T('mode.' + d)}</span></button>`;
+      const ranked = BB.RankedUI && BB.RankedUI.available();
+      screen('mode', topbar(T('ui.choose_mode'), true, { logo: true }) + `<div class="mwrap">
+        <div class="mcards">${card('easy', 'g', 'em_easy')}${card('normal', 'b', 'em_normal')}${card('hard', 'r', 'em_hard')}</div>
+        ${ranked ? `<button class="mrank" id="rankedBtn"><img src="img/ui4/em_ranked.webp" alt=""><span><b class="title">${T('rk.mode')}</b><small>${T('rk.mode_sub')}</small></span><i>›</i></button>` : ''}
+        <div class="msoon"><span><img src="img/ui4/swords.webp" alt="">${T('mode.pvp')}</span><span><img src="img/ui4/people.webp" alt="">${T('mode.rooms')}</span><span><img src="img/ui4/fleur_shield.webp" alt="">${T('mode.clans')}</span><em>${T('ui.coming_soon')}</em></div></div>`);
       bindBack('mode', () => ui.show('menu'));
+      const rb = $('#rankedBtn'); if (rb) rb.onclick = () => { BB.audio.play('click'); ui.show('rkLobby'); };
       app().querySelectorAll('[data-d]').forEach((b) => b.onclick = () => {
         BB.audio.play('click');
         const p = BB.profile;

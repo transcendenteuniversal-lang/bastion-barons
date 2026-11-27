@@ -8,6 +8,7 @@
   const day = () => BB.Progress.today();
   const TABS = ['offers', 'chests', 'skins', 'gems'];
   const TAB_ICO = { offers: 'chest_red', chests: 'chest_blue', skins: 'helmet', gems: 'diamond' };
+  const PACK_TAG = ['', '', 'hot', 'best'];
   const PACK_IMG = ['pack1', 'pack2', 'pack3', 'pack4'], PACK_BONUS = [0, 10, 20, 30];
   const sect = (t) => `<div class="sect"><span>${t}</span></div>`;
   const CHEST_ICON = { wood: '<img src="img/ui2/chest_red.webp" alt="">', iron: '<img src="img/ui2/chest_blue.webp" alt="">', royal: '<img src="img/ui2/pack4.webp" alt="">' };
@@ -32,14 +33,17 @@
     offers(p, el) {
       const d = day(), list = S().offers(p, BB.content, d);
       const now = new Date(), hrs = 24 - now.getHours();
-      const st = S().STARTER, sk = S().skin(st.skin);
-      el.innerHTML = `${sect(T('shop.daily') + ' · ' + T('shop.refresh', hrs))}
-        <div class="sh-row">${list.map((o, i) => { const def = BB.content.card(o.id), bought = S().offerBought(p, d, i);
-          return `<div class="gpanel sh-item">${BB.ui.cardHtml(def, BB.Progress.owned(p, o.id), { level: true })}
-            <button class="btn ${bought ? 'dark' : 'gold'} small" data-offer="${i}" ${bought ? 'disabled' : ''}>${bought ? T('shop.bought') : '🪙 ' + o.price}</button></div>`; }).join('')}</div>
-        <div class="gpanel sh-starter"><div class="sh-big"><img src="img/ui2/pack4.webp" alt=""></div><div><h3 class="title">${T('shop.starter')}</h3>
-          <p>${T('shop.starter_text', st.crystals, st.gold, esc(S().name(sk)))}</p></div>
-          <button class="btn gold" disabled>${st.price} · ${T('shop.soon')}</button></div>`;
+      const st = S().STARTER;
+      el.innerHTML = `${sect('<img src="img/ui4/hourglass.webp" alt="">' + T('shop.daily') + ' · ' + T('shop.refresh', hrs))}
+        <div class="sh-row of-row">${list.map((o, i) => { const def = BB.content.card(o.id), bought = S().offerBought(p, d, i);
+          return `<div class="of-item ${def.rarity} ${bought ? 'sold' : ''}">${i === 1 && !bought ? `<i class="sh-tag hot">${T('shop.hot')}</i>` : ''}
+            ${BB.ui.cardHtml(def, BB.Progress.owned(p, o.id), { level: true })}
+            <button class="pbtn ${bought ? 'done' : ''}" data-offer="${i}" ${bought ? 'disabled' : ''}>${bought ? '✓ ' + T('shop.bought') : '<img src="img/ui4/coins.webp" alt="">' + o.price}</button></div>`; }).join('')}</div>
+        <div class="st-pack"><div class="st-lbl"><img src="img/ui4/laurel.webp" alt=""><span>${T('shop.starter')}</span></div><img class="sh-tag2" src="img/ui4/tag_pct.webp" alt="">
+          <img class="st-chest" src="img/ui4/chest_open.webp" alt="">
+          <div class="st-items"><span><img src="img/ui4/gems.webp" alt=""><b>${st.crystals}</b></span><i>+</i><span><img src="img/ui4/coins.webp" alt=""><b>${st.gold}</b></span><i>+</i>
+            <span><img src="img/cards/fire_dragon.webp" class="st-card" alt=""><b>${T('rarity.Epic')}</b></span><i>+</i><span><img src="img/ui2/t_person.webp" alt=""><b>${T('shop.avatar_short')}</b></span></div>
+          <button class="st-buy" disabled><img src="img/ui4/btn_cart.webp" alt=""><span>${st.price}</span><small>${T('shop.soon')}</small></button></div>`;
       el.querySelectorAll('[data-offer]').forEach((b) => b.onclick = () => {
         const r = S().buyOffer(p, BB.content, d, Number(b.dataset.offer));
         if (r === 'Ok') { BB.audio.jingle('reward'); SU.refresh(); } else if (r === 'NoFunds') BB.ui.toast(T('shop.no_gold')); else SU.toast(r);
@@ -50,10 +54,12 @@
     chests(p, el) {
       const b = BB.content.balance;
       const odds = [0, 1, 2, 3, 4].map((i) => (BB.Progress.rarityChance(b, i) * 100).toFixed(1).replace('.0', '') + '%');
-      el.innerHTML = `${sect(T('shop.tab_chests'))}<div class="sh-row">${S().CHESTS.map((c) => `<div class="gpanel sh-chest"><div class="sh-big">${CHEST_ICON[c.id]}</div>
-          <h3 class="title">${T('shop.chest_' + c.id)}</h3><div>${T('shop.chest_cards', c.cards)}</div>
-          <div class="muted">${c.minRarity ? T('shop.chest_min' + c.minRarity) : '&nbsp;'}</div>
-          <button class="btn gold" data-chest="${c.id}">${T('shop.open')} · ${c.cost.gold ? '🪙 ' + c.cost.gold : '💎 ' + c.cost.crystals}</button></div>`).join('')}</div>
+      const IMG = { wood: 'ui2/chest_red', iron: 'ui4/chest_blue', royal: 'ui4/chest_purple' }, TAG = { iron: 'hot', royal: 'best' };
+      el.innerHTML = `${sect('<img src="img/ui4/cards.webp" alt="">' + T('shop.tab_chests'))}<div class="sh-row">${S().CHESTS.map((c) => `<div class="ch-card ${c.id}">${TAG[c.id] ? `<i class="sh-tag ${TAG[c.id]}">${T('shop.' + TAG[c.id])}</i>` : ''}
+          <div class="ch-glow"></div><img class="ch-img" src="img/${IMG[c.id]}.webp" alt="">
+          <h3 class="title">${T('shop.chest_' + c.id)}</h3><div class="ch-n"><img src="img/ui4/cards.webp" alt="">${T('shop.chest_cards', c.cards)}</div>
+          <div class="ch-min">${c.minRarity ? T('shop.chest_min' + c.minRarity) : '&nbsp;'}</div>
+          <button class="pbtn" data-chest="${c.id}"><img src="img/ui4/${c.cost.gold ? 'coins' : 'gems'}.webp" alt="">${c.cost.gold || c.cost.crystals}</button></div>`).join('')}</div>
         <p class="sh-odds">${T('shop.odds', ...odds)}</p>`;
       el.querySelectorAll('[data-chest]').forEach((btn) => btn.onclick = () => {
         const c = S().chest(btn.dataset.chest);
@@ -88,12 +94,12 @@
     },
     skins(p, el) {
       const list = S().SKINS.filter((s) => s.type === skinType);
-      el.innerHTML = `<div class="sh-chips">${S().TYPES.map((t) => `<button class="btn small ${t === skinType ? '' : 'dark'}" data-type="${t}">${T('shop.t_' + t)}</button>`).join('')}</div>
+      el.innerHTML = `<div class="sh-chips">${S().TYPES.map((t) => `<button class="chip ${t === skinType ? 'on' : ''}" data-type="${t}">${T('shop.t_' + t)}</button>`).join('')}</div>
         <div class="sh-grid">${list.map((sk) => {
           const own = S().owns(p, sk.id), on = S().isEquipped(p, sk.id), tn = SU.targetName(sk);
           const btn = on ? `<button class="btn green small" data-skin="${sk.id}">${T('shop.in_use')}</button>`
-            : own ? `<button class="btn small" data-skin="${sk.id}">${T('shop.use')}</button>`
-              : `<button class="btn gold small" data-skin="${sk.id}">💎 ${sk.price}</button>`;
+            : own ? `<button class="pbtn blue" data-skin="${sk.id}">${T('shop.use')}</button>`
+              : `<button class="pbtn" data-skin="${sk.id}"><img src="img/ui4/gems.webp" alt="">${sk.price}</button>`;
           return `<div class="gpanel sh-skin ${sk.tier}">${SU.preview(p, sk)}<b>${esc(S().name(sk))}</b>
             <small>${T('shop.tier_' + sk.tier)}${tn ? ' · ' + T('shop.for', esc(tn)) : ''}</small>${btn}</div>`; }).join('')}</div>`;
       el.querySelectorAll('[data-type]').forEach((b) => b.onclick = () => { BB.audio.play('click'); skinType = b.dataset.type; BB.ui.show('shop'); });
@@ -112,11 +118,11 @@
     // ------------------------------------------------------------ cristais e ouro
     gems(p, el) {
       el.innerHTML = `${sect(T('shop.gold_title'))}
-        <div class="sh-row">${S().GOLD_PACKS.map((g, i) => `<div class="gpanel sh-gold"><img src="img/ui2/${i ? 'coins_big' : 'coins'}.webp" alt=""><b class="title">${g.gold.toLocaleString()}</b>
-          <button class="ibtn gold" data-gold="${g.id}"><img src="img/ui2/diamond.webp" alt="">${g.crystals}</button></div>`).join('')}</div>
+        <div class="sh-row">${S().GOLD_PACKS.map((g, i) => `<div class="gpanel sh-gold">${i ? `<i class="sh-tag best">${T('shop.best')}</i>` : ''}<img src="img/ui4/${i ? 'coins_big' : 'coins'}.webp" alt=""><b class="title">${g.gold.toLocaleString()}</b>
+          <button class="pbtn" data-gold="${g.id}"><img src="img/ui4/gems.webp" alt="">${g.crystals}</button></div>`).join('')}</div>
         ${sect(T('shop.gems_title'))}
-        <div class="sh-row">${S().CRYSTAL_PACKS.map((c, i) => `<div class="gpanel sh-pack">${PACK_BONUS[i] ? `<i class="bonus">+${PACK_BONUS[i]}%</i>` : ''}
-          <img src="img/ui2/${PACK_IMG[i]}.webp" alt=""><b class="title">${c.crystals.toLocaleString()}</b><button class="ibtn" disabled>${c.price}</button></div>`).join('')}</div>
+        <div class="sh-row">${S().CRYSTAL_PACKS.map((c, i) => `<div class="gpanel sh-pack ${PACK_TAG[i]}">${PACK_TAG[i] ? `<i class="sh-tag ${PACK_TAG[i]}">${T('shop.' + PACK_TAG[i])}</i>` : ''}${PACK_BONUS[i] ? `<i class="bonus">+${PACK_BONUS[i]}%</i>` : ''}
+          <img src="img/ui2/${PACK_IMG[i]}.webp" alt=""><b class="title">${c.crystals.toLocaleString()}</b><button class="pbtn green" disabled>${c.price}</button></div>`).join('')}</div>
         <p class="sh-note"><img src="img/ui/info.webp" alt="">${T('shop.real_note')}</p>`;
       el.querySelectorAll('[data-gold]').forEach((b) => b.onclick = () => {
         const r = S().buyGold(p, b.dataset.gold);
