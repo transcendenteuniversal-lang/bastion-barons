@@ -573,18 +573,36 @@
         nu.items.map((x) => (x.type === 'baron' ? BB.baronName(x.id) : BB.castleName(x.id))).join(' + '), nu.level, nu.wins));
       const goalHtml = goals.length ? `<div class="goals">${goals.map((g) => '<span>' + g + '</span>').join('')}</div>` : '';
       const odds = [0, 1, 2, 3, 4].map((i) => (BB.Progress.rarityChance(b, i) * 100).toFixed(1).replace('.0', '') + '%');
-      screen('result', `<h1 class="title big" style="${a.result < 0 ? 'filter:hue-rotate(-40deg) saturate(1.4)' : ''}">${T(key)}</h1>
-        <div class="reason">${T('result.reason.' + a.reason)}</div>
-        <div class="cols"><div class="panel"><h3 class="title">${T('result.stats')}</h3>
-          <div>${T('result.castle_left', Math.round(a.myPct * 100), Math.round(a.foePct * 100))}</div>
-          <div>${T('result.cards_played', a.stats.cardsPlayed)}</div><div>${T('result.castle_damage', Math.round(a.stats.damageToCastle))}</div>
-          <div>${T('result.units_destroyed', a.stats.unitsDestroyed)}</div></div>
-        <div class="panel"><h3 class="title">${T('result.rewards')}</h3><div style="color:var(--gold);font-weight:800">${T('result.gold', r.gold)}</div>${r.firstWin ? '<div style="color:#5fd06d;font-weight:900">' + T('result.first_win') + '</div>' : ''}
-          <div style="color:#8fc8ff;font-weight:800">${T('result.xp', r.xp)}</div>${r.levels ? `<div style="color:#5fd06d;font-weight:800">${T('result.level_up', BB.profile.accountLevel)}</div>` : ''}${unl}${lvl}${chest}${card}
-          <div class="odds">${T('result.odds', ...odds, b.pityThreshold)}</div></div></div>
-        ${a.ranked ? BB.RankedUI.resultHtml(a.ranked) : goalHtml}<div class="actions">${a.ranked
-          ? `<button class="btn green" id="rkBoard">🏆 ${T('rk.ranking')}</button><button class="btn gold" id="again">⚔ ${T('rk.next_match')}</button>`
-          : `<button class="btn green" data-go="menu">${T('result.continue')}</button><button class="btn gold" id="again">⚔ ${T('result.again')}</button>`}</div>`);
+      const win = a.result > 0, lose = a.result < 0;
+      const srow = (ico, txt, val, cls) => `<div class="rs-row"><img src="img/ui3/${ico}.webp" alt=""><span>${txt}</span><b class="${cls || ''}">${val}</b></div>`;
+      const rcard = r.cardId ? (() => { const def = C.card(r.cardId); return `<div class="rs-card">${ui.cardHtml(def, BB.Progress.owned(BB.profile, def.id), { level: true })}
+          <small style="color:var(--${def.rarity.toLowerCase()})">${r.newCard ? T('result.new_short') : ''}${T('rarity.' + def.rarity)}</small></div>`; })() : '';
+      const extras = `${r.firstWin ? '<div class="rs-x g">' + T('result.first_win') + '</div>' : ''}${r.levels ? `<div class="rs-x g">${T('result.level_up', BB.profile.accountLevel)}</div>` : ''}${unl}${lvl}${chest}`;
+      const oddsHtml = win ? `<div class="rs-odds"><b>${T('result.odds_title')}</b>${['Common', 'Rare', 'Epic', 'Legendary', 'Mythic'].map((k, i) => `<span><i class="${k}"></i>${T('rarity.' + k)}: ${odds[i]}</span>`).join('')}
+          <small><img src="img/ui2/fleur_shield.webp" alt="">${T('result.pity', b.pityThreshold)}</small></div>` : '';
+      const rk = a.ranked;
+      screen('result', `<div class="rs ${win ? 'win' : lose ? 'lose' : 'draw'}">
+        <div class="rs-banner">${win ? '<img class="rs-tl l" src="img/ui/laurel_l.webp" alt=""><img class="rs-tl r" src="img/ui/laurel_r.webp" alt="">' : '<img class="rs-shield" src="img/ui3/shield_broken.webp" alt="">'}
+          <h1 class="title">${T(key)}</h1><div class="rs-reason">${lose && a.reason === 'CastleDestroyed' ? T('result.reason.MyCastleDestroyed') : T('result.reason.' + a.reason)}</div></div>
+        <div class="rs-cols">
+          <div class="rs-panel"><div class="rs-h"><span>${T('result.stats')}</span></div>
+            ${srow('s_swords', T('result.stats_castle'), Math.round(a.myPct * 100) + '%', a.myPct > 0.5 ? 'g' : 'r')}
+            ${srow('s_shield', T('result.stats_enemy'), Math.round(a.foePct * 100) + '%', a.foePct > 0.5 ? 'g' : 'r')}
+            ${srow('s_cards', T('result.cards_played_l'), a.stats.cardsPlayed)}
+            ${srow('s_burst', T('result.castle_damage_l'), Math.round(a.stats.damageToCastle))}
+            ${srow('s_skull', T('result.units_destroyed_l'), a.stats.unitsDestroyed)}</div>
+          <div class="rs-panel"><div class="rs-h"><span>${T('result.rewards')}</span></div>
+            <div class="rs-rw"><div class="rs-big"><img src="img/ui3/coins.webp" alt=""><b>+${r.gold}</b><small>${T('result.gold_l')}</small></div>
+              <div class="rs-big"><img src="img/ui3/xp.webp" alt=""><b>+${r.xp}</b><small>XP</small></div>
+              ${rcard}${oddsHtml}</div>${extras}</div></div>
+        ${rk ? `<div class="rs-rank"><span class="rs-pts ${rk.delta >= 0 ? 'up' : 'down'}"><img src="img/ui3/star_laurel.webp" alt="">${rk.delta > 0 ? '+' : ''}${T('rk.points', rk.delta)}</span>
+          <span>${T('rk.total', rk.after)}</span><span>${BB.RankedUI.leagueImg(rk.leagueAfter)} ${BB.RankedUI.leagueName(rk.leagueAfter)}</span>
+          ${rk.promoted ? `<span class="rk-promo">⬆ ${T('rk.promoted', BB.RankedUI.leagueName(rk.leagueAfter))}</span>` : ''}</div>` : goalHtml}
+        <div class="rs-acts"><button class="sqbtn big" data-go="menu" title="${esc(T('result.home'))}"><img src="img/ui3/home.webp" alt=""></button>
+          ${rk ? `<button class="ibtn" id="rkBoard"><img src="img/ui3/trophy.webp" alt="">${T('rk.ranking')}</button><button class="ibtn gold" id="again"><img src="img/ui3/swords.webp" alt="">${T('rk.next_match')}</button>`
+            : `<button class="ibtn" data-go="menu">${T('result.continue')}</button><button class="ibtn gold" id="again"><img src="img/ui3/swords.webp" alt="">${T('result.again')}</button>`}
+          <button class="sqbtn big" id="rsAgain2" title="${esc(T('result.again'))}"><img src="img/ui3/refresh.webp" alt=""></button></div></div>`, win ? 'img/ui2/bg_valley.webp' : 'img/ui3/bg_defeat.webp');
+      $('#rsAgain2').onclick = () => $('#again').click();
       $('#again').onclick = () => { BB.audio.play('click'); if (a.ranked) ui.show('matchmaking'); else ui.show('battle', { difficulty: a.difficulty }); };
       if (a.ranked) $('#rkBoard').onclick = () => { BB.audio.play('click'); ui.show('ranking'); };
       back.result = () => ui.show(a.ranked ? 'ranking' : 'menu');

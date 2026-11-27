@@ -114,16 +114,16 @@
         <div class="hb-sub foe" data-r="1260,40,1522,68">${BB.baronName(foe.baron.id)} • ${this.ranked ? BB.Ranked.LEAGUES[this.ranked.opp.league].icon + ' ' + this.ranked.opp.points : T('battle.offline_short')}</div>
         <div class="hb-hp foe" data-r="1260,72,1522,104"><i id="hpFoe"></i><span id="hpFoeT"></span></div>
 
-        ${this.ranked ? `<button class="hb-btn tap surr" data-r="436,14,494,70" id="surrBtn" title="${T('battle.surrender')}">🏳</button>`
+        ${this.ranked ? `<button class="hb-btn tap surr" data-r="436,14,494,70" id="surrBtn" title="${T('battle.surrender')}"><img src="img/ui3/flag.webp" alt=""></button>`
           : `<button class="hb-btn tap" data-r="436,14,494,70" id="pauseBtn">❚❚</button>`}
-        <div class="hb-score me" data-r="598,8,766,78"><b>👑</b><span id="crownMe">0</span></div>
+        <div class="hb-score me" data-r="598,8,766,78"><img src="img/ui3/crown.webp" alt=""><span id="crownMe">0</span></div>
         <div class="hb-timer" data-r="764,8,910,78" id="timer">3:00</div>
-        <div class="hb-score foe" data-r="908,8,1078,78"><span id="crownFoe">0</span><b>👑</b></div>
+        <div class="hb-score foe" data-r="908,8,1078,78"><span id="crownFoe">0</span><img src="img/ui3/crown.webp" alt=""></div>
         <button class="hb-orb tap" data-r="22,770,172,920" id="baronBtn">${BB.Shop.img(BB.Shop.baronPic(p, me.baron.id))}</button>
         <button class="hb-orb castle tap" data-r="182,770,332,920" id="castleBtn"><img src="img/castle_icons/${me.castle.id}.webp"></button>
         <div class="hb-tip hidden" data-r="22,580,560,760" id="tip"></div>
         <button class="hb-btn big tap" data-r="1350,800,1440,880" id="emoteBtn">😃</button>
-        <button class="hb-btn auto tap" data-r="1452,800,1640,880" id="autoBtn">⚔ ${T('battle.auto')}</button>
+        <button class="hb-btn auto tap" data-r="1452,800,1640,880" id="autoBtn"><img src="img/ui3/swords.webp" alt="">${T('battle.auto')}</button>
         <div class="hb-emotes tap hidden" data-r="1290,706,1640,790" id="emotes">${BB.Shop.equipped(p, 'emotes').fx.map((e) => `<button data-e="${e}">${e}</button>`).join('')}</div>
         <div class="hb-x2 hidden" data-r="690,84,986,116" id="x2">${T('battle.double_energy')}</div>
 

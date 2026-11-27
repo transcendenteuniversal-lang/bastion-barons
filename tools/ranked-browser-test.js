@@ -119,8 +119,8 @@ async function handle(route) {
   // partida ranqueada (vitória), com envio recusado e reenvio depois
   db.offset += 60000; db.reject = 2;
   await page.tap('#rkPlay'); await wait(500); await shot('04-procurando');
-  await page.waitForSelector('.vs', { timeout: 5000 }); await wait(400); await shot('05-vs');
-  const oppName = await ev(() => document.querySelector('.vs-side.foe h2').textContent);
+  await page.waitForSelector('.vs2', { timeout: 5000 }); await wait(400); await shot('05-vs');
+  const oppName = await ev(() => document.querySelector('.vs-side.foe .vs-name .title').textContent);
   await page.waitForFunction(() => BB.battle && BB.battle.ranked, null, { timeout: 5000 }); await wait(800);
   const hudName = await ev(() => document.querySelector('.hb-name.foe').textContent);
   ok(hudName === oppName, 'nome do adversário no lugar da IA (' + oppName + ')');
@@ -128,7 +128,7 @@ async function handle(route) {
   await shot('06-partida');
   await ev(() => { const m = BB.battle.match; m.damageCastle(1, m.players[1].castleHp + 1, 0, 1); });
   await page.waitForSelector('#result', { timeout: 12000 }); await wait(900); await shot('07-resultado');
-  const res = await ev(() => document.querySelector('.rk-delta').textContent);
+  const res = await ev(() => document.querySelector('.rs-pts').textContent);
   ok(/\+\s?2\d|\+\s?30/.test(res), 'vitória: ' + res);
   ok(await ev(() => BB.profile.ranked.pending === true && !BB.profile.ranked.inProgress), 'envio recusado: pontos guardados no aparelho');
   ok(row().points === 0, 'nuvem ainda sem os pontos (recusado)');

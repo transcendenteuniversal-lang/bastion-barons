@@ -778,3 +778,86 @@ html, body { font-family: 'Roboto Condensed', 'Arial Narrow', Arial, sans-serif;
   .bc-desc { font-size: .82rem; line-height: 1.1; } .bc-ab { font-size: .9rem; margin: .2rem 0; } .bcard h3, .ccard h3 { font-size: 1.3rem; }
   .bcard { padding-bottom: 1.3rem; } .cc-desc { font-size: .85rem; }
 }
+/* ================================================================ resultado v2 */
+#result .bg.art { inset: 0; filter: none; }
+.rs { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; padding: .4rem 2rem .7rem; }
+.rs-banner { position: relative; display: flex; flex-direction: column; align-items: center; margin-bottom: .3rem; }
+.rs-banner h1 { position: relative; margin: 0; font-size: 4.6rem; line-height: 1; z-index: 1; }
+.rs.lose .rs-banner h1 { background: linear-gradient(#ffffff, #c9ced8 50%, #7a8190); -webkit-background-clip: text; background-clip: text; }
+.rs-tl { position: absolute; top: -.6rem; width: 30rem; opacity: .95; }
+.rs-shield { position: absolute; left: -8rem; top: -.4rem; width: 7.5rem; }
+.rs-reason { margin-top: .2rem; padding: .25rem 3rem; font-weight: 700; font-size: 1.35rem; background: url(../img/ui3/ribbon_red.webp) center/100% 100% no-repeat; }
+.rs.win .rs-reason { background: linear-gradient(90deg, transparent, rgba(12,30,90,.95) 15%, rgba(12,30,90,.95) 85%, transparent); border-top: .1rem solid #d9a531; border-bottom: .1rem solid #d9a531; }
+.rs-cols { display: flex; gap: 1.6rem; width: min(100%, 72rem); flex: 1; min-height: 0; }
+.rs-panel { position: relative; flex: 1; padding: 1.4rem 1.4rem .8rem; border-radius: 1rem; border: .2rem solid #d9a531; background: linear-gradient(170deg, rgba(14,22,58,.95), rgba(4,8,26,.95));
+  box-shadow: inset 0 0 0 .1rem rgba(255,232,150,.3), 0 .6rem 1.3rem rgba(0,0,0,.6); animation: gpin .35s ease-out both; overflow: auto; }
+.rs.lose .rs-panel { border-color: #c2551f; background: linear-gradient(170deg, rgba(38,12,10,.95), rgba(14,4,4,.95)); }
+.rs-panel:nth-child(2) { flex: 1.25; animation-delay: .08s; }
+.rs-h { position: absolute; top: -1.15rem; left: 0; right: 0; display: flex; justify-content: center; }
+.rs-h span { padding: .2rem 2.4rem; font-family: 'Cinzel', serif; font-weight: 900; font-size: 1.3rem; color: #ffd36a; text-transform: uppercase; -webkit-text-stroke: .04rem #542b08;
+  background: url(../img/ui2/section_plate.webp) center/100% 100% no-repeat; }
+.rs-row { display: flex; align-items: center; gap: .7rem; padding: .25rem 0; border-bottom: .07rem solid rgba(255,214,110,.18); font-size: 1.3rem; }
+.rs-row img { width: 2.3rem; height: 2.3rem; object-fit: contain; } .rs-row span { flex: 1; } .rs-row b { font-size: 1.35rem; }
+.rs-row b.g { color: #5fd06d; } .rs-row b.r { color: #ff5d5d; }
+.rs-rw { display: flex; align-items: center; justify-content: space-around; gap: .8rem; height: calc(100% - .4rem); }
+.rs-big { position: relative; display: flex; flex-direction: column; align-items: center; } .rs-big img { height: 5rem; } .rs-big b { font-size: 2.1rem; font-family: 'Cinzel', serif; color: #ffd36a; }
+.rs-big small { font-size: 1.05rem; color: #e4e8ff; }
+.rs-big img.xp { height: 5rem; } .rs-big .xpb { position: absolute; top: 1.5rem; font-family: 'Cinzel', serif; font-weight: 900; font-size: 1.4rem; color: #ffd36a; text-shadow: 0 .1rem .2rem #000; }
+.rs-card { display: flex; flex-direction: column; align-items: center; } .rs-card .card { width: 7.5rem; font-size: .7rem; } .rs-card small { font-weight: 700; margin-top: .15rem; }
+.rs-odds { display: flex; flex-direction: column; gap: .08rem; font-size: .92rem; } .rs-odds b { font-size: .98rem; }
+.rs-odds i { display: inline-block; width: .55rem; height: .55rem; border-radius: 50%; margin-right: .35rem; }
+.rs-odds i.Common { background: var(--common); } .rs-odds i.Rare { background: var(--rare); } .rs-odds i.Epic { background: var(--epic); } .rs-odds i.Legendary { background: var(--legendary); } .rs-odds i.Mythic { background: var(--mythic); }
+.rs-odds small { display: flex; align-items: center; gap: .3rem; margin-top: .2rem; color: #ffe39a; } .rs-odds small img { height: 1.6rem; }
+.rs-x { font-weight: 700; color: #ffe39a; text-align: center; } .rs-x.g { color: #5fd06d; }
+.rs-rank, .rs .goals { display: flex; align-items: center; justify-content: center; gap: 1.6rem; margin: .5rem 0 .2rem; padding: .3rem 2rem; font-size: 1.4rem; font-weight: 700;
+  background: linear-gradient(90deg, transparent, rgba(4,8,30,.85) 12%, rgba(4,8,30,.85) 88%, transparent); }
+.rs-pts { display: flex; align-items: center; gap: .3rem; font-family: 'Cinzel', serif; font-weight: 900; font-size: 1.7rem; } .rs-pts img { height: 2.6rem; }
+.rs-pts.up { color: #ffd36a; } .rs-pts.down { color: #ff6b6b; }
+.rs-acts { display: flex; align-items: center; gap: 1rem; margin-top: .2rem; }
+.rs-acts .ibtn { min-width: 17rem; margin: 0; height: 3.5rem; font-size: 1.5rem; } .rs-acts .ibtn img { height: 2.2rem; }
+.sqbtn.big { width: 4.2rem; height: 4.2rem; padding: 0; border: 0; background: none; } .sqbtn.big img { width: 100%; height: 100%; }
+/* ================================================================ VS v2 */
+.vs2 { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr auto 1fr; grid-template-rows: auto 1fr auto; align-items: center; padding: 0 4rem 1.4rem; }
+.vs-logo { grid-column: 1 / 4; justify-self: center; height: 9rem; margin-top: .4rem; filter: drop-shadow(0 .4rem .6rem rgba(0,0,0,.6)); animation: pop .5s both; }
+.vs-side { display: flex; flex-direction: column; align-items: center; gap: .5rem; animation: vsin .55s ease-out both; }
+.vs-side.foe { animation-name: vsin2; }
+.vs-port { position: relative; width: 17rem; height: 17rem; }
+.vs-port > img:not(.vs-lau) { position: absolute; left: 14%; top: 6%; width: 72%; height: 72%; object-fit: cover; border-radius: 1rem; border: .3rem solid #e7b43c; box-shadow: 0 .5rem 1.2rem rgba(0,0,0,.7); }
+.vs-lau { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.vs-name { margin-top: -3.2rem; padding: .4rem 3.4rem; border-radius: .6rem; background: linear-gradient(rgba(10,14,34,.95), rgba(4,6,18,.95)); border: .15rem solid #d9a531; clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%); z-index: 1; }
+.vs-name .title { font-size: 2.1rem; text-transform: uppercase; }
+.vs-lg { display: flex; align-items: center; gap: .8rem; padding: .4rem 1.6rem .4rem .5rem; border-radius: .9rem; border: .14rem solid #d9a531; background: rgba(6,10,30,.92); }
+.vs-lg .lg-ico.big { width: 4.4rem; height: 4.4rem; } .vs-lg small { display: block; font-size: 1.1rem; } .vs-lg b { font-family: 'Cinzel', serif; font-size: 2rem; color: #ffd36a; }
+.vs-bar { padding: .2rem 2.4rem; border-radius: .6rem; font-weight: 700; border: .12rem solid #d9a531; } .vs-bar.b { background: linear-gradient(#1f3b8f, #0b1a4e); } .vs-bar.p { background: linear-gradient(#5b2290, #2a0b4e); }
+.vs-mid { position: relative; width: 11rem; height: 11rem; display: grid; place-items: center; animation: pop .6s .3s both; }
+.vs-sw { position: absolute; width: 100%; opacity: .9; }
+.vs-shield { position: relative; width: 7rem; height: 8rem; display: grid; place-items: center; font-family: 'Cinzel', serif; font-weight: 900; font-size: 3rem; color: #ffd36a; -webkit-text-stroke: .08rem #542b08;
+  background: url(../img/ui3/shield_crown.webp) center/contain no-repeat; text-shadow: 0 .2rem .3rem #000; padding-top: 1.4rem; }
+.vs-load { grid-column: 1 / 4; justify-self: center; width: min(46rem, 80%); text-align: center; padding: .4rem 1.4rem .7rem; border-radius: .8rem; border: .14rem solid #d9a531; background: rgba(6,10,30,.9); }
+.vs-load span { display: block; font-weight: 700; margin-bottom: .3rem; } .vs-pb { height: 1.1rem; border-radius: 1rem; background: #050a1e; border: .1rem solid #a8741a; overflow: hidden; }
+.vs-pb i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #2a6fe0, #9fd0ff 85%, #ffe39a); animation: vsfill 2.4s ease-in-out forwards; }
+@keyframes vsfill { to { width: 100%; } }
+.rs-tl { position: absolute; top: 50%; width: auto; height: 6rem; transform: translateY(-62%); opacity: 1; }
+.rs-tl.l { left: -6.2rem; } .rs-tl.r { right: -6.2rem; }
+.rs-banner { margin-top: .3rem; }
+.rs-banner h1 { font-size: 4rem; }
+.rs-cols { flex: 0 1 auto; margin-top: 1.4rem; }
+.rs-panel { overflow: visible; padding-top: 1.6rem; }
+.rs-h { top: -1.35rem; } .rs-h span { padding: .3rem 2.8rem; font-size: 1.25rem; }
+.rs-rw { height: auto; padding: .4rem 0; }
+.rs-rank { margin-top: .8rem; }
+.rs-acts { margin-top: auto; }
+.vs-port { width: 19rem; height: 16rem; }
+.vs-lau { inset: auto 0 0 0; height: 70%; top: 18%; }
+.vs-port > img:not(.vs-lau) { left: 19%; top: 2%; width: 62%; height: 80%; }
+.vs-name { margin-top: -2.4rem; }
+.vs-lau { inset: auto; top: 30%; height: 62%; width: auto; } .vs-lau.l { left: 2%; } .vs-lau.r { right: 2%; }
+.vs-port > img:not(.vs-lau) { left: 17%; width: 66%; z-index: 1; }
+.vs-port .vs-lau, .vs-lg img { border: 0; border-radius: 0; box-shadow: none; object-fit: contain; }
+/* ================================================================ batalha v2 */
+#hud .hb-name { font-family: 'Cinzel', serif; font-weight: 900; text-transform: uppercase; color: #ffd36a; text-shadow: 0 .08em 0 #542b08, 0 .12em .25em #000; }
+#hud .hb-score img { height: 1.3em; filter: drop-shadow(0 .05em .1em #000); }
+#hud .hb-btn.surr { padding: 0; background: none; border: 0; box-shadow: none; } #hud .hb-btn.surr img { width: 100%; height: 100%; object-fit: contain; }
+#hud .hb-btn.auto { display: flex; gap: .3em; } #hud .hb-btn.auto img { height: 1.5em; }
+#hud .hb-timer { font-family: 'Roboto Condensed', sans-serif; }
+#hud .hb-pilecards { background: url(../img/ui/cards.webp) center/contain no-repeat !important; border: 0 !important; box-shadow: none !important; }

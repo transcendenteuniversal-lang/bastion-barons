@@ -211,7 +211,7 @@
         <div class="rk-rec">${T('rk.record', st.wins, st.losses, st.draws)}${st.streak >= 2 ? '<br>' + T('rk.streak', st.streak) : ''}</div>
         ${logged ? `<button class="ibtn gold rk-play" id="rkPlay"><img src="img/ui/swords.webp" alt="">${T('rk.play')}</button>` : `<button class="ibtn gold rk-play" id="rkLogin">${T('rk.login')}</button>`}
         <div class="rk-status">${status || ''}</div>
-        ${logged ? `<div class="rk-acc"><div><img src="img/ui/info.webp" alt=""><small>${esc(C().email())}</small></div><a id="rkOut">${T('rk.logout')}</a> · <a id="rkDel">${T('rk.delete')}</a></div>` : ''}`;
+        ${logged ? `<div class="rk-acc"><div><img src="img/ui/info.webp" alt=""><small>${esc(C().email())}</small></div></div>` : ''}`;
       if (board) {
         list.innerHTML = board.top.map(RU.rowHtml).join('');
         const meE = board.top.find((e) => e.me);
@@ -381,11 +381,18 @@
     },
     vs(opp, ai) {
       const d = RU.data(), p = BB.profile;
-      const side = (name, baron, points, me) => { const li = R().league(points); return `<div class="vs-side ${me ? 'me' : 'foe'}">${me ? BB.Shop.img(BB.Shop.avatarPic(BB.profile)) : `<img src="${BB.art.baronUrl(baron)}" alt="">`}
-        <h2 class="title">${esc(name)}</h2><div>${RU.leagueImg(li)} ${RU.leagueName(li)}</div><b>${T('rk.points', points)}</b><small>${BB.baronName(baron)}</small></div>`; };
-      BB.ui.h.screen('matchmaking', `<div class="vs">${side(BB.playerName(p), p.selectedBaron, d.st.points, true)}<div class="vs-mid title">VS</div>${side(opp.name, opp.baron, opp.points, false)}</div>`);
+      const side = (name, pic, baron, points, me) => { const li = R().league(points); return `<div class="vs-side ${me ? 'me' : 'foe'}">
+        <div class="vs-port"><img class="vs-lau l" src="img/ui/laurel_l.webp" alt=""><img class="vs-lau r" src="img/ui/laurel_r.webp" alt="">${pic}</div>
+        <div class="vs-name"><span class="title">${esc(name)}</span></div>
+        <div class="vs-lg">${RU.leagueImg(li, 'big')}<div><small>${RU.leagueName(li)}</small><b>${T('rk.points', points)}</b></div></div>
+        <div class="vs-bar ${me ? 'b' : 'p'}">${BB.baronName(baron)}</div></div>`; };
+      BB.ui.h.screen('matchmaking', `<div class="vs2"><img class="vs-logo" src="img/ui3/logo.webp" alt="">
+        ${side(BB.playerName(p), BB.Shop.img(BB.Shop.baronPic(p, p.selectedBaron)), p.selectedBaron, d.st.points, true)}
+        <div class="vs-mid"><img src="img/ui3/swords.webp" class="vs-sw" alt=""><span class="vs-shield">VS</span></div>
+        ${side(opp.name, `<img src="${BB.art.baronUrl(opp.baron)}" alt="">`, opp.baron, opp.points, false)}
+        <div class="vs-load"><span>${T('rk.preparing')}</span><div class="vs-pb"><i></i></div></div></div>`, 'img/ui2/bg_valley.webp');
       BB.audio.play('castle');
-      setTimeout(() => { if (BB.ui.current() === 'matchmaking') BB.ui.show('battle', { difficulty: ai.difficulty, ranked: { opp, ai } }); }, 2300);
+      setTimeout(() => { if (BB.ui.current() === 'matchmaking') BB.ui.show('battle', { difficulty: ai.difficulty, ranked: { opp, ai } }); }, 2600);
     },
 
     // ------------------------------------------------------------ resultado
